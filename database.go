@@ -32,9 +32,6 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 		return nil, fmt.Errorf("could not open write pool: %w", err)
 	}
 
-	conn := writePool.Get(ctx)
-	defer writePool.Put(conn)
-
 	readPool, err := sqlitex.Open(uri, 0, runtime.NumCPU())
 	if err != nil {
 		return nil, fmt.Errorf("could not open read pool: %w", err)
@@ -45,25 +42,44 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 		read:  readPool,
 	}
 
+	schema := sqlitemigration.Schema{Migrations: migrations}
+
 	if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON;")
+		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON")
 		defer foreignKeysStmt.Finalize()
 		if hadRows, err := foreignKeysStmt.Step(); err != nil {
 			return fmt.Errorf("failed to enable foreign keys: %w", err)
 		} else if !hadRows {
 			return fmt.Errorf("failed to enable foreign keys: no rows")
 		}
+
+		if err := sqlitemigration.Migrate(ctx, tx, schema); err != nil {
+			return fmt.Errorf("failed to migrate database: %w", err)
+		}
+
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	schema := sqlitemigration.Schema{
-		Migrations: migrations,
-	}
+	// Double check that the database is in a good state.
+	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
+		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys")
+		defer foreignKeysStmt.Finalize()
+		if hadRows, err := foreignKeysStmt.Step(); err != nil {
+			return fmt.Errorf("failed to check foreign keys: %w", err)
+		} else if !hadRows {
+			return fmt.Errorf("failed to check foreign keys: no rows")
+		}
 
-	if err := sqlitemigration.Migrate(ctx, conn, schema); err != nil {
-		return nil, fmt.Errorf("could not migrate event store: %w", err)
+		hasForeignKeys := foreignKeysStmt.ColumnBool(0)
+		if !hasForeignKeys {
+			return fmt.Errorf("foreign keys are not enabled")
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to check database state: %w", err)
 	}
 
 	return db, nil
