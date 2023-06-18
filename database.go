@@ -47,10 +47,8 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON")
 		defer foreignKeysStmt.Finalize()
-		if hadRows, err := foreignKeysStmt.Step(); err != nil {
+		if _, err := foreignKeysStmt.Step(); err != nil {
 			return fmt.Errorf("failed to enable foreign keys: %w", err)
-		} else if !hadRows {
-			return fmt.Errorf("failed to enable foreign keys: no rows")
 		}
 
 		if err := sqlitemigration.Migrate(ctx, tx, schema); err != nil {
@@ -66,8 +64,10 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
 		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys")
 		defer foreignKeysStmt.Finalize()
-		if _, err := foreignKeysStmt.Step(); err != nil {
+		if hadRows, err := foreignKeysStmt.Step(); err != nil {
 			return fmt.Errorf("failed to check foreign keys: %w", err)
+		} else if !hadRows {
+			return fmt.Errorf("failed to check foreign keys: no rows")
 		}
 
 		hasForeignKeys := foreignKeysStmt.ColumnBool(0)
