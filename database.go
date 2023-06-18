@@ -42,8 +42,6 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 		read:  readPool,
 	}
 
-	schema := sqlitemigration.Schema{Migrations: migrations}
-
 	if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON")
 		defer foreignKeysStmt.Finalize()
@@ -51,14 +49,18 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 			return fmt.Errorf("failed to enable foreign keys: %w", err)
 		}
 
-		if err := sqlitemigration.Migrate(ctx, tx, schema); err != nil {
-			return fmt.Errorf("failed to migrate database: %w", err)
-		}
-
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
+
+	schema := sqlitemigration.Schema{Migrations: migrations}
+	conn := db.write.Get(ctx)
+	if err := sqlitemigration.Migrate(ctx, conn, schema); err != nil {
+		db.write.Put(conn)
+		return nil, fmt.Errorf("failed to migrate database: %w", err)
+	}
+	db.write.Put(conn)
 
 	// Double check that the database is in a good state.
 	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
