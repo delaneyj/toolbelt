@@ -89,9 +89,10 @@ var (
 )
 
 type (
-	CLSS  = c.Classes
-	NODE  = g.Node
-	NODES = []g.Node
+	CLSS       = c.Classes
+	NODE       = g.Node
+	NODES      = []g.Node
+	HTML5Props = c.HTML5Props
 )
 
 func GRP(children ...NODE) NODE {
