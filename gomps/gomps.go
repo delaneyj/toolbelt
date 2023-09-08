@@ -33,6 +33,7 @@ var (
 	TITLE       = h.TitleEl
 	HEAD        = h.Head
 	HTML        = h.HTML
+	HTML5       = c.HTML5
 	DOCTYPE     = h.Doctype
 	BODY        = h.Body
 	LANG        = h.Lang
