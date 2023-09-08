@@ -68,9 +68,9 @@ func RunHotReload(port int, onStartPath string) CtxErrFunc {
 }
 
 func CompressMiddleware() func(next http.Handler) http.Handler {
-	compress, errr := httpcompression.DefaultAdapter()
-	if errr != nil {
-		panic(errr)
+	compress, err := httpcompression.DefaultAdapter()
+	if err != nil {
+		panic(err)
 	}
 	return compress
 }

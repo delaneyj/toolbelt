@@ -8,6 +8,7 @@
         ".vscode-insiders",
     ],
     "cSpell.words": [
+        "cenkalti",
         "CENTERSVGTEXT",
         "CLSF",
         "CLSS",
@@ -19,6 +20,7 @@
         "goccy",
         "gomponents",
         "gomps",
+        "httpcompression",
         "iancoleman",
         "IDVT",
         "INTEGERTYPE",
