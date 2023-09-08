@@ -11,6 +11,7 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/iancoleman/strcase v0.3.0
 	github.com/linode/linodego v1.21.0
+	github.com/maragudk/gomponents v0.20.1
 	github.com/melbahja/goph v1.3.1
 	github.com/nats-io/nats-server/v2 v2.9.22
 	github.com/nats-io/nats.go v1.28.0
