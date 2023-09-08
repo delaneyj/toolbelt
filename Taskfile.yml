@@ -1,0 +1,14 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  VERSION: 0.0.6
+
+tasks:
+  default:
+    cmds:
+      - git tag v{{.VERSION}}
+      - git push --tags
+      - GOPROXY=proxy.golang.org go list -m github.com/delaneyj/toolbelt@v{{.VERSION}}
+    silent: true
