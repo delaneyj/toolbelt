@@ -3,11 +3,13 @@ module github.com/delaneyj/toolbelt
 go 1.21
 
 require (
+	github.com/CAFxX/httpcompression v0.0.9
 	github.com/autosegment/ksuid v1.1.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chewxy/math32 v1.10.1
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/go-ping/ping v1.1.0
+	github.com/go-rod/rod v0.114.3
 	github.com/goccy/go-json v0.10.2
 	github.com/iancoleman/strcase v0.3.0
 	github.com/linode/linodego v1.21.0
@@ -26,6 +28,7 @@ require (
 )
 
 require (
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -42,6 +45,11 @@ require (
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rzajac/clock v0.2.0 // indirect
+	github.com/ysmood/fetchup v0.2.3 // indirect
+	github.com/ysmood/goob v0.4.0 // indirect
+	github.com/ysmood/got v0.34.1 // indirect
+	github.com/ysmood/gson v0.7.3 // indirect
+	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.15.0 // indirect
