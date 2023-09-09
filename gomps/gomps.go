@@ -54,6 +54,7 @@ var (
 	TR          = h.Tr
 	TH          = h.Th
 	TD          = h.Td
+	STYLE       = h.StyleAttr
 
 	REQUIRED = h.Required()
 	DISABLED = h.Disabled()
@@ -86,6 +87,7 @@ var (
 	METHOD = h.Method
 	MIN    = h.Min
 	MAX    = h.Max
+	CODE   = h.Code
 )
 
 type (
@@ -94,6 +96,14 @@ type (
 	NODES      = []g.Node
 	HTML5Props = c.HTML5Props
 )
+
+func DATA(name, value string) NODE {
+	return ATTR("data-"+name, value)
+}
+
+func DATAF(name, format string, args ...interface{}) NODE {
+	return DATA(name, fmt.Sprintf(format, args...))
+}
 
 func GRP(children ...NODE) NODE {
 	return g.Group(children)
