@@ -3,11 +3,13 @@ package webui
 import (
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/alecthomas/chroma/v2/quick"
 	"github.com/delaneyj/toolbelt"
 	json "github.com/goccy/go-json"
 	g "github.com/maragudk/gomponents"
@@ -71,7 +73,8 @@ var (
 	H6 = h.H6
 	P  = h.P
 
-	PRE = h.Pre
+	PRE  = h.Pre
+	CODE = h.Code
 
 	UL = h.Ul
 	LI = h.Li
@@ -87,7 +90,6 @@ var (
 	METHOD = h.Method
 	MIN    = h.Min
 	MAX    = h.Max
-	CODE   = h.Code
 )
 
 type (
@@ -96,6 +98,37 @@ type (
 	NODES      = []g.Node
 	HTML5Props = c.HTML5Props
 )
+
+type Highlight struct {
+	Language string
+	Code     string
+	Style    string
+}
+
+var (
+	HighlightDefaultStyle = "gruvbox"
+)
+
+func (h Highlight) Render(w io.Writer) error {
+	buf := &strings.Builder{}
+	quick.Highlight(buf, h.Code, h.Language, "html", h.Style)
+	return PRE(CODE(TXT(buf.String()))).Render(w)
+}
+
+func HIGHLIGHT(language, code string) NODE {
+	h := Highlight{
+		Language: language,
+		Code:     code,
+		Style:    HighlightDefaultStyle,
+	}
+	h.Language = language
+	h.Code = code
+	return h
+}
+
+func STYLEF(format string, args ...interface{}) NODE {
+	return STYLE(fmt.Sprintf(format, args...))
+}
 
 func DATA(name, value string) NODE {
 	return ATTR("data-"+name, value)

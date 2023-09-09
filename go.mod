@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/CAFxX/httpcompression v0.0.9
+	github.com/alecthomas/chroma/v2 v2.9.1
 	github.com/autosegment/ksuid v1.1.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chewxy/math32 v1.10.1
@@ -29,6 +30,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
