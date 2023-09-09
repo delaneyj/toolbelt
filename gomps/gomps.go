@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alecthomas/chroma/formatters/html"
-	"github.com/alecthomas/chroma/lexers"
-	"github.com/alecthomas/chroma/styles"
+	"github.com/alecthomas/chroma/v2/formatters/html"
+	"github.com/alecthomas/chroma/v2/lexers"
+	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/delaneyj/toolbelt"
 	json "github.com/goccy/go-json"
 	g "github.com/maragudk/gomponents"
@@ -104,6 +104,7 @@ type Highlight struct {
 	Language string
 	Code     string
 	Style    string
+	Children NODES
 }
 
 var (
@@ -128,11 +129,18 @@ func (h Highlight) Render(w io.Writer) error {
 		html.Standalone(false),
 	)
 
-	return formatter.Format(w, style, iter)
+	buf := &strings.Builder{}
+	if err = formatter.Format(buf, style, iter); err != nil {
+		return fmt.Errorf("formatting code: %w", err)
+	}
 
+	return DIV(
+		RAW(buf.String()),
+		GRP(h.Children...),
+	).Render(w)
 }
 
-func HIGHLIGHT(language, code string) NODE {
+func HIGHLIGHT(language, code string, children ...NODE) NODE {
 	h := Highlight{
 		Language: language,
 		Code:     code,
