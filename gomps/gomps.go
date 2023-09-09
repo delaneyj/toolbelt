@@ -9,7 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alecthomas/chroma/v2/quick"
+	"github.com/alecthomas/chroma/formatters/html"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
 	"github.com/delaneyj/toolbelt"
 	json "github.com/goccy/go-json"
 	g "github.com/maragudk/gomponents"
@@ -98,7 +100,6 @@ type (
 	NODES      = []g.Node
 	HTML5Props = c.HTML5Props
 )
-
 type Highlight struct {
 	Language string
 	Code     string
@@ -110,9 +111,25 @@ var (
 )
 
 func (h Highlight) Render(w io.Writer) error {
-	buf := &strings.Builder{}
-	quick.Highlight(buf, h.Code, h.Language, "html", h.Style)
-	return PRE(CODE(TXT(buf.String()))).Render(w)
+	lexer := lexers.Get(h.Language)
+	if lexer == nil {
+		lexer = lexers.Fallback
+	}
+	style := styles.Get(HighlightDefaultStyle)
+
+	iter, err := lexer.Tokenise(nil, h.Code)
+	if err != nil {
+		return err
+	}
+
+	formatter := html.New(
+		html.TabWidth(2),
+		html.WithLineNumbers(true),
+		html.Standalone(false),
+	)
+
+	return formatter.Format(w, style, iter)
+
 }
 
 func HIGHLIGHT(language, code string) NODE {
