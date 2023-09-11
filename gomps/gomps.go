@@ -84,8 +84,12 @@ var (
 	ID  = h.ID
 	ALT = h.Alt
 
+	DETAILS = h.Details
+	SUMMARY = h.Summary
+
 	FORM   = h.FormEl
 	INPUT  = h.Input
+	FOR    = h.For
 	TYPE   = h.Type
 	VALUE  = h.Value
 	ACTION = h.Action
