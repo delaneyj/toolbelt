@@ -85,6 +85,7 @@ var (
 	ALT = h.Alt
 
 	DETAILS = h.Details
+	OPEN    = ATTR("open")
 	SUMMARY = h.Summary
 
 	FORM   = h.FormEl
@@ -227,7 +228,7 @@ func SAFE(text string) NODE {
 	return g.Raw(text)
 }
 
-type NodeFn func() NODE
+type NodeFn func(children ...NODE) NODE
 
 func TERN(cond bool, ifTrue, ifFalse NodeFn) NODE {
 	if cond {
