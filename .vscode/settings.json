@@ -39,12 +39,15 @@
         "protojson",
         "protoreflect",
         "RANGEI",
+        "sqlitemigration",
+        "sqlitex",
         "strcase",
         "STROKEWIDTH",
         "STYLEF",
         "TBODY",
         "TEXTANCHOR",
         "THEAD",
+        "timestamppb",
         "Tokenise",
         "toolbelt",
         "TXTF",
@@ -54,6 +57,7 @@
         "VIEWBOXF",
         "webui",
         "wisshes",
-        "zeebo"
+        "zeebo",
+        "zombiezen"
     ]
 }

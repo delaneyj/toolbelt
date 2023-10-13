@@ -62,26 +62,6 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	}
 	db.write.Put(conn)
 
-	// Double check that the database is in a good state.
-	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
-		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys")
-		defer foreignKeysStmt.Finalize()
-		if hadRows, err := foreignKeysStmt.Step(); err != nil {
-			return fmt.Errorf("failed to check foreign keys: %w", err)
-		} else if !hadRows {
-			return fmt.Errorf("failed to check foreign keys: no rows")
-		}
-
-		hasForeignKeys := foreignKeysStmt.ColumnBool(0)
-		if !hasForeignKeys {
-			return fmt.Errorf("foreign keys are not enabled")
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("failed to check database state: %w", err)
-	}
-
 	return db, nil
 }
 
