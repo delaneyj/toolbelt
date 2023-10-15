@@ -9,6 +9,7 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chewxy/math32 v1.10.1
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-ping/ping v1.1.0
 	github.com/go-rod/rod v0.114.4
 	github.com/goccy/go-json v0.10.2
@@ -20,6 +21,7 @@ require (
 	github.com/nats-io/nats.go v1.30.2
 	github.com/rzajac/zflake v0.8.0
 	github.com/samber/lo v1.38.1
+	github.com/valyala/fasttemplate v1.2.2
 	github.com/zeebo/xxh3 v1.0.2
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/sync v0.4.0
@@ -29,13 +31,13 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/go-resty/resty/v2 v2.9.1 // indirect
+	github.com/go-resty/resty/v2 v2.10.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.1 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -47,6 +49,7 @@ require (
 	github.com/pkg/sftp v1.13.6 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rzajac/clock v0.2.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/got v0.36.2 // indirect
