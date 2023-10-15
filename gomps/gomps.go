@@ -1,4 +1,4 @@
-package webui
+package gomps
 
 import (
 	"errors"
@@ -160,8 +160,8 @@ func STYLEF(format string, args ...interface{}) NODE {
 	return STYLE(fmt.Sprintf(format, args...))
 }
 
-func DATA(name, value string) NODE {
-	return ATTR("data-"+name, value)
+func DATA(name string, value ...string) NODE {
+	return ATTR("data-"+name, value...)
 }
 
 func DATAF(name, format string, args ...interface{}) NODE {
