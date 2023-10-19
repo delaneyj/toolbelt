@@ -97,6 +97,8 @@ var (
 	METHOD = h.Method
 	MIN    = h.Min
 	MAX    = h.Max
+
+	CANVAS = h.Canvas
 )
 
 type (
@@ -427,6 +429,10 @@ func X(v float64) NODE {
 
 func Y(v float64) NODE {
 	return ATTR("y", fmt.Sprintf("%f", v))
+}
+
+func RECT(children ...NODE) NODE {
+	return g.El("rect", children...)
 }
 
 func STROKE(v string) NODE {

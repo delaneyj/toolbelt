@@ -16,7 +16,7 @@ type HotReloadOptions struct {
 	Retry time.Duration
 }
 
-func Reload(opts *HotReloadOptions) (gomps.NODE, func(context.Context, *chi.Mux) error) {
+func SetupReload(opts *HotReloadOptions) (gomps.NODE, func(context.Context, *chi.Mux) error) {
 	if opts == nil {
 		opts = &HotReloadOptions{
 			URL:   "/hot",

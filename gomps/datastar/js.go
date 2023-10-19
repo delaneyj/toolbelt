@@ -2,6 +2,8 @@ package datastar
 
 import (
 	_ "embed"
+	"fmt"
+	"strings"
 
 	"github.com/delaneyj/toolbelt/gomps"
 )
@@ -33,5 +35,16 @@ func LatestRunAllPlugins() gomps.NODE {
 			gomps.TYPE("module"),
 			gomps.RAW(`runDatastarWithAllPlugins()`),
 		),
+	)
+}
+
+func AsyncThunk(asyncFuncLines string) string {
+	lines := strings.Split(asyncFuncLines, "\n")
+	for i, line := range lines {
+		lines[i] = fmt.Sprintf("\t%s", line)
+	}
+	return fmt.Sprintf(
+		"(async()=> {\n%s})()",
+		strings.Join(lines, "\n"),
 	)
 }
