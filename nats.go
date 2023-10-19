@@ -121,8 +121,8 @@ func (tkv *TypedKV[T]) Keys() ([]string, error) {
 	return keys, nil
 }
 
-func (t *TypedKV[T]) Get(key string) (T, uint64, error) {
-	entry, err := t.kv.Get(key)
+func (tkv *TypedKV[T]) Get(key string) (T, uint64, error) {
+	entry, err := tkv.kv.Get(key)
 	if err != nil {
 		if err == nats.ErrKeyNotFound {
 			var out T
@@ -130,23 +130,31 @@ func (t *TypedKV[T]) Get(key string) (T, uint64, error) {
 		}
 	}
 
+	out, err := tkv.unmarshal(entry)
+	if err != nil {
+		return out, 0, err
+	}
+
+	return out, entry.Revision(), nil
+}
+
+func (tkv *TypedKV[T]) unmarshal(entry nats.KeyValueEntry) (T, error) {
 	if entry == nil {
 		var out T
-		return out, 0, nil
+		return out, nil
 	}
 
 	b := entry.Value()
 	if b == nil {
 		var out T
-		return out, 0, nil
+		return out, nil
 	}
 
-	out := t.newFn()
-	if err = proto.Unmarshal(b, out); err != nil {
-		return out, 0, err
+	t := tkv.newFn()
+	if err := proto.Unmarshal(b, t); err != nil {
+		return t, err
 	}
-
-	return out, entry.Revision(), nil
+	return t, nil
 }
 
 func (tkv *TypedKV[T]) Load(keys ...string) (loaded []T, err error) {
@@ -214,6 +222,43 @@ func (tkv *TypedKV[T]) DeleteKey(key string) (err error) {
 
 func (tkv *TypedKV[T]) Delete(value T) (err error) {
 	return tkv.kv.Delete(tkv.getIdFn(value))
+}
+
+func (tkv *TypedKV[T]) watch(ctx context.Context, w nats.KeyWatcher) (values <-chan T, stop func() error, err error) {
+	ch := make(chan T)
+	updates := w.Updates()
+	go func(ctx context.Context, w nats.KeyWatcher) error {
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case entry := <-updates:
+				t, err := tkv.unmarshal(entry)
+				if err != nil {
+					return err
+				}
+				ch <- t
+			}
+		}
+	}(ctx, w)
+
+	return ch, w.Stop, nil
+}
+
+func (tkv *TypedKV[T]) Watch(ctx context.Context, key string, opts ...nats.WatchOpt) (values <-chan T, stop func() error, err error) {
+	w, err := tkv.kv.Watch(key, opts...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to watch key %s: %w", key, err)
+	}
+	return tkv.watch(ctx, w)
+}
+
+func (tkv *TypedKV[T]) WatchAll(ctx context.Context, opts ...nats.WatchOpt) (values <-chan T, stop func() error, err error) {
+	w, err := tkv.kv.WatchAll(opts...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to watch all: %w", err)
+	}
+	return tkv.watch(ctx, w)
 }
 
 func UpsertStream(js nats.JetStreamContext, cfg *nats.StreamConfig) (si *nats.StreamInfo, err error) {
