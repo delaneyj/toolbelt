@@ -1,6 +1,8 @@
 package datastar
 
 import (
+	"strings"
+
 	"github.com/delaneyj/toolbelt/gomps"
 	"github.com/goccy/go-json"
 )
@@ -11,8 +13,9 @@ func MergeStore(m any) gomps.NODE {
 		panic(err)
 	}
 	s := string(b)
+	s = strings.ReplaceAll(s, "\"", "'")
 
-	return gomps.DATA("merge-store", s)
+	return gomps.ATTR_RAW("data-merge-store", s)
 }
 
 func Ref(name string) gomps.NODE {

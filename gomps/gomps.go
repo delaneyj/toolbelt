@@ -14,6 +14,7 @@ import (
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/delaneyj/toolbelt"
 	json "github.com/goccy/go-json"
+	"github.com/maragudk/gomponents"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -445,4 +446,42 @@ func STROKEWIDTH(v float64) NODE {
 
 func FILL(v string) NODE {
 	return ATTR("fill", v)
+}
+
+func ATTR_RAW(name string, value ...string) NODE {
+	switch len(value) {
+	case 0:
+		return &attrRaw{name: name}
+	case 1:
+		return &attrRaw{name: name, value: &value[0]}
+	default:
+		panic("attribute must be just name or name and value pair")
+	}
+}
+
+type attrRaw struct {
+	name  string
+	value *string
+}
+
+// Render satisfies Node.
+func (a *attrRaw) Render(w io.Writer) error {
+	if a.value == nil {
+		_, err := w.Write([]byte(" " + a.name))
+		return err
+	}
+	_, err := w.Write([]byte(" " + a.name + `="` + *a.value + `"`))
+	return err
+}
+
+// Type satisfies nodeTypeDescriber.
+func (a *attrRaw) Type() gomponents.NodeType {
+	return gomponents.AttributeType
+}
+
+// String satisfies fmt.Stringer.
+func (a *attrRaw) String() string {
+	var b strings.Builder
+	_ = a.Render(&b)
+	return b.String()
 }

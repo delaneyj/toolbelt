@@ -41,7 +41,7 @@ func LatestRunAllPlugins() gomps.NODE {
 func AsyncThunk(asyncFuncLines string) string {
 	lines := strings.Split(asyncFuncLines, "\n")
 	for i, line := range lines {
-		lines[i] = fmt.Sprintf("\t%s", line)
+		lines[i] = fmt.Sprintf("\t%s", strings.TrimSpace(line))
 	}
 	return fmt.Sprintf(
 		"(async()=> {\n%s})()",
