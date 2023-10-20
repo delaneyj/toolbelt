@@ -14,7 +14,6 @@ import (
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/delaneyj/toolbelt"
 	json "github.com/goccy/go-json"
-	"github.com/maragudk/gomponents"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -475,8 +474,8 @@ func (a *attrRaw) Render(w io.Writer) error {
 }
 
 // Type satisfies nodeTypeDescriber.
-func (a *attrRaw) Type() gomponents.NodeType {
-	return gomponents.AttributeType
+func (a *attrRaw) Type() g.NodeType {
+	return g.AttributeType
 }
 
 // String satisfies fmt.Stringer.
@@ -484,4 +483,13 @@ func (a *attrRaw) String() string {
 	var b strings.Builder
 	_ = a.Render(&b)
 	return b.String()
+}
+
+func SSE(sse *toolbelt.ServerSentEventsHandler, n NODE) error {
+	buf := strings.Builder{}
+	if err := n.Render(&buf); err != nil {
+		return fmt.Errorf("failed to render: %w", err)
+	}
+	sse.Send(buf.String())
+	return nil
 }

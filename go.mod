@@ -18,7 +18,7 @@ require (
 	github.com/maragudk/gomponents v0.20.1
 	github.com/melbahja/goph v1.4.0
 	github.com/nats-io/nats-server/v2 v2.10.3
-	github.com/nats-io/nats.go v1.30.2
+	github.com/nats-io/nats.go v1.31.0
 	github.com/rzajac/zflake v0.8.0
 	github.com/samber/lo v1.38.1
 	github.com/valyala/fasttemplate v1.2.2
@@ -26,7 +26,7 @@ require (
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/sync v0.4.0
 	google.golang.org/protobuf v1.31.0
-	k8s.io/apimachinery v0.28.2
+	k8s.io/apimachinery v0.28.3
 	zombiezen.com/go/sqlite v0.13.1
 )
 
@@ -40,7 +40,7 @@ require (
 	github.com/klauspost/compress v1.17.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.5.2 // indirect
 	github.com/nats-io/nkeys v0.4.5 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
-	github.com/ysmood/got v0.36.2 // indirect
+	github.com/ysmood/got v0.36.3 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect

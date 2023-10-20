@@ -28,7 +28,7 @@ func ServerSentEvents(expression string) gomps.NODE {
 }
 
 func FragmentSelector(querySelector string) gomps.NODE {
-	return gomps.DATA("selector", querySelector)
+	return gomps.DATA("fragment-selector", querySelector)
 }
 
 type FragmentSwapType string
@@ -45,5 +45,5 @@ const (
 )
 
 func FragmentSwap(swapType FragmentSwapType) gomps.NODE {
-	return gomps.DATA("swap", string(swapType))
+	return gomps.DATA("fragment-swap", string(swapType))
 }

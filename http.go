@@ -74,3 +74,83 @@ func CompressMiddleware() func(next http.Handler) http.Handler {
 	}
 	return compress
 }
+
+type ServerSentEventsHandler struct {
+	w                   http.ResponseWriter
+	flusher             http.Flusher
+	usingCompression    bool
+	compressionMinBytes int
+}
+
+func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		panic("response writer does not support flushing")
+	}
+	w.Header().Set("Content-Encoding", "")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	flusher.Flush()
+
+	return &ServerSentEventsHandler{
+		w:                   w,
+		flusher:             flusher,
+		usingCompression:    len(r.Header.Get("Accept-Encoding")) > 0,
+		compressionMinBytes: 256,
+	}
+}
+
+type SSEEvent struct {
+	Id    string
+	Event string
+	Data  string
+	Retry time.Duration
+}
+
+type SSEEventOption func(*SSEEvent)
+
+func SSEEventId(id string) SSEEventOption {
+	return func(e *SSEEvent) {
+		e.Id = id
+	}
+}
+
+func SSEEventEvent(event string) SSEEventOption {
+	return func(e *SSEEvent) {
+		e.Event = event
+	}
+}
+
+func SSEEventRetry(retry time.Duration) SSEEventOption {
+	return func(e *SSEEvent) {
+		e.Retry = retry
+	}
+}
+
+func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
+	evt := SSEEvent{
+		Id:    fmt.Sprintf("%d", NextID()),
+		Event: "",
+		Data:  data,
+		Retry: time.Second,
+	}
+	for _, opt := range opts {
+		opt(&evt)
+	}
+
+	prefix := fmt.Sprintf("event: %s\nid: %s\ndata: %s", evt.Event, evt.Id, data)
+	suffix := fmt.Sprintf("\nretry: %d\n\n", evt.Retry.Milliseconds())
+	length := len(prefix) + len(suffix)
+
+	sb := strings.Builder{}
+	sb.WriteString(prefix)
+	if sse.usingCompression && length < sse.compressionMinBytes {
+		sb.Write(make([]byte, sse.compressionMinBytes-length))
+	}
+	sb.WriteString(suffix)
+	eventFormatted := sb.String()
+	sse.w.Write([]byte(eventFormatted))
+	sse.flusher.Flush()
+}
