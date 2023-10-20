@@ -230,9 +230,23 @@ func SAFE(text string) NODE {
 	return g.Raw(text)
 }
 
-type NodeFn func(children ...NODE) NODE
+type NodeCb func() NODE
 
-func TERN(cond bool, ifTrue, ifFalse NodeFn) NODE {
+func IF(cond bool, ifTrue NodeCb) NODE {
+	if cond {
+		return ifTrue()
+	}
+	return nil
+}
+
+func IFCachedNode(cond bool, ifTrue NODE) NODE {
+	if cond {
+		return ifTrue
+	}
+	return nil
+}
+
+func TERN(cond bool, ifTrue, ifFalse NodeCb) NODE {
 	if cond {
 		return ifTrue()
 	}
@@ -280,20 +294,6 @@ func RANGEI[T any](ts []T, cb func(i int, item T) NODE) NODE {
 		nodes = append(nodes, cb(i, t))
 	}
 	return GRP(nodes...)
-}
-
-func IF(cond bool, ifTrue NodeFn) NODE {
-	if cond {
-		return ifTrue()
-	}
-	return nil
-}
-
-func IFCachedNode(cond bool, ifTrue NODE) NODE {
-	if cond {
-		return ifTrue
-	}
-	return nil
 }
 
 func ERR(errs ...error) NODE {
@@ -485,7 +485,7 @@ func (a *attrRaw) String() string {
 	return b.String()
 }
 
-func SSE(sse *toolbelt.ServerSentEventsHandler, n NODE) error {
+func ServerSentNode(sse *toolbelt.ServerSentEventsHandler, n NODE) error {
 	buf := strings.Builder{}
 	if err := n.Render(&buf); err != nil {
 		return fmt.Errorf("failed to render: %w", err)
