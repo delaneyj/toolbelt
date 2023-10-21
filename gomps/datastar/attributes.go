@@ -6,6 +6,10 @@ import (
 	"github.com/delaneyj/toolbelt/gomps"
 )
 
+func Bind(attributeName, expression string) gomps.NODE {
+	return gomps.DATA("bind-"+attributeName, expression)
+}
+
 func Model(expression string) gomps.NODE {
 	return gomps.DATA("model", expression)
 }

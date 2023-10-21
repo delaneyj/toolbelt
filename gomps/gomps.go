@@ -230,6 +230,7 @@ func SAFE(text string) NODE {
 	return g.Raw(text)
 }
 
+type NodeFunc func(...NODE) NODE
 type NodeCb func() NODE
 
 func IF(cond bool, ifTrue NodeCb) NODE {
