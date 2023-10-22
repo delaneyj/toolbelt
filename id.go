@@ -17,7 +17,7 @@ func NextID() int64 {
 	if flake == nil {
 		id, err := machineid.ID()
 		if err != nil {
-			panic(err)
+			id = time.Now().Format(time.RFC3339Nano)
 		}
 		h := xxh3.HashString(id) % (1 << zflake.BitLenGID)
 		h16 := uint16(h)
