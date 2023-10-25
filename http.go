@@ -80,6 +80,8 @@ type ServerSentEventsHandler struct {
 	flusher             http.Flusher
 	usingCompression    bool
 	compressionMinBytes int
+	shouldLogPanics     bool
+	hasPanicked         bool
 }
 
 func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
@@ -87,11 +89,9 @@ func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
 	if !ok {
 		panic("response writer does not support flushing")
 	}
-	w.Header().Set("Content-Encoding", "")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Transfer-Encoding", "chunked")
 	flusher.Flush()
 
 	return &ServerSentEventsHandler{
@@ -99,6 +99,7 @@ func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
 		flusher:             flusher,
 		usingCompression:    len(r.Header.Get("Accept-Encoding")) > 0,
 		compressionMinBytes: 256,
+		shouldLogPanics:     true,
 	}
 }
 
@@ -130,6 +131,19 @@ func SSEEventRetry(retry time.Duration) SSEEventOption {
 }
 
 func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
+	if sse.hasPanicked {
+		return
+	}
+	defer func() {
+		// Can happen if the client closes the connection or
+		// other middleware panics during flush (such as compression)
+		// Not ideal, but we can't do much about it
+		if r := recover(); r != nil && sse.shouldLogPanics {
+			sse.hasPanicked = true
+			log.Printf("recovered from panic: %v", r)
+		}
+	}()
+
 	evt := SSEEvent{
 		Id:    fmt.Sprintf("%d", NextID()),
 		Event: "",
