@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	GET_ACTION    = "@get"
-	POST_ACTION   = "@post"
-	PUT_ACTION    = "@put"
-	PATCH_ACTION  = "@patch"
-	DELETE_ACTION = "@delete"
+	GET_ACTION    = "$$get"
+	POST_ACTION   = "$$post"
+	PUT_ACTION    = "$$put"
+	PATCH_ACTION  = "$$patch"
+	DELETE_ACTION = "$$delete"
 )
 
 func Header(header, expression string) gomps.NODE {

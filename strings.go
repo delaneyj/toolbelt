@@ -30,6 +30,15 @@ func Lower(s string) string {
 	return strings.ToLower(s)
 }
 
+type CasedFn func(string) string
+
+func Cased(s string, fn ...CasedFn) string {
+	for _, f := range fn {
+		s = f(s)
+	}
+	return s
+}
+
 type CasedString struct {
 	Original string
 	Pascal   string
@@ -40,7 +49,7 @@ type CasedString struct {
 	Lower    string
 }
 
-func Cased(s string) CasedString {
+func ToCasedString(s string) CasedString {
 	return CasedString{
 		Original: s,
 		Pascal:   Pascal(s),

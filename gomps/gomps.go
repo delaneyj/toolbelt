@@ -340,6 +340,7 @@ func ROWS(rows int) NODE {
 }
 
 func Render(w http.ResponseWriter, node NODE) {
+	w.Header().Set("Content-Type", "text/html")
 	err := node.Render(w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
