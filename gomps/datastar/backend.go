@@ -1,9 +1,7 @@
 package datastar
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/delaneyj/toolbelt"
 	"github.com/delaneyj/toolbelt/gomps"
@@ -30,10 +28,6 @@ func ServerSentEvents(expression string) gomps.NODE {
 	return gomps.DATA("sse", fmt.Sprintf(`'%s'`, expression))
 }
 
-func FragmentSelector(querySelector string) gomps.NODE {
-	return gomps.DATA("fragment-selector", querySelector)
-}
-
 type FragmentSwapType string
 
 const (
@@ -47,27 +41,20 @@ const (
 	FragmentSwapDelete  FragmentSwapType = "delete"
 )
 
-func FragmentSwap(swapType FragmentSwapType) gomps.NODE {
-	return gomps.DATA("fragment-swap", string(swapType))
-}
+const FragmentTarget = "self"
 
-func RenderFragment(sse *toolbelt.ServerSentEventsHandler, child gomps.NODE) error {
+func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string, swap FragmentSwapType, child gomps.NODE) error {
 	buf := bytebufferpool.Get()
 	defer bytebufferpool.Put(buf)
 	if err := child.Render(buf); err != nil {
 		return fmt.Errorf("failed to render: %w", err)
 	}
-	sse.Send(buf.String(), toolbelt.SSEEventSkipMinBytesCheck(true))
+	sse.Send(
+		buf.String(),
+		toolbelt.SSEEventId(querySelector),
+		toolbelt.SSEEventEvent(string(swap)),
+		toolbelt.SSEEventRetry(0),
+		toolbelt.SSEEventSkipMinBytesCheck(true),
+	)
 	return nil
-}
-
-func RenderFragments(w http.ResponseWriter, r *http.Request, children ...gomps.NODE) error {
-	sse := toolbelt.NewSSE(w, r)
-	errs := make([]error, len(children))
-
-	for i, child := range children {
-		errs[i] = RenderFragment(sse, child)
-	}
-
-	return errors.Join(errs...)
 }
