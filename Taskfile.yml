@@ -3,7 +3,7 @@
 version: "3"
 
 vars:
-  VERSION: 0.0.29
+  VERSION: 0.0.30
 
 tasks:
   bump:
