@@ -154,8 +154,23 @@ func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
 		opt(&evt)
 	}
 
-	prefix := fmt.Sprintf("event: %s\nid: %s\ndata: %s", evt.Event, evt.Id, data)
-	suffix := fmt.Sprintf("\nretry: %d\n\n", evt.Retry.Milliseconds())
+	prefixSB := strings.Builder{}
+	if evt.Event != "" {
+		prefixSB.WriteString(fmt.Sprintf("event: %s\n", evt.Event))
+	}
+	if evt.Id != "" {
+		prefixSB.WriteString(fmt.Sprintf("id: %s\n", evt.Id))
+	}
+	prefixSB.WriteString(fmt.Sprintf("data: %s", evt.Data))
+
+	suffixSB := strings.Builder{}
+	if evt.Retry.Milliseconds() > 0 {
+		suffixSB.WriteString(fmt.Sprintf("\nretry: %d", evt.Retry.Milliseconds()))
+	}
+	suffixSB.WriteString("\n\n")
+
+	prefix := prefixSB.String()
+	suffix := suffixSB.String()
 	length := len(prefix) + len(suffix)
 
 	sb := strings.Builder{}
