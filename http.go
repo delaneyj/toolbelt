@@ -104,10 +104,11 @@ func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
 }
 
 type SSEEvent struct {
-	Id    string
-	Event string
-	Data  string
-	Retry time.Duration
+	Id                string
+	Event             string
+	Data              string
+	Retry             time.Duration
+	SkipMinBytesCheck bool
 }
 
 type SSEEventOption func(*SSEEvent)
@@ -127,6 +128,12 @@ func SSEEventEvent(event string) SSEEventOption {
 func SSEEventRetry(retry time.Duration) SSEEventOption {
 	return func(e *SSEEvent) {
 		e.Retry = retry
+	}
+}
+
+func SSEEventSkipMinBytesCheck(skip bool) SSEEventOption {
+	return func(e *SSEEvent) {
+		e.SkipMinBytesCheck = skip
 	}
 }
 
@@ -175,8 +182,14 @@ func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
 
 	sb := strings.Builder{}
 	sb.WriteString(prefix)
-	if sse.usingCompression && length < sse.compressionMinBytes {
-		sb.Write(make([]byte, sse.compressionMinBytes-length))
+	if evt.SkipMinBytesCheck {
+		if sse.usingCompression && length < sse.compressionMinBytes {
+			buf := make([]byte, sse.compressionMinBytes-length)
+			for i := range buf {
+				buf[i] = ' '
+			}
+			sb.Write(buf)
+		}
 	}
 	sb.WriteString(suffix)
 	eventFormatted := sb.String()
