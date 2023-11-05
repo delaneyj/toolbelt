@@ -3,7 +3,6 @@ package datastar
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/delaneyj/toolbelt/gomps"
 	"github.com/go-sanitize/sanitize"
@@ -12,14 +11,11 @@ import (
 )
 
 func MergeStore(m any) gomps.NODE {
-	b, err := json.MarshalIndent(m, " ", "")
+	b, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
-	s := string(b)
-	s = strings.ReplaceAll(s, "\"", "'")
-
-	return gomps.ATTR_RAW("data-merge-store", s)
+	return gomps.DATA("merge-store", string(b))
 }
 
 func QueryStringUnmarshal(r *http.Request, store any) error {

@@ -16,7 +16,7 @@ func CDN() gomps.NODE {
 		gomps.TYPE("module"),
 		gomps.RAW(`
 import  { runDatastarWithAllPlugins }  from 'https://cdn.jsdelivr.net/npm/@sudodevnull/datastar/+esm'
-runDatastarWithAllPlugins()
+window.datastar = runDatastarWithAllPlugins()
 		`),
 	)
 }

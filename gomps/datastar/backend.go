@@ -28,22 +28,26 @@ func ServerSentEvents(expression string) gomps.NODE {
 	return gomps.DATA("sse", fmt.Sprintf(`'%s'`, expression))
 }
 
-type FragmentSwapType string
+type FragmentMergeType string
 
 const (
-	FragmentSwapMorph   FragmentSwapType = "morph"
-	FragmentSwapInner   FragmentSwapType = "inner"
-	FragmentSwapOuter   FragmentSwapType = "outer"
-	FragmentSwapPrepend FragmentSwapType = "prepend"
-	FragmentSwapAppend  FragmentSwapType = "append"
-	FragmentSwapBefore  FragmentSwapType = "before"
-	FragmentSwapAfter   FragmentSwapType = "after"
-	FragmentSwapDelete  FragmentSwapType = "delete"
+	FragmentMergeMorphElement     FragmentMergeType = "morph_element"
+	FragmentMergeInnerElement     FragmentMergeType = "inner_element"
+	FragmentMergeOuterElement     FragmentMergeType = "outer_element"
+	FragmentMergePrependElement   FragmentMergeType = "prepend_element"
+	FragmentMergeAppendElement    FragmentMergeType = "append_element"
+	FragmentMergeBeforeElement    FragmentMergeType = "before_element"
+	FragmentMergeAfterElement     FragmentMergeType = "after_element"
+	FragmentMergeDeleteElement    FragmentMergeType = "delete_element"
+	FragmentMergeUpsertAttributes FragmentMergeType = "upsert_attributes"
 )
 
-const FragmentTarget = "self"
+const (
+	FragmentSelectorSelf  = "self"
+	FragmentSelectorUseID = ""
+)
 
-func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string, swap FragmentSwapType, child gomps.NODE) error {
+func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string, swap FragmentMergeType, child gomps.NODE) error {
 	buf := bytebufferpool.Get()
 	defer bytebufferpool.Put(buf)
 	if err := child.Render(buf); err != nil {
