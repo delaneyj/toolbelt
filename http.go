@@ -1,6 +1,7 @@
 package toolbelt
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -106,39 +107,43 @@ func NewSSE(w http.ResponseWriter, r *http.Request) *ServerSentEventsHandler {
 type SSEEvent struct {
 	Id                string
 	Event             string
-	Data              string
+	Data              []string
 	Retry             time.Duration
 	SkipMinBytesCheck bool
 }
 
 type SSEEventOption func(*SSEEvent)
 
-func SSEEventId(id string) SSEEventOption {
+func WithSSEId(id string) SSEEventOption {
 	return func(e *SSEEvent) {
 		e.Id = id
 	}
 }
 
-func SSEEventEvent(event string) SSEEventOption {
+func WithSSEEvent(event string) SSEEventOption {
 	return func(e *SSEEvent) {
 		e.Event = event
 	}
 }
 
-func SSEEventRetry(retry time.Duration) SSEEventOption {
+func WithSSERetry(retry time.Duration) SSEEventOption {
 	return func(e *SSEEvent) {
 		e.Retry = retry
 	}
 }
 
-func SSEEventSkipMinBytesCheck(skip bool) SSEEventOption {
+func WithSSESkipMinBytesCheck(skip bool) SSEEventOption {
 	return func(e *SSEEvent) {
 		e.SkipMinBytesCheck = skip
 	}
 }
 
 func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
-	if sse.hasPanicked {
+	sse.SendMultiData([]string{data}, opts...)
+}
+
+func (sse *ServerSentEventsHandler) SendMultiData(dataArr []string, opts ...SSEEventOption) {
+	if sse.hasPanicked && len(dataArr) > 0 {
 		return
 	}
 	defer func() {
@@ -154,45 +159,64 @@ func (sse *ServerSentEventsHandler) Send(data string, opts ...SSEEventOption) {
 	evt := SSEEvent{
 		Id:    fmt.Sprintf("%d", NextID()),
 		Event: "",
-		Data:  data,
+		Data:  dataArr,
 		Retry: time.Second,
 	}
 	for _, opt := range opts {
 		opt(&evt)
 	}
 
-	prefixSB := strings.Builder{}
+	totalSize := 0
+
 	if evt.Event != "" {
-		prefixSB.WriteString(fmt.Sprintf("event: %s\n", evt.Event))
+		evtFmt := fmt.Sprintf("event: %s\n", evt.Event)
+		eventSize, err := sse.w.Write([]byte(evtFmt))
+		if err != nil {
+			panic(fmt.Sprintf("failed to write event: %v", err))
+		}
+		totalSize += eventSize
 	}
 	if evt.Id != "" {
-		prefixSB.WriteString(fmt.Sprintf("id: %s\n", evt.Id))
-	}
-	prefixSB.WriteString(fmt.Sprintf("data: %s", evt.Data))
-
-	suffixSB := strings.Builder{}
-	if evt.Retry.Milliseconds() > 0 {
-		suffixSB.WriteString(fmt.Sprintf("\nretry: %d", evt.Retry.Milliseconds()))
-	}
-	suffixSB.WriteString("\n\n")
-
-	prefix := prefixSB.String()
-	suffix := suffixSB.String()
-	length := len(prefix) + len(suffix)
-
-	sb := strings.Builder{}
-	sb.WriteString(prefix)
-	if evt.SkipMinBytesCheck {
-		if sse.usingCompression && length < sse.compressionMinBytes {
-			buf := make([]byte, sse.compressionMinBytes-length)
-			for i := range buf {
-				buf[i] = ' '
-			}
-			sb.Write(buf)
+		idFmt := fmt.Sprintf("id: %s\n", evt.Id)
+		idSize, err := sse.w.Write([]byte(idFmt))
+		if err != nil {
+			panic(fmt.Sprintf("failed to write id: %v", err))
 		}
+		totalSize += idSize
 	}
-	sb.WriteString(suffix)
-	eventFormatted := sb.String()
-	sse.w.Write([]byte(eventFormatted))
+	if evt.Retry.Milliseconds() > 0 {
+		retryFmt := fmt.Sprintf("retry: %d\n", evt.Retry.Milliseconds())
+		retrySize, err := sse.w.Write([]byte(retryFmt))
+		if err != nil {
+			panic(fmt.Sprintf("failed to write retry: %v", err))
+		}
+		totalSize += retrySize
+	}
+
+	newLineBuf := []byte("\n")
+	lastDataIdx := len(evt.Data) - 1
+	for i, d := range evt.Data {
+		dataFmt := fmt.Sprintf("data: %s", d)
+		dataSize, err := sse.w.Write([]byte(dataFmt))
+		if err != nil {
+			panic(fmt.Sprintf("failed to write data: %v", err))
+		}
+		totalSize += dataSize
+
+		if i != lastDataIdx {
+			if !evt.SkipMinBytesCheck {
+				newlineSuffixCount := 3
+				if sse.usingCompression && totalSize+newlineSuffixCount < sse.compressionMinBytes {
+					bufSize := sse.compressionMinBytes - totalSize - newlineSuffixCount
+					buf := bytes.Repeat([]byte(" "), bufSize)
+					if _, err := sse.w.Write(buf); err != nil {
+						panic(fmt.Sprintf("failed to write data: %v", err))
+					}
+				}
+			}
+		}
+		sse.w.Write(newLineBuf)
+	}
+	sse.w.Write([]byte("\n\n"))
 	sse.flusher.Flush()
 }

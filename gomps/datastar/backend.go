@@ -24,6 +24,10 @@ func FetchURL(expression string) gomps.NODE {
 	return gomps.DATA("fetch-url", expression)
 }
 
+func FetchURLF(format string, args ...interface{}) gomps.NODE {
+	return FetchURL(fmt.Sprintf(format, args...))
+}
+
 func ServerSentEvents(expression string) gomps.NODE {
 	return gomps.DATA("sse", fmt.Sprintf(`'%s'`, expression))
 }
@@ -43,8 +47,9 @@ const (
 )
 
 const (
-	FragmentSelectorSelf  = "self"
-	FragmentSelectorUseID = ""
+	FragmentSelectorSelf      = "self"
+	FragmentSelectorUseID     = ""
+	FragmentEventTypeFragment = "datastar-fragment"
 )
 
 func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string, swap FragmentMergeType, child gomps.NODE) error {
@@ -53,12 +58,15 @@ func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string,
 	if err := child.Render(buf); err != nil {
 		return fmt.Errorf("failed to render: %w", err)
 	}
-	sse.Send(
-		buf.String(),
-		toolbelt.SSEEventId(querySelector),
-		toolbelt.SSEEventEvent(string(swap)),
-		toolbelt.SSEEventRetry(0),
-		toolbelt.SSEEventSkipMinBytesCheck(true),
+	sse.SendMultiData(
+		[]string{
+			querySelector,
+			string(swap),
+			buf.String(),
+		},
+		toolbelt.WithSSEEvent(FragmentEventTypeFragment),
+		toolbelt.WithSSERetry(0),
+		toolbelt.WithSSESkipMinBytesCheck(true),
 	)
 	return nil
 }
