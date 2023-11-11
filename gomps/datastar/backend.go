@@ -2,6 +2,7 @@ package datastar
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/delaneyj/toolbelt"
 	"github.com/delaneyj/toolbelt/gomps"
@@ -52,18 +53,56 @@ const (
 	FragmentEventTypeFragment = "datastar-fragment"
 )
 
-func RenderFragment(sse *toolbelt.ServerSentEventsHandler, querySelector string, swap FragmentMergeType, child gomps.NODE) error {
+type RenderFragmentOptions struct {
+	QuerySelector  string
+	Merge          FragmentMergeType
+	SettleDuration time.Duration
+}
+type RenderFragmentOption func(*RenderFragmentOptions)
+
+func WithQuerySelector(selector string) RenderFragmentOption {
+	return func(o *RenderFragmentOptions) {
+		o.QuerySelector = selector
+	}
+}
+
+func WithMergeType(merge FragmentMergeType) RenderFragmentOption {
+	return func(o *RenderFragmentOptions) {
+		o.Merge = merge
+	}
+}
+
+func WithSettleDuration(d time.Duration) RenderFragmentOption {
+	return func(o *RenderFragmentOptions) {
+		o.SettleDuration = d
+	}
+}
+
+func RenderFragment(sse *toolbelt.ServerSentEventsHandler, child gomps.NODE, opts ...RenderFragmentOption) error {
+	options := &RenderFragmentOptions{
+		QuerySelector:  FragmentSelectorSelf,
+		Merge:          FragmentMergeMorphElement,
+		SettleDuration: 0,
+	}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	buf := bytebufferpool.Get()
 	defer bytebufferpool.Put(buf)
 	if err := child.Render(buf); err != nil {
 		return fmt.Errorf("failed to render: %w", err)
 	}
+
+	dataRows := []string{
+		fmt.Sprintf("selector %s", options.QuerySelector),
+		fmt.Sprintf("merge %s", options.Merge),
+		fmt.Sprintf("settle %d", options.SettleDuration.Milliseconds()),
+		fmt.Sprintf("html %s", buf.String()),
+	}
+
 	sse.SendMultiData(
-		[]string{
-			querySelector,
-			string(swap),
-			buf.String(),
-		},
+		dataRows,
 		toolbelt.WithSSEEvent(FragmentEventTypeFragment),
 		toolbelt.WithSSERetry(0),
 		toolbelt.WithSSESkipMinBytesCheck(true),

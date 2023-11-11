@@ -10,6 +10,10 @@ func Teleport(querySelectorExpression string) gomps.NODE {
 	return gomps.DATA("teleport", querySelectorExpression)
 }
 
+func Intersects(querySelectorExpression string) gomps.NODE {
+	return gomps.DATA("intersects", querySelectorExpression)
+}
+
 func ScrollIntoView() gomps.NODE {
 	return gomps.DATA("scroll-into-view")
 }
