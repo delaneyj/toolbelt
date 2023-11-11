@@ -122,6 +122,10 @@ func WithQuerySelectorSelf() RenderFragmentOption {
 	return WithQuerySelector(FragmentSelectorSelf)
 }
 
+func WithQuerySelectorUseID() RenderFragmentOption {
+	return WithQuerySelector(FragmentSelectorUseID)
+}
+
 func UpsertStore(sse *toolbelt.ServerSentEventsHandler, store any, opts ...RenderFragmentOption) {
 	opts = append([]RenderFragmentOption{WithMergeUpsertAttributes()}, opts...)
 	RenderFragment(
