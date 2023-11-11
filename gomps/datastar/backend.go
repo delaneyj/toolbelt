@@ -72,10 +72,72 @@ func WithMergeType(merge FragmentMergeType) RenderFragmentOption {
 	}
 }
 
+func WithMergeInnerElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeInnerElement)
+}
+
+func WithMergeOuterElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeOuterElement)
+}
+
+func WithMergePrependElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergePrependElement)
+}
+
+func WithMergeAppendElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeAppendElement)
+}
+
+func WithMergeBeforeElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeBeforeElement)
+}
+
+func WithMergeAfterElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeAfterElement)
+}
+
+func WithMergeDeleteElement() RenderFragmentOption {
+	return WithMergeType(FragmentMergeDeleteElement)
+}
+
+func WithMergeUpsertAttributes() RenderFragmentOption {
+	return WithMergeType(FragmentMergeUpsertAttributes)
+}
+
 func WithSettleDuration(d time.Duration) RenderFragmentOption {
 	return func(o *RenderFragmentOptions) {
 		o.SettleDuration = d
 	}
+}
+
+func WithQuerySelectorF(format string, args ...any) RenderFragmentOption {
+	return WithQuerySelector(fmt.Sprintf(format, args...))
+}
+
+func WithQuerySelectorID(id string) RenderFragmentOption {
+	return WithQuerySelectorF("#%s", id)
+}
+
+func WithQuerySelectorSelf() RenderFragmentOption {
+	return WithQuerySelector(FragmentSelectorSelf)
+}
+
+func UpsertStore(sse *toolbelt.ServerSentEventsHandler, store any, opts ...RenderFragmentOption) {
+	opts = append([]RenderFragmentOption{WithMergeUpsertAttributes()}, opts...)
+	RenderFragment(
+		sse,
+		gomps.DIV(MergeStore(store)),
+		opts...,
+	)
+}
+
+func Delete(sse *toolbelt.ServerSentEventsHandler, opts ...RenderFragmentOption) {
+	opts = append([]RenderFragmentOption{WithMergeDeleteElement()}, opts...)
+	RenderFragment(
+		sse,
+		gomps.DIV(),
+		opts...,
+	)
 }
 
 func RenderFragment(sse *toolbelt.ServerSentEventsHandler, child gomps.NODE, opts ...RenderFragmentOption) error {
@@ -98,7 +160,7 @@ func RenderFragment(sse *toolbelt.ServerSentEventsHandler, child gomps.NODE, opt
 		fmt.Sprintf("selector %s", options.QuerySelector),
 		fmt.Sprintf("merge %s", options.Merge),
 		fmt.Sprintf("settle %d", options.SettleDuration.Milliseconds()),
-		fmt.Sprintf("html %s", buf.String()),
+		fmt.Sprintf("fragment %s", buf.String()),
 	}
 
 	sse.SendMultiData(
