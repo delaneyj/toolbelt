@@ -28,11 +28,11 @@ func On(eventName, expression string) gomps.NODE {
 }
 
 func OnDebounce(eventName string, delay time.Duration, expression string) gomps.NODE {
-	return On(fmt.Sprintf("%s.debounce.%dms", eventName, delay.Milliseconds()), expression)
+	return On(fmt.Sprintf("%s.debounce_%dms", eventName, delay.Milliseconds()), expression)
 }
 
 func OnThrottle(eventName string, delay time.Duration, expression string) gomps.NODE {
-	return On(fmt.Sprintf("%s.throttle.%dms", eventName, delay.Milliseconds()), expression)
+	return On(fmt.Sprintf("%s.throttle_%dms", eventName, delay.Milliseconds()), expression)
 }
 
 func Focus(expression string) gomps.NODE {
