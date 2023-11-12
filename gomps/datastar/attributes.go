@@ -27,11 +27,11 @@ func On(eventName, expression string) gomps.NODE {
 	return gomps.DATA("on-"+eventName, expression)
 }
 
-func OnDebounce(eventName, delay time.Duration, expression string) gomps.NODE {
+func OnDebounce(eventName string, delay time.Duration, expression string) gomps.NODE {
 	return On(fmt.Sprintf("%s.debounce.%dms", eventName, delay.Milliseconds()), expression)
 }
 
-func OnThrottle(eventName, delay time.Duration, expression string) gomps.NODE {
+func OnThrottle(eventName string, delay time.Duration, expression string) gomps.NODE {
 	return On(fmt.Sprintf("%s.throttle.%dms", eventName, delay.Milliseconds()), expression)
 }
 
