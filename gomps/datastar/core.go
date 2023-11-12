@@ -20,7 +20,7 @@ func MergeStore(m any) gomps.NODE {
 
 func QueryStringUnmarshal(r *http.Request, store any) error {
 	dsJSON := r.URL.Query().Get("datastar")
-	if dsJSON == "" {
+	if dsJSON != "" {
 		if err := json.Unmarshal([]byte(dsJSON), store); err != nil {
 			return fmt.Errorf("failed to unmarshal: %w", err)
 		}

@@ -2,6 +2,7 @@ package datastar
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/delaneyj/toolbelt/gomps"
 )
@@ -24,6 +25,14 @@ func TextF(format string, args ...interface{}) gomps.NODE {
 
 func On(eventName, expression string) gomps.NODE {
 	return gomps.DATA("on-"+eventName, expression)
+}
+
+func OnDebounce(eventName, delay time.Duration, expression string) gomps.NODE {
+	return On(fmt.Sprintf("%s.debounce.%dms", eventName, delay.Milliseconds()), expression)
+}
+
+func OnThrottle(eventName, delay time.Duration, expression string) gomps.NODE {
+	return On(fmt.Sprintf("%s.throttle.%dms", eventName, delay.Milliseconds()), expression)
 }
 
 func Focus(expression string) gomps.NODE {
