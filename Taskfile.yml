@@ -12,11 +12,5 @@ tasks:
       - git tag v{{.VERSION}}
       - git push --tags
       - GOPROXY=proxy.golang.org go list -m github.com/delaneyj/toolbelt@v{{.VERSION}}
-
-  cdn:
-    dir: gomps/datastar
-    cmds:
-      - wget -O latest.js "https://cdn.jsdelivr.net/npm/@sudodevnull/datastar/+esm"
-
   # default:
   # silent: true
