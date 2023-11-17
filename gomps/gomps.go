@@ -59,6 +59,7 @@ var (
 	TH          = h.Th
 	TD          = h.Td
 	STYLE       = h.StyleAttr
+	DIALOG      = h.Dialog
 
 	REQUIRED = h.Required()
 	DISABLED = h.Disabled()
@@ -156,6 +157,10 @@ func HIGHLIGHT(language, code string, children ...NODE) NODE {
 	h.Language = language
 	h.Code = code
 	return h
+}
+
+func IDF(format string, args ...interface{}) NODE {
+	return ID(fmt.Sprintf(format, args...))
 }
 
 func STYLEF(format string, args ...interface{}) NODE {
