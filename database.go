@@ -142,12 +142,26 @@ func JulianDayToTimestamp(f float64) *timestamppb.Timestamp {
 	return timestamppb.New(t)
 }
 
-func JulianDayToTimestampStmt(stmt *sqlite.Stmt, param string) *timestamppb.Timestamp {
-	julianDays := stmt.GetFloat(param)
+func JulianDayToTimestampStmt(stmt *sqlite.Stmt, colName string) *timestamppb.Timestamp {
+	julianDays := stmt.GetFloat(colName)
 	return JulianDayToTimestamp(julianDays)
 }
 
-func JulianDayToTimeStmt(stmt *sqlite.Stmt, param string) time.Time {
-	julianDays := stmt.GetFloat(param)
+func JulianDayToTimeStmt(stmt *sqlite.Stmt, colName string) time.Time {
+	julianDays := stmt.GetFloat(colName)
 	return JulianDayToTime(julianDays)
+}
+
+func Bytes(stmt *sqlite.Stmt, colName string) []byte {
+	bl := stmt.GetLen(colName)
+	if bl == 0 {
+		return nil
+	}
+
+	buf := make([]byte, bl)
+	if writtent := stmt.GetBytes(colName, buf); writtent != bl {
+		return nil
+	}
+
+	return buf
 }
