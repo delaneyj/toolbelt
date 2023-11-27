@@ -32,3 +32,26 @@ func MustProtoJSONUnmarshal(b []byte, msg proto.Message) {
 		panic(err)
 	}
 }
+
+type MustProtobufHandler struct {
+	isJSON bool
+}
+
+func NewProtobufHandler(isJSON bool) *MustProtobufHandler {
+	return &MustProtobufHandler{isJSON: isJSON}
+}
+
+func (h *MustProtobufHandler) Marshal(msg proto.Message) []byte {
+	if h.isJSON {
+		return MustProtoJSONMarshal(msg)
+	}
+	return MustProtoMarshal(msg)
+}
+
+func (h *MustProtobufHandler) Unmarshal(b []byte, msg proto.Message) {
+	if h.isJSON {
+		MustProtoJSONUnmarshal(b, msg)
+	} else {
+		MustProtoUnmarshal(b, msg)
+	}
+}

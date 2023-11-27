@@ -119,6 +119,10 @@ const (
 	UnixEpochJulianDay = 2440587.5
 )
 
+var (
+	JulianZeroTime = JulianDayToTime(0)
+)
+
 // TimeToJulianDay converts a time.Time into a Julian day.
 func TimeToJulianDay(t time.Time) float64 {
 	return float64(t.UTC().Unix())/secondsInADay + UnixEpochJulianDay
@@ -142,17 +146,17 @@ func JulianDayToTimestamp(f float64) *timestamppb.Timestamp {
 	return timestamppb.New(t)
 }
 
-func JulianDayToTimestampStmt(stmt *sqlite.Stmt, colName string) *timestamppb.Timestamp {
+func StmtJulianToTimestamp(stmt *sqlite.Stmt, colName string) *timestamppb.Timestamp {
 	julianDays := stmt.GetFloat(colName)
 	return JulianDayToTimestamp(julianDays)
 }
 
-func JulianDayToTimeStmt(stmt *sqlite.Stmt, colName string) time.Time {
+func StmtJulianToTime(stmt *sqlite.Stmt, colName string) time.Time {
 	julianDays := stmt.GetFloat(colName)
 	return JulianDayToTime(julianDays)
 }
 
-func Bytes(stmt *sqlite.Stmt, colName string) []byte {
+func StmtBytes(stmt *sqlite.Stmt, colName string) []byte {
 	bl := stmt.GetLen(colName)
 	if bl == 0 {
 		return nil
