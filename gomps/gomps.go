@@ -278,8 +278,10 @@ func PREJSON[T any](v T) NODE {
 	return PRE(SAFE(string(b)))
 }
 
+var jsonIndentMarshaller = protojson.MarshalOptions{Indent: "  "}
+
 func PREPBJSON(m protoreflect.ProtoMessage) NODE {
-	b, err := protojson.Marshal(m)
+	b, err := jsonIndentMarshaller.Marshal(m)
 	if err != nil {
 		return TXT(err.Error())
 	}
