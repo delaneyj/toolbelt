@@ -156,6 +156,14 @@ func StmtJulianToTime(stmt *sqlite.Stmt, colName string) time.Time {
 	return JulianDayToTime(julianDays)
 }
 
+func DurationToMilliseconds(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
+}
+
+func MillisecondsToDuration(ms int64) time.Duration {
+	return time.Duration(ms) * time.Millisecond
+}
+
 func StmtBytes(stmt *sqlite.Stmt, colName string) []byte {
 	bl := stmt.GetLen(colName)
 	if bl == 0 {
