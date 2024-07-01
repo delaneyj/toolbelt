@@ -27,12 +27,16 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	}
 
 	uri := fmt.Sprintf("file:%s?_journal_mode=WAL&_synchronous=NORMAL", dbFilename)
-	writePool, err := sqlitex.Open(uri, 0, 1)
+	writePool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
+		PoolSize: 1,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("could not open write pool: %w", err)
 	}
 
-	readPool, err := sqlitex.Open(uri, 0, runtime.NumCPU())
+	readPool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
+		PoolSize: runtime.NumCPU(),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("could not open read pool: %w", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"log"
 	"strings"
 	"text/template"
 
@@ -23,22 +24,20 @@ func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.Generat
 		return nil, fmt.Errorf("parsing templates: %w", err)
 	}
 
-	queriesCtx := &GenerateQueriesContext{
-		PackageName: toolbelt.ToCasedString(req.Settings.Codegen.Out),
-	}
-	queriesCtx.Queries = lo.Map(req.Queries, func(q *plugin.Query, qi int) GenerateQueryContext {
-		queryCtx := GenerateQueryContext{
-			Name: toolbelt.ToCasedString(q.Name),
-			Params: lo.Map(q.Params, func(p *plugin.Parameter, pi int) GenerateField {
-				param := GenerateField{
-					Column:  int(p.Number),
-					Name:    toolbelt.ToCasedString(p.Column.Name),
-					SQLType: toolbelt.ToCasedString(toSQLType(p.Column)),
-					GoType:  toolbelt.ToCasedString(toGoType(queriesCtx, p.Column)),
-				}
-				return param
-			}),
+	queries := lo.Map(req.Queries, func(q *plugin.Query, qi int) *GenerateQueryContext {
+		queryCtx := &GenerateQueryContext{
+			PackageName: toolbelt.ToCasedString(req.Settings.Codegen.Out),
+			Name:        toolbelt.ToCasedString(q.Name),
 		}
+		queryCtx.Params = lo.Map(q.Params, func(p *plugin.Parameter, pi int) GenerateField {
+			param := GenerateField{
+				Column:  int(p.Number),
+				Name:    toolbelt.ToCasedString(toFieldName(p.Column)),
+				SQLType: toolbelt.ToCasedString(toSQLType(p.Column)),
+				GoType:  toolbelt.ToCasedString(toGoType(queryCtx, p.Column)),
+			}
+			return param
+		})
 		queryCtx.HasParams = len(q.Params) > 0
 		queryCtx.ParamsIsSingularField = len(q.Params) == 1
 
@@ -47,9 +46,9 @@ func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.Generat
 			queryCtx.ResponseFields = lo.Map(q.Columns, func(c *plugin.Column, ci int) GenerateField {
 				col := GenerateField{
 					Column:  ci + 1,
-					Name:    toolbelt.ToCasedString(c.Name),
+					Name:    toolbelt.ToCasedString(toFieldName(c)),
 					SQLType: toolbelt.ToCasedString(toSQLType(c)),
-					GoType:  toolbelt.ToCasedString(toGoType(queriesCtx, c)),
+					GoType:  toolbelt.ToCasedString(toGoType(queryCtx, c)),
 				}
 				return col
 			})
@@ -60,18 +59,22 @@ func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.Generat
 		return queryCtx
 	})
 
-	buf := &bytes.Buffer{}
-	if err := tmpls.ExecuteTemplate(buf, "queries.go.tpl", queriesCtx); err != nil {
-		return nil, fmt.Errorf("executing template: %w", err)
+	files := make([]*plugin.File, len(queries))
+	for i, q := range queries {
+
+		buf := &bytes.Buffer{}
+		if err := tmpls.ExecuteTemplate(buf, "queries.go.tpl", q); err != nil {
+			return nil, fmt.Errorf("executing template: %w", err)
+		}
+
+		files[i] = &plugin.File{
+			Name:     fmt.Sprintf("%s.go", q.Name.Snake),
+			Contents: buf.Bytes(),
+		}
 	}
 
 	return &plugin.GenerateResponse{
-		Files: []*plugin.File{
-			{
-				Name:     "queries.go",
-				Contents: buf.Bytes(),
-			},
-		},
+		Files: files,
 	}, nil
 }
 
@@ -90,7 +93,16 @@ func toSQLType(c *plugin.Column) string {
 	}
 }
 
-func toGoType(queryCtx *GenerateQueriesContext, c *plugin.Column) string {
+func toFieldName(c *plugin.Column) string {
+	n := c.Name
+	log.Printf("toFieldName %s", n)
+	if strings.HasSuffix(n, "_ms") {
+		return n[:len(n)-3]
+	}
+	return n
+}
+
+func toGoType(queryCtx *GenerateQueryContext, c *plugin.Column) string {
 	typ := toolbelt.Lower(c.Type.Name)
 
 	if strings.HasSuffix(c.Name, "ms") {
@@ -123,6 +135,7 @@ type GenerateField struct {
 }
 
 type GenerateQueryContext struct {
+	PackageName                      toolbelt.CasedString
 	Name                             toolbelt.CasedString
 	HasParams, ParamsIsSingularField bool
 	Params                           []GenerateField
@@ -131,10 +144,6 @@ type GenerateQueryContext struct {
 	ResponseIsSingularField          bool
 	ResponseFields                   []GenerateField
 	ResponseHasMultiple              bool
-}
 
-type GenerateQueriesContext struct {
 	NeedsTimePackage bool
-	PackageName      toolbelt.CasedString
-	Queries          []GenerateQueryContext
 }
