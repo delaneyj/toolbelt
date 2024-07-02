@@ -2,6 +2,7 @@ package toolbelt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,36 +16,62 @@ import (
 )
 
 type Database struct {
-	write *sqlitex.Pool
-	read  *sqlitex.Pool
+	filename   string
+	migrations []string
+	writePool  *sqlitex.Pool
+	readPool   *sqlitex.Pool
 }
 
 type TxFn func(tx *sqlite.Conn) error
 
 func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*Database, error) {
-	if err := os.MkdirAll(filepath.Dir(dbFilename), 0755); err != nil {
-		return nil, fmt.Errorf("could not create database directory: %w", err)
-	}
-
-	uri := fmt.Sprintf("file:%s?_journal_mode=WAL&_synchronous=NORMAL", dbFilename)
-	writePool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
-		PoolSize: 1,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not open write pool: %w", err)
-	}
-
-	readPool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
-		PoolSize: runtime.NumCPU(),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not open read pool: %w", err)
+	if dbFilename == "" {
+		return nil, fmt.Errorf("database filename is required")
 	}
 
 	db := &Database{
-		write: writePool,
-		read:  readPool,
+		filename:   dbFilename,
+		migrations: migrations,
 	}
+
+	if err := db.Reset(ctx, false); err != nil {
+		return nil, fmt.Errorf("failed to reset database: %w", err)
+	}
+
+	return db, nil
+}
+
+func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
+	if err := db.Close(); err != nil {
+		return fmt.Errorf("could not close database: %w", err)
+	}
+
+	if shouldClear {
+		if err := os.RemoveAll(db.filename + "*"); err != nil {
+			return fmt.Errorf("could not remove database file: %w", err)
+		}
+	}
+	if err := os.MkdirAll(filepath.Dir(db.filename), 0755); err != nil {
+		return fmt.Errorf("could not create database directory: %w", err)
+	}
+
+	uri := fmt.Sprintf("file:%s?_journal_mode=WAL&_synchronous=NORMAL", db.filename)
+
+	db.writePool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
+		PoolSize: 1,
+	})
+	if err != nil {
+		return fmt.Errorf("could not open write pool: %w", err)
+	}
+
+	if db.readPool != nil {
+		if err := db.readPool.Close(); err != nil {
+			return fmt.Errorf("could not close read pool: %w", err)
+		}
+	}
+	db.readPool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
+		PoolSize: runtime.NumCPU(),
+	})
 
 	if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON")
@@ -55,38 +82,44 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+		return fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	schema := sqlitemigration.Schema{Migrations: migrations}
-	conn := db.write.Get(ctx)
+	schema := sqlitemigration.Schema{Migrations: db.migrations}
+	conn, err := db.writePool.Take(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to take write connection: %w", err)
+	}
+	defer db.writePool.Put(conn)
+
 	if err := sqlitemigration.Migrate(ctx, conn, schema); err != nil {
-		db.write.Put(conn)
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
-	}
-	db.write.Put(conn)
-
-	return db, nil
-}
-
-func (db *Database) Close() error {
-	if err := db.write.Close(); err != nil {
-		return fmt.Errorf("failed to close write pool: %w", err)
-	}
-
-	if err := db.read.Close(); err != nil {
-		return fmt.Errorf("failed to close read pool: %w", err)
+		db.writePool.Put(conn)
+		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
 	return nil
+
+}
+
+func (db *Database) Close() error {
+	writePoolErr := db.writePool.Close()
+	readPoolErr := db.readPool.Close()
+
+	return errors.Join(
+		writePoolErr,
+		readPoolErr,
+	)
 }
 
 func (db *Database) WriteTX(ctx context.Context, fn TxFn) (err error) {
-	conn := db.write.Get(ctx)
+	conn, err := db.writePool.Take(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to take write connection: %w", err)
+	}
 	if conn == nil {
 		return fmt.Errorf("could not get write connection from pool")
 	}
-	defer db.write.Put(conn)
+	defer db.writePool.Put(conn)
 
 	endFn, err := sqlitex.ImmediateTransaction(conn)
 	if err != nil {
@@ -102,11 +135,14 @@ func (db *Database) WriteTX(ctx context.Context, fn TxFn) (err error) {
 }
 
 func (db *Database) ReadTX(ctx context.Context, fn TxFn) (err error) {
-	conn := db.read.Get(ctx)
+	conn, err := db.readPool.Take(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to take read connection: %w", err)
+	}
 	if conn == nil {
 		return fmt.Errorf("could not get read connection from pool")
 	}
-	defer db.read.Put(conn)
+	defer db.readPool.Put(conn)
 
 	endFn := sqlitex.Transaction(conn)
 	defer endFn(&err)
