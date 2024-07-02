@@ -14,19 +14,10 @@ tasks:
       - git tag v{{.VERSION}}
       - git push --tags
       - GOPROXY=proxy.golang.org go list -m github.com/delaneyj/toolbelt@v{{.VERSION}}
-
-  sqlc-pb-update:
-    dir: sqlc-gen-zombiezen/pb/plugin
-    cmds:
-      - wget -Nc -q --show-progress https://raw.githubusercontent.com/sqlc-dev/sqlc/main/internal/plugin/codegen.pb.go
-      - wget -Nc -q --show-progress https://raw.githubusercontent.com/sqlc-dev/sqlc/main/internal/plugin/codegen_grpc.pb.go
-
   sqlc:
     dir: sqlc-gen-zombiezen
     sources:
       - "**/*.go"
       - "**/*.tpl"
-    deps:
-      - sqlc-pb-update
     cmds:
       - go install

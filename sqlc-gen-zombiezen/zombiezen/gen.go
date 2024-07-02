@@ -6,11 +6,13 @@ import (
 	"embed"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"text/template"
 
 	"github.com/delaneyj/toolbelt"
-	"github.com/delaneyj/toolbelt/sqlc-gen-zombiezen/pb/plugin"
+	"github.com/sqlc-dev/plugin-sdk-go/plugin"
+
 	"github.com/samber/lo"
 )
 
@@ -18,17 +20,32 @@ import (
 var templates embed.FS
 
 func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.GenerateResponse, error) {
+	f, err := os.OpenFile("sqlc-gen-zombiezen.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetOutput(f)
+	log.Println("This is a test log entry")
 
 	tmpls, err := template.New("queries").Funcs(template.FuncMap{}).ParseFS(templates, "templates/*.go.tpl")
 	if err != nil {
 		return nil, fmt.Errorf("parsing templates: %w", err)
 	}
 
-	queries := lo.Map(req.Queries, func(q *plugin.Query, qi int) *GenerateQueryContext {
+	queries := make([]*GenerateQueryContext, len(req.Queries))
+	for i, q := range req.Queries {
 		queryCtx := &GenerateQueryContext{
 			PackageName: toolbelt.ToCasedString(req.Settings.Codegen.Out),
 			Name:        toolbelt.ToCasedString(q.Name),
+			SQL:         strings.TrimSpace(q.Text),
 		}
+		if queryCtx.SQL == "" {
+			return nil, fmt.Errorf("query %s has no SQL", q.Name)
+		}
+
 		queryCtx.Params = lo.Map(q.Params, func(p *plugin.Parameter, pi int) GenerateField {
 			param := GenerateField{
 				Column:  int(p.Number),
@@ -53,11 +70,11 @@ func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.Generat
 				return col
 			})
 			queryCtx.ResponseHasMultiple = q.Cmd == ":many"
-			queryCtx.SQL = q.Text
 			queryCtx.ResponseIsSingularField = len(q.Columns) == 1
 		}
-		return queryCtx
-	})
+
+		queries[i] = queryCtx
+	}
 
 	files := make([]*plugin.File, len(queries))
 	for i, q := range queries {
@@ -95,7 +112,6 @@ func toSQLType(c *plugin.Column) string {
 
 func toFieldName(c *plugin.Column) string {
 	n := c.Name
-	log.Printf("toFieldName %s", n)
 	if strings.HasSuffix(n, "_ms") {
 		return n[:len(n)-3]
 	}

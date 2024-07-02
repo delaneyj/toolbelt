@@ -16,7 +16,7 @@ import (
 {{- if .ResponseIsSingularField}}
     {{(index .ResponseFields 0).Name.Camel}} = stmt.Column{{(index .ResponseFields 0).SQLType.Pascal}}(0)
 {{- else}}
-row := {{.ResponseType.Pascal}}{
+row := {{.Name.Pascal}}Res{
 {{- range .ResponseFields}}
     {{.Name.Pascal}} : stmt.Column{{.SQLType.Pascal}}({{.Column}}),
 {{- end}}
