@@ -14,14 +14,33 @@ import (
 
 {{- define "fillResponse"}}
 {{- if .ResponseIsSingularField}}
-    {{(index .ResponseFields 0).Name.Camel}} = stmt.Column{{(index .ResponseFields 0).SQLType.Pascal}}(0)
+    {{(index .ResponseFields 0).Name.Camel}} = ps.stmt.Column{{(index .ResponseFields 0).SQLType.Pascal}}(0)
 {{- else}}
 row := {{.Name.Pascal}}Res{
 {{- range .ResponseFields}}
-    {{.Name.Pascal}} : stmt.Column{{.SQLType.Pascal}}({{.Column}}),
+    {{.Name.Pascal}} : ps.stmt.Column{{.SQLType.Pascal}}({{.Column}}),
 {{- end}}
 }
 {{- end}}
+{{- end}}
+
+{{- define "paramsAndReturns"}}
+{{- if .HasParams}}
+    {{- if .ParamsIsSingularField}}
+    {{(index .Params 0).Name.Lower}} {{(index .Params 0).GoType.Original}},
+    {{- else}}
+    params {{.Name.Pascal}}Params,
+    {{- end}}
+{{- end}}
+) (
+{{- if .HasResponse}}
+    {{- if .ResponseIsSingularField}}
+    {{(index .ResponseFields 0).Name.Camel}} {{(index .ResponseFields 0).GoType.Original}},
+    {{- else}}
+    res {{if .ResponseHasMultiple}}[]{{else}}*{{end}}{{.Name.Pascal}}Res,
+    {{- end}}
+{{- end}}
+    err error,
 {{- end}}
 
 {{- if and .HasResponse (not .ResponseIsSingularField)}}
@@ -40,40 +59,34 @@ type {{.Name.Pascal}}Params struct{
 }
 {{- end}}
 
-func {{.Name.Pascal}}(
-    tx *sqlite.Conn,
-{{- if .HasParams}}
-    {{- if .ParamsIsSingularField}}
-    {{(index .Params 0).Name.Lower}} {{(index .Params 0).GoType.Original}},
-    {{- else}}
-    params {{.Name.Pascal}}Params,
-    {{- end}}
-{{- end}}
-) (
+type {{.Name.Pascal}}Stmt struct {
+    stmt *sqlite.Stmt
+}
 
-{{- if .HasResponse}}
-    {{- if .ResponseIsSingularField}}
-    {{(index .ResponseFields 0).Name.Camel}} {{(index .ResponseFields 0).GoType.Original}},
-    {{- else}}
-    res {{if .ResponseHasMultiple}}[]{{else}}*{{end}}{{.Name.Pascal}}Res,
-    {{- end}}
-{{- end}}
-    err error,
-) {
+func {{.Name.Pascal}}(tx *sqlite.Conn) *{{.Name.Pascal}}Stmt {
     // Prepare statement into cache
     stmt := tx.Prep(`{{.SQL}}`)
-    defer stmt.Reset()
+    ps := &{{.Name.Pascal}}Stmt{
+        stmt: stmt,
+    }
+    return ps
+}
+
+func (ps *{{.Name.Pascal}}Stmt) Run(
+    {{- template "paramsAndReturns" .}}
+) {
+    ps.stmt.Reset()
 
 {{ if len .Params -}}
     // Bind parameters
     {{- $singular := .ParamsIsSingularField}}
     {{- range .Params}}
         {{- if eq .GoType.Original "time.Time"}}
-    stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.TimeToJulianDay({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.TimeToJulianDay({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
         {{- else if eq .GoType.Original "time.Duration"}}
-    stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.DurationToMilliseconds({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.DurationToMilliseconds({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
         {{- else }}
-    stmt.Bind{{.SQLType.Pascal}}({{.Column}}, {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}})
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}})
         {{- end}}
     {{- end}}
 {{- end}}
@@ -82,7 +95,7 @@ func {{.Name.Pascal}}(
 {{- if .HasResponse}}
     {{- if .ResponseHasMultiple}}
     for {
-        if hasRow, err := stmt.Step(); err != nil {
+        if hasRow, err := ps.stmt.Step(); err != nil {
             return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
         } else if !hasRow {
             break
@@ -92,7 +105,7 @@ func {{.Name.Pascal}}(
         res = append(res, row)
     }
     {{- else}}
-    if hasRow, err := stmt.Step(); err != nil {
+    if hasRow, err := ps.stmt.Step(); err != nil {
         {{- if .ResponseIsSingularField}}
         return {{(index .ResponseFields 0).Name.Camel}}, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
         {{- else}}
@@ -106,7 +119,7 @@ func {{.Name.Pascal}}(
     }
     {{- end}}
 {{- else}}
-    if _, err := stmt.Step(); err != nil {
+    if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
     }
 {{- end}}
@@ -120,5 +133,21 @@ func {{.Name.Pascal}}(
 {{else -}}
     return nil
 {{- end -}}
+}
+
+func Run{{.Name.Pascal}}(
+    tx *sqlite.Conn,
+    {{- template "paramsAndReturns" .}}
+){
+    ps := {{.Name.Pascal}}(tx)
+    return ps.Run(
+    {{- if .HasParams}}
+        {{- if .ParamsIsSingularField}}
+        {{(index .Params 0).Name.Lower}},
+        {{- else}}
+        params,
+        {{- end}}
+    {{- end}}
+    )
 }
 
