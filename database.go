@@ -102,13 +102,16 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 }
 
 func (db *Database) Close() error {
-	writePoolErr := db.writePool.Close()
-	readPoolErr := db.readPool.Close()
+	errs := []error{}
+	if db.writePool != nil {
+		errs = append(errs, db.writePool.Close())
+	}
 
-	return errors.Join(
-		writePoolErr,
-		readPoolErr,
-	)
+	if db.readPool != nil {
+		errs = append(errs, db.readPool.Close())
+	}
+
+	return errors.Join(errs...)
 }
 
 func (db *Database) WriteTX(ctx context.Context, fn TxFn) (err error) {
