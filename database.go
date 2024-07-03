@@ -41,14 +41,21 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	return db, nil
 }
 
-func (db *Database) Execute(ctx context.Context, query string, opts *sqlitex.ExecOptions) error {
+func (db *Database) WriteWithoutTx(ctx context.Context, fn TxFn) error {
 	conn, err := db.writePool.Take(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to take write connection: %w", err)
 	}
+	if conn == nil {
+		return fmt.Errorf("could not get write connection from pool")
+	}
 	defer db.writePool.Put(conn)
 
-	return sqlitex.Execute(conn, query, opts)
+	if err := fn(conn); err != nil {
+		return fmt.Errorf("could not execute write transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
