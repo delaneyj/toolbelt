@@ -75,18 +75,18 @@ func {{.Name.Pascal}}(tx *sqlite.Conn) *{{.Name.Pascal}}Stmt {
 func (ps *{{.Name.Pascal}}Stmt) Run(
     {{- template "paramsAndReturns" .}}
 ) {
-    ps.stmt.Reset()
+    defer ps.stmt.Reset()
 
 {{ if len .Params -}}
     // Bind parameters
     {{- $singular := .ParamsIsSingularField}}
     {{- range .Params}}
         {{- if eq .GoType.Original "time.Time"}}
-    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.TimeToJulianDay({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.TimeToJulianDay(  {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}}))
         {{- else if eq .GoType.Original "time.Duration"}}
-    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.DurationToMilliseconds({{- if not $singular}}params.{{end}}{{.Name.Pascal}}))
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, toolbelt.DurationToMilliseconds(  {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}}))
         {{- else }}
-    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}}, {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}})
+    ps.stmt.Bind{{.SQLType.Pascal}}({{.Column}},   {{- if $singular}}{{.Name.Camel}}{{else}}params.{{.Name.Pascal}}{{end}})
         {{- end}}
     {{- end}}
 {{- end}}
