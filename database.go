@@ -41,6 +41,16 @@ func NewDatabase(ctx context.Context, dbFilename string, migrations []string) (*
 	return db, nil
 }
 
+func (db *Database) Execute(ctx context.Context, query string, opts *sqlitex.ExecOptions) error {
+	conn, err := db.writePool.Take(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to take write connection: %w", err)
+	}
+	defer db.writePool.Put(conn)
+
+	return sqlitex.Execute(conn, query, opts)
+}
+
 func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	if err := db.Close(); err != nil {
 		return fmt.Errorf("could not close database: %w", err)
