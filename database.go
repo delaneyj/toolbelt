@@ -64,11 +64,6 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 		return fmt.Errorf("could not open write pool: %w", err)
 	}
 
-	if db.readPool != nil {
-		if err := db.readPool.Close(); err != nil {
-			return fmt.Errorf("could not close read pool: %w", err)
-		}
-	}
 	db.readPool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		PoolSize: runtime.NumCPU(),
 	})
