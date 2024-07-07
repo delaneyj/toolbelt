@@ -11,6 +11,7 @@ require (
 	github.com/chewxy/math32 v1.10.1
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/dustin/go-humanize v1.0.1
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-ping/ping v1.1.0
 	github.com/go-rod/rod v0.116.1
@@ -25,7 +26,9 @@ require (
 	github.com/rzajac/zflake v0.8.0
 	github.com/samber/lo v1.44.0
 	github.com/sqlc-dev/plugin-sdk-go v1.23.0
+	github.com/valyala/bytebufferpool v1.0.0
 	github.com/valyala/fasttemplate v1.2.2
+	github.com/valyala/quicktemplate v1.8.0
 	github.com/zeebo/xxh3 v1.0.2
 	golang.org/x/crypto v0.24.0
 	golang.org/x/oauth2 v0.18.0
@@ -54,7 +57,6 @@ require (
 	github.com/pkg/sftp v1.13.6 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rzajac/clock v0.2.0 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/ysmood/fetchup v0.2.4 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/got v0.40.0 // indirect

@@ -3,21 +3,36 @@
 version: "3"
 
 vars:
-  VERSION: 0.2.10
+  VERSION: 0.2.11
 
 interval: 200ms
 
 tasks:
+  tools:
+    cmds:
+      - go get -u github.com/valyala/quicktemplate@latest
+      - go get -u github.com/valyala/quicktemplate/qtc
   bump:
     cmds:
       - git push origin
       - git tag v{{.VERSION}}
       - git push --tags
       - GOPROXY=proxy.golang.org go list -m github.com/delaneyj/toolbelt@v{{.VERSION}}
+
+  qtc:
+    sources:
+      - "**/*.qtpl"
+    generates:
+      - "**/*.qtpl.go"
+    cmds:
+      - qtc
+
   sqlc:
     dir: sqlc-gen-zombiezen
+    deps:
+      - qtc
     sources:
       - "**/*.go"
-      - "**/*.tpl"
+      - exclude: "**.qtpl.go"
     cmds:
       - go install

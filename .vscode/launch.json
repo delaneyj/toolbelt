@@ -12,6 +12,13 @@
       "processId": 0
     },
     {
+      "name": "SQLC Generate",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/sqlc-gen-zombiezen/main.go",
+    },
+    {
       "name": "Env Encrypt",
       "type": "go",
       "request": "launch",
