@@ -165,7 +165,7 @@ func `)
 	qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:40
-	qw422016.E().S(q.SQL)
+	qw422016.N().S(q.SQL)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:40
 	qw422016.N().S(`
     `)

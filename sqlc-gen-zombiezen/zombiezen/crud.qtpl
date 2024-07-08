@@ -22,12 +22,12 @@ type Create{%s t.SingleName.Pascal %}Stmt struct {
 func Create{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *Create{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 INSERT INTO {%s t.Name.Lower %} (
-    {%- for _,f := range t.Fields -%}
-        {%s f.Name.Lower %},
+    {%- for i,f := range t.Fields -%}
+        {%s f.Name.Lower %}{% if i < len(t.Fields) - 1 %},{% endif %}
     {%- endfor -%}
 ) VALUES (
-    {%- for  range t.Fields -%}
-        ?,
+    {%- for i :=  range t.Fields -%}
+        ?{% if i < len(t.Fields) - 1 %},{% endif %}
     {%- endfor -%}
 )
     `)
@@ -59,8 +59,8 @@ type ReadAll{%s t.Name.Pascal %}Stmt struct {
 func ReadAll{%s t.Name.Pascal %}(tx *sqlite.Conn) *ReadAll{%s t.Name.Pascal %}Stmt {
     stmt := tx.Prep(`
 SELECT
-    {%- for _,f := range t.Fields -%}
-        {%s f.Name.Lower %},
+    {%- for i,f := range t.Fields -%}
+        {%s f.Name.Lower %}{% if i < len(t.Fields) - 1 %},{% endif %}
     {%- endfor -%}
 FROM {%s t.Name.Lower %}
     `)
@@ -101,8 +101,8 @@ type ReadByID{%s t.SingleName.Pascal %}Stmt struct {
 func ReadByID{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *ReadByID{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 SELECT
-    {%- for _,f := range t.Fields -%}
-        {%s f.Name.Lower %},
+    {%- for i,f := range t.Fields -%}
+        {%s f.Name.Lower %}{% if i < len(t.Fields) - 1 %},{% endif %}
     {%- endfor -%}
 FROM {%s t.Name.Lower %}
 WHERE id = ?
@@ -143,7 +143,7 @@ UPDATE {%s t.Name.Lower %}
 SET
     {%- for i,f := range t.Fields -%}
         {%- if i > 0 -%}
-        {%s f.Name.Lower %} = ?{%d i +1 %},
+        {%s f.Name.Lower %} = ?{%d i +1 %}{% if i < len(t.Fields) - 1 %},{% endif %}
         {%- endif -%}
     {%- endfor -%}
 WHERE id = ?1

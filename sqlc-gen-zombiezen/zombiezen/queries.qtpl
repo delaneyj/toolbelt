@@ -37,7 +37,7 @@ type {%s q.Name.Pascal %}Stmt struct {
 func {%s q.Name.Pascal %}(tx *sqlite.Conn) *{%s q.Name.Pascal %}Stmt {
     // Prepare the statement into connection cache
     stmt := tx.Prep(`
-{%s q.SQL %}
+{%s= q.SQL %}
     `)
     ps := &{%s q.Name.Pascal %}Stmt{stmt: stmt}
     return ps

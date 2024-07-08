@@ -100,13 +100,19 @@ INSERT INTO `)
 	qw422016.N().S(` (
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:25
-	for _, f := range t.Fields {
+	for i, f := range t.Fields {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:25
 		qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:26
 		qw422016.E().S(f.Name.Lower)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:26
-		qw422016.N().S(`,
+		if i < len(t.Fields)-1 {
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:26
+			qw422016.N().S(`,`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:26
+		}
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:26
+		qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:27
 	}
@@ -114,9 +120,17 @@ INSERT INTO `)
 	qw422016.N().S(`) VALUES (
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:29
-	for range t.Fields {
+	for i := range t.Fields {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:29
-		qw422016.N().S(`        ?,
+		qw422016.N().S(`        ?`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:30
+		if i < len(t.Fields)-1 {
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:30
+			qw422016.N().S(`,`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:30
+		}
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:30
+		qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:31
 	}
@@ -205,13 +219,19 @@ func ReadAll`)
 SELECT
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:62
-	for _, f := range t.Fields {
+	for i, f := range t.Fields {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:62
 		qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:63
 		qw422016.E().S(f.Name.Lower)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:63
-		qw422016.N().S(`,
+		if i < len(t.Fields)-1 {
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:63
+			qw422016.N().S(`,`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:63
+		}
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:63
+		qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:64
 	}
@@ -324,13 +344,19 @@ func ReadByID`)
 SELECT
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:104
-		for _, f := range t.Fields {
+		for i, f := range t.Fields {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:104
 			qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:105
 			qw422016.E().S(f.Name.Lower)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:105
-			qw422016.N().S(`,
+			if i < len(t.Fields)-1 {
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:105
+				qw422016.N().S(`,`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:105
+			}
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:105
+			qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:106
 		}
@@ -453,7 +479,13 @@ SET
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:146
 			qw422016.N().D(i + 1)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:146
-			qw422016.N().S(`,
+			if i < len(t.Fields)-1 {
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:146
+				qw422016.N().S(`,`)
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:146
+			}
+//line sqlc-gen-zombiezen/zombiezen/crud.qtpl:146
+			qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:147
 		}
