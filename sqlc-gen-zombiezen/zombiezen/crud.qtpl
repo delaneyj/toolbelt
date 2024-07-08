@@ -14,7 +14,12 @@ type {%s t.SingleName.Pascal %}Model struct {
     {%- endfor -%}
 }
 
-func Create{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.Pascal %}Model) error {
+
+type Create{%s t.SingleName.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func Create{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *Create{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 INSERT INTO {%s t.Name.Lower %} (
     {%- for _,f := range t.Fields -%}
@@ -26,19 +31,74 @@ INSERT INTO {%s t.Name.Lower %} (
     {%- endfor -%}
 )
     `)
-    defer stmt.Reset()
+    return &Create{%s t.SingleName.Pascal %}Stmt{stmt: stmt}
+}
+
+func (ps *Create{%s t.SingleName.Pascal %}Stmt) Run(m *{%s t.SingleName.Pascal %}Model) error {
+    defer ps.stmt.Reset()
 
     // Bind parameters
     {%= bindFields(t) %}
 
-    if _, err := stmt.Step(); err != nil {
+    if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to insert {%s t.Name.Lower %}: %w", err)
     }
 
     return nil
 }
 
-func Read{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) (*{%s t.SingleName.Pascal %}Model, error) {
+func OnceCreate{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.Pascal %}Model) error {
+    ps := Create{%s t.SingleName.Pascal %}(tx)
+    return ps.Run(m)
+}
+
+type ReadAll{%s t.Name.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func ReadAll{%s t.Name.Pascal %}(tx *sqlite.Conn) *ReadAll{%s t.Name.Pascal %}Stmt {
+    stmt := tx.Prep(`
+SELECT
+    {%- for _,f := range t.Fields -%}
+        {%s f.Name.Lower %},
+    {%- endfor -%}
+FROM {%s t.Name.Lower %}
+    `)
+    return &ReadAll{%s t.Name.Pascal %}Stmt{stmt: stmt}
+}
+
+func (ps *ReadAll{%s t.Name.Pascal %}Stmt) Run() ([]*{%s t.SingleName.Pascal %}Model, error) {
+    defer ps.stmt.Reset()
+
+    var models []*{%s t.SingleName.Pascal %}Model
+    for {
+        hasRow, err := ps.stmt.Step()
+        if err != nil {
+            return nil, fmt.Errorf("failed to read {%s t.Name.Lower %}: %w", err)
+        } else if !hasRow {
+            break
+        }
+
+        m := &{%s t.SingleName.Pascal %}Model{}
+        {%= fillResStruct(t) %}
+
+        models = append(models, m)
+    }
+
+    return models, nil
+}
+
+func OnceReadAll{%s t.Name.Pascal %}(tx *sqlite.Conn) ([]*{%s t.SingleName.Pascal %}Model, error) {
+    ps := ReadAll{%s t.Name.Pascal %}(tx)
+    return ps.Run()
+}
+
+{%- if t.HasID -%}
+type ReadByID{%s t.SingleName.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func ReadByID{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *ReadByID{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 SELECT
     {%- for _,f := range t.Fields -%}
@@ -47,32 +107,37 @@ SELECT
 FROM {%s t.Name.Lower %}
 WHERE id = ?
     `)
-    defer stmt.Reset()
+    return &ReadByID{%s t.SingleName.Pascal %}Stmt{stmt: stmt}
+}
 
-    stmt.BindInt64(1, id)
+func (ps *ReadByID{%s t.SingleName.Pascal %}Stmt) Run(id int64) (*{%s t.SingleName.Pascal %}Model, error) {
+    defer ps.stmt.Reset()
 
-    if hasRow, err := stmt.Step(); err != nil {
+    ps.stmt.BindInt64(1, id)
+
+    if hasRow, err := ps.stmt.Step(); err != nil {
         return nil, fmt.Errorf("failed to read {%s t.Name.Lower %}: %w", err)
     } else if !hasRow {
         return nil, nil
     }
 
     m := &{%s t.SingleName.Pascal %}Model{}
-    {%- for i,f := range t.Fields -%}
-        {%- switch f.GoType.Original -%}
-            {%- case "time.Time" -%}
-                m.{%s f.Name.Pascal %} = toolbelt.JulianDayToTime(stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
-            {%- case "time.Duration" -%}
-                m.{%s f.Name.Pascal %} = toolbelt.MillisecondsToDuration(stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
-            {%- default -%}
-                m.{%s f.Name.Pascal %} = stmt.Column{%s f.SQLType.Pascal %}({%d i %})
-        {%- endswitch -%}
-    {%- endfor -%}
+    {%= fillResStruct(t) %}
 
     return m, nil
 }
 
-func Update{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.Pascal %}Model) error {
+func OnceReadByID{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) (*{%s t.SingleName.Pascal %}Model, error) {
+    ps := ReadByID{%s t.SingleName.Pascal %}(tx)
+    return ps.Run(id)
+}
+{%- endif -%}
+
+type Update{%s t.SingleName.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func Update{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *Update{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 UPDATE {%s t.Name.Lower %}
 SET
@@ -83,45 +148,80 @@ SET
     {%- endfor -%}
 WHERE id = ?1
     `)
-    defer stmt.Reset()
+    return &Update{%s t.SingleName.Pascal %}Stmt{stmt: stmt}
+}
+
+func (ps *Update{%s t.SingleName.Pascal %}Stmt) Run(m *{%s t.SingleName.Pascal %}Model) error {
+    defer ps.stmt.Reset()
 
     // Bind parameters
     {%= bindFields(t) %}
 
-    if _, err := stmt.Step(); err != nil {
+    if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to update {%s t.Name.Lower %}: %w", err)
     }
 
     return nil
 }
 
-func Delete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
+func OnceUpdate{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.Pascal %}Model) error {
+    ps := Update{%s t.SingleName.Pascal %}(tx)
+    return ps.Run(m)
+}
+
+type Delete{%s t.SingleName.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func Delete{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *Delete{%s t.SingleName.Pascal %}Stmt {
     stmt := tx.Prep(`
 DELETE FROM {%s t.Name.Lower %}
 WHERE id = ?
     `)
-    defer stmt.Reset()
+    return &Delete{%s t.SingleName.Pascal %}Stmt{stmt: stmt}
+}
 
-    stmt.BindInt64(1, id)
+func (ps *Delete{%s t.SingleName.Pascal %}Stmt) Run(id int64) error {
+    defer ps.stmt.Reset()
 
-    if _, err := stmt.Step(); err != nil {
+    ps.stmt.BindInt64(1, id)
+
+    if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to delete {%s t.Name.Lower %}: %w", err)
     }
 
     return nil
 }
 
+func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
+    ps := Delete{%s t.SingleName.Pascal %}(tx)
+    return ps.Run(id)
+}
+
 {% endfunc %}
 
-{%- func bindFields(tbl *GenerateCRUDTable) -%}
+{%- func bindFields( tbl *GenerateCRUDTable) -%}
 {%- for _, f := range tbl.Fields -%}
-    {%- switch f.GoType.Original -%}
+    ps.{%- switch f.GoType.Original -%}
         {%-  case "time.Time" -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay(m.{%s f.Name.Pascal %}))
         {%- case "time.Duration" -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds(m.{%s f.Name.Pascal %}))
         {%- default -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, m.{%s f.Name.Pascal %})
+    {%- endswitch -%}
+{%- endfor -%}
+{%- endfunc -%}
+
+{%- func fillResStruct(t *GenerateCRUDTable) -%}
+{%- for i,f := range t.Fields -%}
+    {%- switch f.GoType.Original -%}
+        {%- case "time.Time" -%}
+            m.{%s f.Name.Pascal %} = toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+        {%- case "time.Duration" -%}
+            m.{%s f.Name.Pascal %} = toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+        {%- default -%}
+            m.{%s f.Name.Pascal %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
     {%- endswitch -%}
 {%- endfor -%}
 {%- endfunc -%}

@@ -29,6 +29,9 @@ func generateCRUD(req *plugin.GenerateRequest) (files []*plugin.File, err error)
 				continue
 			}
 			for i, column := range table.Columns {
+				if column.Name == "id" {
+					tbl.HasID = true
+				}
 				columnName := toolbelt.ToCasedString(column.Name)
 
 				goType, needsTime := toGoType(column)
@@ -64,4 +67,5 @@ type GenerateCRUDTable struct {
 	Name             toolbelt.CasedString
 	SingleName       toolbelt.CasedString
 	Fields           []GenerateField
+	HasID            bool
 }
