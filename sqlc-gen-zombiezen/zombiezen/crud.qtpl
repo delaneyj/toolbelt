@@ -133,6 +133,26 @@ func OnceReadByID{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) (*{%s t.S
 }
 {%- endif -%}
 
+func Count{%s t.Name.Pascal %}(tx *sqlite.Conn) (int64, error) {
+    stmt := tx.Prep(`
+SELECT COUNT(*)
+FROM {%s t.Name.Lower %}
+    `)
+    defer stmt.Reset()
+
+    if hasRow, err := stmt.Step(); err != nil {
+        return 0, fmt.Errorf("failed to count {%s t.Name.Lower %}: %w", err)
+    } else if !hasRow {
+        return 0, nil
+    }
+
+    return stmt.ColumnInt64(0), nil
+}
+
+func OnceCount{%s t.Name.Pascal %}(tx *sqlite.Conn) (int64, error) {
+    return Count{%s t.Name.Pascal %}(tx)
+}
+
 type Update{%s t.SingleName.Pascal %}Stmt struct {
     stmt *sqlite.Stmt
 }
