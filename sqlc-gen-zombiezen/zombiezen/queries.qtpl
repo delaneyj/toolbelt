@@ -133,7 +133,7 @@ func Once{%s q.Name.Pascal %}(
         {%- case "time.Time" -%}
             {%s f.Name.Camel %} = toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
         {%- case "time.Duration" -%}
-            {%s f.Name.Camel %} = ps.stmt.ColumnInt64({%d f.Offset %}, toolbelt.DurationToMilliseconds({%if q.ParamsIsSingularField %}{%s f.Name.Camel %}{%else %}params.{%s f.Name.Pascal %}{% endif %}))
+            {%s f.Name.Camel %} = toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
         {%- default -%}
             {%s f.Name.Camel %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
     {%- endswitch -%}
@@ -144,7 +144,7 @@ func Once{%s q.Name.Pascal %}(
             {%- case "time.Time" -%}
                 {%s f.Name.Pascal %}: toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %})),
             {%- case "time.Duration" -%}
-                {%s f.Name.Pascal %}: ps.stmt.ColumnInt64({%d f.Offset %}, toolbelt.DurationToMilliseconds({%if q.ParamsIsSingularField %}{%s f.Name.Camel %}{%else %}params.{%s f.Name.Pascal %}{% endif %})),
+                {%s f.Name.Pascal %}: toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %})),
             {%- default -%}
                 {%s f.Name.Pascal %}: ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %}),
         {%- endswitch -%}

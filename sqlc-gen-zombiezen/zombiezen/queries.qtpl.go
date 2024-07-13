@@ -439,23 +439,9 @@ func streamfillResponse(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
 			qw422016.E().S(f.Name.Camel)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-			qw422016.N().S(` = ps.stmt.ColumnInt64(`)
+			qw422016.N().S(` = toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64(`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
 			qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-			qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-			if q.ParamsIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-				qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-			} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-				qw422016.N().S(`params.`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-				qw422016.E().S(f.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
-			}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
 			qw422016.N().S(`))
 `)
@@ -511,23 +497,9 @@ func streamfillResponse(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
 				qw422016.E().S(f.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				qw422016.N().S(`: ps.stmt.ColumnInt64(`)
+				qw422016.N().S(`: toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64(`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
 				qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				if q.ParamsIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-					qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-					qw422016.N().S(`params.`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-					qw422016.E().S(f.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
 				qw422016.N().S(`)),
 `)
