@@ -76,6 +76,15 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 
 	db.writePool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		PoolSize: 1,
+		PrepareConn: func(conn *sqlite.Conn) error {
+			fk := conn.Prep("PRAGMA foreign_keys=on")
+			defer fk.Finalize()
+
+			if _, err := fk.Step(); err != nil {
+				return err
+			}
+			return nil
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("could not open write pool: %w", err)
@@ -84,18 +93,6 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	db.readPool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		PoolSize: runtime.NumCPU(),
 	})
-
-	if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-		foreignKeysStmt := tx.Prep("PRAGMA foreign_keys = ON")
-		defer foreignKeysStmt.Finalize()
-		if _, err := foreignKeysStmt.Step(); err != nil {
-			return fmt.Errorf("failed to enable foreign keys: %w", err)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to initialize database: %w", err)
-	}
 
 	schema := sqlitemigration.Schema{Migrations: db.migrations}
 	conn, err := db.writePool.Take(ctx)
