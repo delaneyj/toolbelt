@@ -134,6 +134,8 @@ func Once{%s q.Name.Pascal %}(
             {%s f.Name.Camel %} = toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
         {%- case "time.Duration" -%}
             {%s f.Name.Camel %} = toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
+        {%- case "[]byte" -%}
+            {%s f.Name.Camel %} = toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %}),
         {%- default -%}
             {%s f.Name.Camel %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
     {%- endswitch -%}
@@ -145,6 +147,8 @@ func Once{%s q.Name.Pascal %}(
                 {%s f.Name.Pascal %}: toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %})),
             {%- case "time.Duration" -%}
                 {%s f.Name.Pascal %}: toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %})),
+            {%- case "[]byte" -%}
+                {%s f.Name.Pascal %}: toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %}),
             {%- default -%}
                 {%s f.Name.Pascal %}: ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %}),
         {%- endswitch -%}
