@@ -6,6 +6,7 @@ package {%s t.PackageName.Lower %}
 import (
     "fmt"
     "zombiezen.com/go/sqlite"
+    "github.com/delaneyj/toolbelt"
 )
 
 type {%s t.SingleName.Pascal %}Model struct {
@@ -235,11 +236,14 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 
 {%- func fillResStruct(t *GenerateCRUDTable) -%}
 {%- for i,f := range t.Fields -%}
+    // {%s f.GoType.Original %}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
             m.{%s f.Name.Pascal %} = toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "time.Duration" -%}
             m.{%s f.Name.Pascal %} = toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+        {%- case "[]byte" -%}
+            m.{%s f.Name.Pascal %} = toolbelt.StmtBytesByCol(ps.stmt, {%d i %})
         {%- default -%}
             m.{%s f.Name.Pascal %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
     {%- endswitch -%}

@@ -91,6 +91,8 @@ func toSQLType(c *plugin.Column) string {
 		return "float"
 	case "boolean":
 		return "bool"
+	case "blob":
+		return "bytes"
 	default:
 		panic(fmt.Sprintf("toSQLType unhandled type %s", c.Type.Name))
 	}
@@ -121,6 +123,8 @@ func toGoType(c *plugin.Column) (val string, needsTime bool) {
 			return "float64", false
 		case "boolean":
 			return "bool", false
+		case "blob":
+			return "[]byte", false
 		default:
 			panic(fmt.Sprintf("toGoType unhandled type %s for column %s ", c.Type.Name, c.Name))
 		}

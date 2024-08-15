@@ -3,15 +3,15 @@
 version: "3"
 
 vars:
-  VERSION: 0.2.13
+  VERSION: 0.2.14
 
 interval: 200ms
 
 tasks:
   tools:
     cmds:
-      - go get -u github.com/valyala/quicktemplate@latest
       - go get -u github.com/valyala/quicktemplate/qtc
+      - go install github.com/valyala/quicktemplate/qtc@latest
       - go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
   bump:
     cmds:

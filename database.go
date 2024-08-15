@@ -232,3 +232,17 @@ func StmtBytes(stmt *sqlite.Stmt, colName string) []byte {
 
 	return buf
 }
+
+func StmtBytesByCol(stmt *sqlite.Stmt, col int) []byte {
+	bl := stmt.ColumnLen(col)
+	if bl == 0 {
+		return nil
+	}
+
+	buf := make([]byte, bl)
+	if writtent := stmt.ColumnBytes(col, buf); writtent != bl {
+		return nil
+	}
+
+	return buf
+}
