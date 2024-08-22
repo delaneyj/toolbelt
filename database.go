@@ -77,13 +77,8 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	db.writePool, err = sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		PoolSize: 1,
 		PrepareConn: func(conn *sqlite.Conn) error {
-			fk := conn.Prep("PRAGMA foreign_keys=on")
-			defer fk.Finalize()
-
-			if _, err := fk.Step(); err != nil {
-				return err
-			}
-			return nil
+			// Enable foreign keys. See https://sqlite.org/foreignkeys.html
+			return sqlitex.ExecuteTransient(conn, "PRAGMA foreign_keys = ON;", nil)
 		},
 	})
 	if err != nil {
