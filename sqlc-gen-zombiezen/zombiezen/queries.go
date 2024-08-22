@@ -85,7 +85,7 @@ func toSQLType(c *plugin.Column) string {
 	switch toolbelt.Lower(c.Type.Name) {
 	case "text":
 		return "text"
-	case "integer":
+	case "integer", "int":
 		return "int64"
 	case "datetime", "real":
 		return "float"
@@ -117,7 +117,7 @@ func toGoType(c *plugin.Column) (val string, needsTime bool) {
 		switch typ {
 		case "text":
 			return "string", false
-		case "integer":
+		case "integer", "int":
 			return "int64", false
 		case "real":
 			return "float64", false
