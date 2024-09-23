@@ -31,11 +31,12 @@ func generateQueries(req *plugin.GenerateRequest) (files []*plugin.File, err err
 			}
 
 			param := GenerateField{
-				Column:  int(p.Number),
-				Offset:  int(p.Number) - 1,
-				Name:    toolbelt.ToCasedString(toFieldName(p.Column)),
-				SQLType: toolbelt.ToCasedString(toSQLType(p.Column)),
-				GoType:  toolbelt.ToCasedString(goType),
+				Column:     int(p.Number),
+				Offset:     int(p.Number) - 1,
+				Name:       toolbelt.ToCasedString(toFieldName(p.Column)),
+				SQLType:    toolbelt.ToCasedString(toSQLType(p.Column)),
+				GoType:     toolbelt.ToCasedString(goType),
+				IsNullable: !p.Column.NotNull,
 			}
 			return param
 		})
@@ -51,11 +52,12 @@ func generateQueries(req *plugin.GenerateRequest) (files []*plugin.File, err err
 				}
 
 				col := GenerateField{
-					Column:  ci + 1,
-					Offset:  ci,
-					Name:    toolbelt.ToCasedString(toFieldName(c)),
-					SQLType: toolbelt.ToCasedString(toSQLType(c)),
-					GoType:  toolbelt.ToCasedString(goType),
+					Column:     ci + 1,
+					Offset:     ci,
+					Name:       toolbelt.ToCasedString(toFieldName(c)),
+					SQLType:    toolbelt.ToCasedString(toSQLType(c)),
+					GoType:     toolbelt.ToCasedString(goType),
+					IsNullable: !c.NotNull,
 				}
 				return col
 			})
@@ -132,11 +134,12 @@ func toGoType(c *plugin.Column) (val string, needsTime bool) {
 }
 
 type GenerateField struct {
-	Column  int // 1-indexed
-	Offset  int // 0-indexed
-	Name    toolbelt.CasedString
-	SQLType toolbelt.CasedString
-	GoType  toolbelt.CasedString
+	Column     int // 1-indexed
+	Offset     int // 0-indexed
+	Name       toolbelt.CasedString
+	SQLType    toolbelt.CasedString
+	GoType     toolbelt.CasedString
+	IsNullable bool
 }
 
 type GenerateQueryContext struct {

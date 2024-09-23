@@ -50,186 +50,193 @@ import (
 	qw422016.N().S(`
 )
 
-
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:19
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:18
 	if q.HasResponse && !q.ResponseIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:19
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:18
 		qw422016.N().S(`
 type `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:20
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:19
 		qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:20
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:19
 		qw422016.N().S(`Res struct {
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:20
 		for _, f := range q.ResponseFields {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:20
 			qw422016.N().S(`        `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.E().S(f.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S(` `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
+			if f.IsNullable {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
+				qw422016.N().S(`*`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
+			}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.E().S(f.GoType.Original)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S(` `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S(`json:"`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.E().S(f.Name.Lower)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S(`"`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:21
 			qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:23
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:23
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:22
 		qw422016.N().S(`}
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:25
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:24
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:25
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:24
 	qw422016.N().S(`
 
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:27
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:26
 	if q.HasParams && !q.ParamsIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:27
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:26
 		qw422016.N().S(`
 type `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:28
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:27
 		qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:28
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:27
 		qw422016.N().S(`Params struct {
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:28
 		for _, f := range q.Params {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:28
 			qw422016.N().S(`        `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.E().S(f.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S(` `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
+			if f.IsNullable {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
+				qw422016.N().S(`*`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
+			}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.E().S(f.GoType.Original)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S(` `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S(`json:"`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.E().S(f.Name.Lower)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S(`"`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:29
 			qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:31
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:31
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:30
 		qw422016.N().S(`}
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:33
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:32
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:33
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:32
 	qw422016.N().S(`
 
 type `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:35
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:34
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:35
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:34
 	qw422016.N().S(`Stmt struct {
     stmt *sqlite.Stmt
 }
 
 func `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.N().S(`(tx *sqlite.Conn) *`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.N().S(`Stmt {
     // Prepare the statement into connection cache
     stmt := tx.Prep(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:39
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:38
 	qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:42
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:41
 	qw422016.N().S(q.SQL)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:42
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:41
 	qw422016.N().S(`
     `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:42
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:41
 	qw422016.N().S("`")
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:42
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:41
 	qw422016.N().S(`)
     ps := &`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:44
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:43
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:44
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:43
 	qw422016.N().S(`Stmt{stmt: stmt}
     return ps
 }
 
 func (ps *`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:48
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:47
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:48
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:47
 	qw422016.N().S(`Stmt) Run(
     `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:49
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:48
 	streamfillReqParams(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:49
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:48
 	qw422016.N().S(`) (
     `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:51
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:50
 	streamfillReturns(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:51
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:50
 	qw422016.N().S(`) {
     defer ps.stmt.Reset()
 
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:55
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:54
 	if len(q.Params) > 0 {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:55
-		qw422016.N().S(`
-    // Bind parameters
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:54
+		qw422016.N().S(`    // Bind parameters
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:57
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:56
 		for _, p := range q.Params {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:57
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:56
 			qw422016.N().S(`        `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:57
+			streamfillParams(qw422016, p.GoType, p.SQLType, p.Name, p.Column, q.ParamsIsSingularField, p.IsNullable)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:58
-			streamfillParams(qw422016, p.GoType, p.SQLType, p.Name, p.Column, q.ParamsIsSingularField)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:58
-			qw422016.N().S(`
-`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:59
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:60
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:59
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:60
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:59
 	qw422016.N().S(`
     // Execute the query
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:63
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:62
 	if q.HasResponse {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:64
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:63
 		if q.ResponseHasMultiple {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:64
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:63
 			qw422016.N().S(`        for {
             if hasRow, err := ps.stmt.Step(); err != nil {
                 return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
@@ -237,594 +244,547 @@ func (ps *`)
                 break
             }
             `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:71
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:70
 			streamfillResponse(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:71
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:70
 			qw422016.N().S(`
             res = append(res, row)
         }
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:75
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:74
 		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:75
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:74
 			qw422016.N().S(`        if hasRow, err := ps.stmt.Step(); err != nil {
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:77
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:76
 			if q.ResponseIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:77
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:76
 				qw422016.N().S(`            return `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:78
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:77
 				qw422016.E().S(q.ResponseFields[0].Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:78
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:77
 				qw422016.N().S(`, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:79
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:78
 			} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:79
-				qw422016.N().S(`            return res, err
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:78
+				qw422016.N().S(`            return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:81
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:80
 			}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:81
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:80
 			qw422016.N().S(`        } else if hasRow {
             `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:83
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:82
 			streamfillResponse(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:84
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:83
 			if !q.ResponseIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:84
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:83
 				qw422016.N().S(`            res = &row
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:86
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:85
 			}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:86
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:85
 			qw422016.N().S(`        }
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:88
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:87
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:89
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:88
 	} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:89
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:88
 		qw422016.N().S(`    if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to execute `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:91
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:90
 		qw422016.E().S(q.Name.Lower)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:91
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:90
 		qw422016.N().S(` SQL: %w", err)
     }
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:93
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:92
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:93
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:92
 	qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:95
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:94
 	if q.HasResponse {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:96
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:95
 		if q.ResponseIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:96
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:95
 			qw422016.N().S(`    return `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:97
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:96
 			qw422016.E().S(q.ResponseFields[0].Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:97
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:96
 			qw422016.N().S(`, nil
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:98
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:97
 		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:98
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:97
 			qw422016.N().S(`    return res, nil
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:100
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:99
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:101
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:100
 	} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:101
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:100
 		qw422016.N().S(`    return nil
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:103
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:102
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:103
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:102
 	qw422016.N().S(`}
 
 func Once`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:106
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:105
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:106
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:105
 	qw422016.N().S(`(
     tx *sqlite.Conn,
     `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:108
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:107
 	streamfillReqParams(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:108
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:107
 	qw422016.N().S(`) (
     `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:110
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:109
 	streamfillReturns(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:110
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:109
 	qw422016.N().S(`) {
     ps := `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:112
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:111
 	qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:112
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:111
 	qw422016.N().S(`(tx)
 
     return ps.Run(
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:115
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:114
 	if q.HasParams {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:115
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:114
 		qw422016.N().S(`        `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:116
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:115
 		if q.ParamsIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:116
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:115
 			qw422016.N().S(`            `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:117
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:116
 			qw422016.E().S(q.Params[0].Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:117
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:116
 			qw422016.N().S(`,
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:118
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:117
 		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:118
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:117
 			qw422016.N().S(`            params,
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:120
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:119
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:121
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:120
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:121
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:120
 	qw422016.N().S(`
     )
 }
 
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 func WriteGenerateQuery(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	StreamGenerateQuery(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	qt422016.ReleaseWriter(qw422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 func GenerateQuery(q *GenerateQueryContext) string {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	qb422016 := qt422016.AcquireByteBuffer()
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	WriteGenerateQuery(qb422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	qs422016 := string(qb422016.B)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	qt422016.ReleaseByteBuffer(qb422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 	return qs422016
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:125
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:124
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:127
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:126
 func streamfillResponse(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:127
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:126
 	qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:128
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:127
 	if q.ResponseIsSingularField {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:130
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:129
 		f := q.ResponseFields[0]
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:132
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:131
 		switch f.GoType.Original {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:133
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:132
 		case "time.Time":
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:132
+			qw422016.N().S(`            `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:133
-			qw422016.N().S(`            `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
 			qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:133
 			qw422016.N().S(` = toolbelt.JulianDayToTime(ps.stmt.ColumnFloat(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:133
 			qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:133
 			qw422016.N().S(`))
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
 		case "time.Duration":
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:134
 			qw422016.N().S(`            `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
 			qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
 			qw422016.N().S(` = toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
 			qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:135
 			qw422016.N().S(`))
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
 		case "[]byte":
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:136
 			qw422016.N().S(`            `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
 			qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
 			qw422016.N().S(` = toolbelt.StmtBytesByCol(ps.stmt, `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
 			qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:137
 			qw422016.N().S(`),
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
 		default:
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:138
 			qw422016.N().S(`            `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.E().S(f.Name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.N().S(` = ps.stmt.Column`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.E().S(f.SQLType.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.N().S(`(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:139
 			qw422016.N().S(`)
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:141
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:140
 		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:142
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:141
 	} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:142
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:141
 		qw422016.N().S(`    row := `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:143
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:142
 		qw422016.E().S(q.Name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:143
-		qw422016.N().S(`Res{
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:142
+		qw422016.N().S(`Res{}
+
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:144
 		for _, f := range q.ResponseFields {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:144
+			qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:145
-			switch f.GoType.Original {
+			if f.IsNullable {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:145
+				qw422016.N().S(`
+            isNull`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:146
-			case "time.Time":
+				qw422016.E().S(f.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:146
-				qw422016.N().S(`                `)
+				qw422016.N().S(` := ps.stmt.ColumnIsNull(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:146
+				qw422016.N().D(f.Offset)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:146
+				qw422016.N().S(`)
+            if !isNull`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
 				qw422016.E().S(f.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				qw422016.N().S(`: toolbelt.JulianDayToTime(ps.stmt.ColumnFloat(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:147
-				qw422016.N().S(`)),
-`)
+				qw422016.N().S(` {
+                tmp := `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:148
-			case "time.Duration":
+				streamfillResponseField(qw422016, f)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:148
-				qw422016.N().S(`                `)
+				qw422016.N().S(`                row.`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:149
 				qw422016.E().S(f.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:149
-				qw422016.N().S(`: toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:149
-				qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:149
-				qw422016.N().S(`)),
+				qw422016.N().S(` = &tmp
+            }
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:150
-			case "[]byte":
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:150
-				qw422016.N().S(`                `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:151
-				qw422016.E().S(f.Name.Pascal)
+			} else {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:151
-				qw422016.N().S(`: toolbelt.StmtBytesByCol(ps.stmt, `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:151
-				qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:151
-				qw422016.N().S(`),
-`)
+				qw422016.N().S(`
+            row.`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:152
-			default:
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:152
-				qw422016.N().S(`                `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
 				qw422016.E().S(f.Name.Pascal)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:152
+				qw422016.N().S(` = `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:152
+				streamfillResponseField(qw422016, f)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:152
+				qw422016.N().S(`
+        `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
-				qw422016.N().S(`: ps.stmt.Column`)
+			}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
-				qw422016.E().S(f.SQLType.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
-				qw422016.N().S(`(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
-				qw422016.N().D(f.Offset)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:153
-				qw422016.N().S(`),
+			qw422016.N().S(`
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:154
-			}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:155
 		}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:155
-		qw422016.N().S(`    }
-`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:157
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:157
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:155
 	qw422016.N().S(`
 `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 func writefillResponse(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	streamfillResponse(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	qt422016.ReleaseWriter(qw422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 func fillResponse(q *GenerateQueryContext) string {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	qb422016 := qt422016.AcquireByteBuffer()
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	writefillResponse(qb422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	qs422016 := string(qb422016.B)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	qt422016.ReleaseByteBuffer(qb422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 	return qs422016
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:156
 }
 
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:158
+func streamfillResponseField(qw422016 *qt422016.Writer, f GenerateField) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:159
+	switch f.GoType.Original {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:160
-func streamfillReqParams(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
+	case "time.Time":
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:160
+		qw422016.N().S(`        toolbelt.JulianDayToTime(ps.stmt.ColumnFloat(`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:161
-	if q.HasParams {
+		qw422016.N().D(f.Offset)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:161
+		qw422016.N().S(`))
+`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:162
-		if q.ParamsIsSingularField {
+	case "time.Duration":
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:162
-			qw422016.N().S(`        `)
+		qw422016.N().S(`        toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64(`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:163
-			qw422016.E().S(q.Params[0].Name.Camel)
+		qw422016.N().D(f.Offset)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:163
-			qw422016.N().S(` `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:163
-			qw422016.E().S(q.Params[0].GoType.Original)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:163
-			qw422016.N().S(`,
+		qw422016.N().S(`))
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:164
-		} else {
+	case "[]byte":
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:164
-			qw422016.N().S(`        params `)
+		qw422016.N().S(`        toolbelt.StmtBytesByCol(ps.stmt, `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:165
-			qw422016.E().S(q.Name.Pascal)
+		qw422016.N().D(f.Offset)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:165
-			qw422016.N().S(`Params,
+		qw422016.N().S(`)
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:166
-		}
+	default:
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:166
+		qw422016.N().S(`        ps.stmt.Column`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:167
+		qw422016.E().S(f.SQLType.Pascal)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:167
+		qw422016.N().S(`(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:167
+		qw422016.N().D(f.Offset)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:167
+		qw422016.N().S(`)
+`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
-func writefillReqParams(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
+func writefillResponseField(qq422016 qtio422016.Writer, f GenerateField) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
-	streamfillReqParams(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
+	streamfillResponseField(qw422016, f)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	qt422016.ReleaseWriter(qw422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
-func fillReqParams(q *GenerateQueryContext) string {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
+func fillResponseField(f GenerateField) string {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	qb422016 := qt422016.AcquireByteBuffer()
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
-	writefillReqParams(qb422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
+	writefillResponseField(qb422016, f)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	qs422016 := string(qb422016.B)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	qt422016.ReleaseByteBuffer(qb422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 	return qs422016
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:168
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:169
 }
 
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:171
-func streamfillReturns(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
+func streamfillReqParams(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:172
-	if q.HasResponse {
+	if q.HasParams {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:173
-		if q.ResponseIsSingularField {
+		if q.ParamsIsSingularField {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:173
 			qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
-			qw422016.E().S(q.ResponseFields[0].Name.Camel)
+			qw422016.E().S(q.Params[0].Name.Camel)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
-			qw422016.N().S(` `)
+			qw422016.N().S(`  `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
-			qw422016.E().S(q.ResponseFields[0].GoType.Original)
+			if q.Params[0].IsNullable {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
+				qw422016.N().S(`*`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
+			}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
+			qw422016.E().S(q.Params[0].GoType.Original)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:174
 			qw422016.N().S(`,
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:175
 		} else {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:175
-			qw422016.N().S(`        res `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-			if q.ResponseHasMultiple {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-				qw422016.N().S(`[]`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-			} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-				qw422016.N().S(`*`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-			}
+			qw422016.N().S(`        params `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
 			qw422016.E().S(q.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:176
-			qw422016.N().S(`Res,
+			qw422016.N().S(`Params,
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:177
 		}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:178
 	}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:178
-	qw422016.N().S(`    err error,
-`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
-func writefillReturns(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
+func writefillReqParams(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
-	streamfillReturns(qw422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
+	streamfillReqParams(qw422016, q)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	qt422016.ReleaseWriter(qw422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 }
 
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
-func fillReturns(q *GenerateQueryContext) string {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
+func fillReqParams(q *GenerateQueryContext) string {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	qb422016 := qt422016.AcquireByteBuffer()
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
-	writefillReturns(qb422016, q)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
+	writefillReqParams(qb422016, q)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	qs422016 := string(qb422016.B)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	qt422016.ReleaseByteBuffer(qb422016)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 	return qs422016
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:180
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:179
 }
 
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:182
-func streamfillParams(qw422016 *qt422016.Writer, goType, sqlType, name toolbelt.CasedString, col int, isSingle bool) {
+func streamfillReturns(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:183
-	switch goType.Original {
+	if q.HasResponse {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:184
-	case "time.Time":
+		if q.ResponseIsSingularField {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:184
-		qw422016.N().S(`        ps.stmt.Bind`)
+			qw422016.N().S(`        `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		qw422016.E().S(sqlType.Pascal)
+			qw422016.E().S(q.ResponseFields[0].Name.Camel)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		qw422016.N().S(`(`)
+			qw422016.N().S(` `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		qw422016.N().D(col)
+			qw422016.E().S(q.ResponseFields[0].GoType.Original)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		qw422016.N().S(`, toolbelt.TimeToJulianDay(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		if isSingle {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-			qw422016.E().S(name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-			qw422016.N().S(`params.`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-			qw422016.E().S(name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:185
-		qw422016.N().S(`))
+			qw422016.N().S(`,
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:186
-	case "time.Duration":
+		} else {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:186
-		qw422016.N().S(`        ps.stmt.Bind`)
+			qw422016.N().S(`        res `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		qw422016.E().S(sqlType.Pascal)
+			if q.ResponseHasMultiple {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		qw422016.N().S(`(`)
+				qw422016.N().S(`[]`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		qw422016.N().D(col)
+			} else {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
+				qw422016.N().S(`*`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		if isSingle {
+			}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-			qw422016.E().S(name.Camel)
+			qw422016.E().S(q.Name.Pascal)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-			qw422016.N().S(`params.`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-			qw422016.E().S(name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		}
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:187
-		qw422016.N().S(`))
+			qw422016.N().S(`Res,
 `)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:188
-	default:
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:188
-		qw422016.N().S(`        ps.stmt.Bind`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		qw422016.E().S(sqlType.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		qw422016.N().S(`(`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		qw422016.N().D(col)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		qw422016.N().S(`, `)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		if isSingle {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-			qw422016.E().S(name.Camel)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		} else {
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-			qw422016.N().S(`params.`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-			qw422016.E().S(name.Pascal)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
 		}
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
-		qw422016.N().S(`)
-`)
-//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:190
 	}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:189
+	qw422016.N().S(`    err error,
+`)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 }
 
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
-func writefillParams(qq422016 qtio422016.Writer, goType, sqlType, name toolbelt.CasedString, col int, isSingle bool) {
+func writefillReturns(qq422016 qtio422016.Writer, q *GenerateQueryContext) {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 	qw422016 := qt422016.AcquireWriter(qq422016)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
-	streamfillParams(qw422016, goType, sqlType, name, col, isSingle)
+	streamfillReturns(qw422016, q)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 	qt422016.ReleaseWriter(qw422016)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 }
 
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
-func fillParams(goType, sqlType, name toolbelt.CasedString, col int, isSingle bool) string {
+func fillReturns(q *GenerateQueryContext) string {
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 	qb422016 := qt422016.AcquireByteBuffer()
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
-	writefillParams(qb422016, goType, sqlType, name, col, isSingle)
+	writefillReturns(qb422016, q)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 	qs422016 := string(qb422016.B)
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
@@ -834,4 +794,153 @@ func fillParams(goType, sqlType, name toolbelt.CasedString, col int, isSingle bo
 //line sqlc-gen-zombiezen/zombiezen/queries.qtpl:191
 }
 
-// `
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:193
+func streamfillParams(qw422016 *qt422016.Writer, goType, sqlType, name toolbelt.CasedString, col int, isSingle, isNullable bool) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:195
+	pName := name.Camel
+	if !isSingle {
+		pName = "params." + name.Pascal
+	}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:200
+	if isNullable {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:200
+		qw422016.N().S(`    if `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:201
+		qw422016.E().S(pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:201
+		qw422016.N().S(` == nil {
+        ps.stmt.BindNull(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:202
+		qw422016.N().D(col)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:202
+		qw422016.N().S(`)
+    } else {
+        `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:204
+		streamfillParam(qw422016, goType, sqlType, col, "*"+pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:204
+		qw422016.N().S(`    }
+`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:206
+	} else {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:206
+		qw422016.N().S(`    `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:207
+		streamfillParam(qw422016, goType, sqlType, col, pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:208
+	}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+func writefillParams(qq422016 qtio422016.Writer, goType, sqlType, name toolbelt.CasedString, col int, isSingle, isNullable bool) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	qw422016 := qt422016.AcquireWriter(qq422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	streamfillParams(qw422016, goType, sqlType, name, col, isSingle, isNullable)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	qt422016.ReleaseWriter(qw422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+func fillParams(goType, sqlType, name toolbelt.CasedString, col int, isSingle, isNullable bool) string {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	qb422016 := qt422016.AcquireByteBuffer()
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	writefillParams(qb422016, goType, sqlType, name, col, isSingle, isNullable)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	qs422016 := string(qb422016.B)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	qt422016.ReleaseByteBuffer(qb422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+	return qs422016
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:209
+}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:211
+func streamfillParam(qw422016 *qt422016.Writer, goType, sqlType toolbelt.CasedString, col int, pName string) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:212
+	switch goType.Original {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:213
+	case "time.Time":
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:213
+		qw422016.N().S(`        ps.stmt.Bind`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.E().S(sqlType.Pascal)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.N().S(`(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.N().D(col)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.N().S(`, toolbelt.TimeToJulianDay(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.E().S(pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:214
+		qw422016.N().S(`))
+`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:215
+	case "time.Duration":
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:215
+		qw422016.N().S(`        ps.stmt.Bind`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.E().S(sqlType.Pascal)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.N().S(`(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.N().D(col)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.E().S(pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:216
+		qw422016.N().S(`))
+`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:217
+	default:
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:217
+		qw422016.N().S(`        ps.stmt.Bind`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.E().S(sqlType.Pascal)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.N().S(`(`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.N().D(col)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.N().S(`, `)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.E().S(pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:218
+		qw422016.N().S(`)
+`)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:219
+	}
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+func writefillParam(qq422016 qtio422016.Writer, goType, sqlType toolbelt.CasedString, col int, pName string) {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	qw422016 := qt422016.AcquireWriter(qq422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	streamfillParam(qw422016, goType, sqlType, col, pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	qt422016.ReleaseWriter(qw422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+}
+
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+func fillParam(goType, sqlType toolbelt.CasedString, col int, pName string) string {
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	qb422016 := qt422016.AcquireByteBuffer()
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	writefillParam(qb422016, goType, sqlType, col, pName)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	qs422016 := string(qb422016.B)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	qt422016.ReleaseByteBuffer(qb422016)
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+	return qs422016
+//line sqlc-gen-zombiezen/zombiezen/queries.qtpl:220
+}
