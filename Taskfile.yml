@@ -28,6 +28,12 @@ tasks:
     cmds:
       - qtc
 
+  sqlc-examples:
+    dir: sqlc-gen-zombiezen/zombiezen/examples
+    cmds:
+      - sqlc generate
+      - goimports -w .
+
   sqlc:
     dir: sqlc-gen-zombiezen
     deps:
@@ -37,3 +43,4 @@ tasks:
       - exclude: "**.qtpl.go"
     cmds:
       - go install
+      - task sqlc-examples

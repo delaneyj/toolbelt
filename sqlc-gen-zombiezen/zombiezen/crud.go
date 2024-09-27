@@ -39,11 +39,12 @@ func generateCRUD(req *plugin.GenerateRequest) (files []*plugin.File, err error)
 					tbl.NeedsTimePackage = true
 				}
 				f := GenerateField{
-					Column:  i + 1,
-					Offset:  i,
-					Name:    columnName,
-					SQLType: toolbelt.ToCasedString(toSQLType(column)),
-					GoType:  toolbelt.ToCasedString(goType),
+					Column:     i + 1,
+					Offset:     i,
+					Name:       columnName,
+					SQLType:    toolbelt.ToCasedString(toSQLType(column)),
+					GoType:     toolbelt.ToCasedString(goType),
+					IsNullable: !column.NotNull,
 				}
 				tbl.Fields = append(tbl.Fields, f)
 			}

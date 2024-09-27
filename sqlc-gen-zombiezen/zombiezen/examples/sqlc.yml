@@ -1,0 +1,14 @@
+version: "2"
+
+plugins:
+  - name: zz
+    process:
+      cmd: sqlc-gen-zombiezen
+
+sql:
+  - engine: "sqlite"
+    queries: "./queries"
+    schema: "./migrations"
+    codegen:
+      - out: zz
+        plugin: zz
