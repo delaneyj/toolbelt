@@ -4,7 +4,7 @@
 
 1. Install the plugin:
    ```shell
-   go install github.com/delaneyj/toolbelt/sqlc-gen-zombiezen
+   go install github.com/delaneyj/toolbelt/sqlc-gen-zombiezen@latest
    ```
 2. Make a sqlc.yml similar to the following:
 
