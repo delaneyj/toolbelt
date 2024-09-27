@@ -97,7 +97,6 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	defer db.writePool.Put(conn)
 
 	if err := sqlitemigration.Migrate(ctx, conn, schema); err != nil {
-		db.writePool.Put(conn)
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
