@@ -11,7 +11,7 @@ import (
 
 type {%s t.SingleName.Pascal %}Model struct {
     {%- for _,f := range t.Fields -%}
-        {%s f.Name.Pascal %} {%s f.GoType.Original %} `json:"{%s f.Name.Lower %}"`
+        {%s f.Name.Pascal %} {% if f.IsNullable %}*{% endif %}{%s f.GoType.Original %} `json:"{%s f.Name.Lower %}"`
     {%- endfor -%}
 }
 
@@ -222,30 +222,55 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {% endfunc %}
 
 {%- func bindFields( tbl *GenerateCRUDTable) -%}
-{%- for _, f := range tbl.Fields -%}
+    {%- for col, f := range tbl.Fields -%}
+        {%- if f.IsNullable -%}
+    if m.{%s f.Name.Pascal %} == nil {
+        ps.stmt.BindNull({%d col %})
+    } else {
+        {%= bindField(f, true) -%}
+    }
+        {%- else -%}
+    {%= bindField(f,false) %}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfunc -%}
+
+{%- func bindField(f GenerateField, isNullable bool) -%}
     ps.{%- switch f.GoType.Original -%}
         {%-  case "time.Time" -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay(m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
         {%- case "time.Duration" -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds(m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
         {%- default -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, m.{%s f.Name.Pascal %})
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, {% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %})
     {%- endswitch -%}
-{%- endfor -%}
 {%- endfunc -%}
 
 {%- func fillResStruct(t *GenerateCRUDTable) -%}
+
 {%- for i,f := range t.Fields -%}
-    // {%s f.GoType.Original %}
+    {%- if f.IsNullable -%}
+    if ps.stmt.ColumnIsNull({%d i %}) {
+        m.{%s f.Name.Pascal %} = nil
+    } else {
+        tmp :=  {%= fillResStructField(f, i) -%}
+        m.{%s f.Name.Pascal %} = &tmp
+    }
+    {%- else -%}
+    m.{%s f.Name.Pascal %} = {%= fillResStructField(f,i) %}
+    {%- endif -%}
+{%- endfor -%}
+{%- endfunc -%}
+
+{%- func fillResStructField(f GenerateField, i int) -%}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
-            m.{%s f.Name.Pascal %} = toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "time.Duration" -%}
-            m.{%s f.Name.Pascal %} = toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "[]byte" -%}
-            m.{%s f.Name.Pascal %} = toolbelt.StmtBytesByCol(ps.stmt, {%d i %})
+            toolbelt.StmtBytesByCol(ps.stmt, {%d i %})
         {%- default -%}
-            m.{%s f.Name.Pascal %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
+            ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
     {%- endswitch -%}
-{%- endfor -%}
 {%- endfunc -%}
