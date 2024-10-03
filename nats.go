@@ -15,13 +15,33 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+type NewEmbeddedNATsServerOptn struct {
+	DataPath  string
+	ClearData bool
+}
+
 type EmbeddedNATsServer struct {
 	NatsServer *server.Server
 }
 
-func NewEmbeddedNATsServer(ctx context.Context, clearData bool) (*EmbeddedNATsServer, error) {
+func NewEmbeddedNATsServer(ctx context.Context, optns ...NewEmbeddedNATsServerOptn) (*EmbeddedNATsServer, error) {
 
-	const dataDir = "./data/example"
+	dataDir := "./data/example"
+	clearData := false
+
+	// Resolve options
+	if len(optns) > 0 {
+		for _, optn := range optns {
+			if optn.DataPath != "" {
+				dataDir = optn.DataPath
+			}
+
+			if optn.ClearData {
+				clearData = true
+			}
+		}
+	}
+
 	if clearData {
 		if err := os.RemoveAll(dataDir); err != nil {
 			return nil, err
