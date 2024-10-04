@@ -94,3 +94,7 @@ func RandNegOneToOneClamped[T Float](r *rand.Rand) T {
 func RandIntRange[T Integer](r *rand.Rand, min, max T) T {
 	return T(Fit(r.Float32(), 0, 1, float32(min), float32(max)))
 }
+
+func RandSliceItem[T any](r *rand.Rand, slice []T) T {
+	return slice[r.Intn(len(slice))]
+}
