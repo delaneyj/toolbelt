@@ -15,35 +15,40 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type NewEmbeddedNATsServerOptn struct {
-	DataPath  string
-	ClearData bool
-}
-
 type EmbeddedNATsServer struct {
 	NatsServer *server.Server
+	directory  string
+	clearData  bool
 }
 
-func NewEmbeddedNATsServer(ctx context.Context, optns ...NewEmbeddedNATsServerOptn) (*EmbeddedNATsServer, error) {
+type ConcreteEmbeddedNATSServerBuilder struct {
+	embeddedNATSServer *EmbeddedNATsServer
+}
 
-	dataDir := "./data/example"
-	clearData := false
+type EmbeddedNATSServerBuilder interface {
+	SetDirectory(string) EmbeddedNATSServerBuilder
+	SetClearData(bool) EmbeddedNATSServerBuilder
+	Build() (*EmbeddedNATsServer, error)
+}
 
-	// Resolve options
-	if len(optns) > 0 {
-		for _, optn := range optns {
-			if optn.DataPath != "" {
-				dataDir = optn.DataPath
-			}
+func NewConcreteEmbeddedNATSServerBuilder() *ConcreteEmbeddedNATSServerBuilder {
+	return &ConcreteEmbeddedNATSServerBuilder{embeddedNATSServer: &EmbeddedNATsServer{directory: "./data/example"}}
+}
 
-			if optn.ClearData {
-				clearData = true
-			}
-		}
-	}
+func (c *ConcreteEmbeddedNATSServerBuilder) SetDirectory(directory string) EmbeddedNATSServerBuilder {
+	c.embeddedNATSServer.directory = directory
+	return c
+}
 
-	if clearData {
-		if err := os.RemoveAll(dataDir); err != nil {
+func (c *ConcreteEmbeddedNATSServerBuilder) SetClearData(clearData bool) EmbeddedNATSServerBuilder {
+	c.embeddedNATSServer.clearData = clearData
+	return c
+}
+
+func (c *ConcreteEmbeddedNATSServerBuilder) Build() (*EmbeddedNATsServer, error) {
+
+	if c.embeddedNATSServer.clearData {
+		if err := os.RemoveAll(c.embeddedNATSServer.directory); err != nil {
 			return nil, err
 		}
 	}
@@ -51,7 +56,7 @@ func NewEmbeddedNATsServer(ctx context.Context, optns ...NewEmbeddedNATsServerOp
 	// Initialize new server with options
 	ns, err := server.NewServer(&server.Options{
 		JetStream: true,
-		StoreDir:  dataDir,
+		StoreDir:  c.embeddedNATSServer.directory,
 		Websocket: server.WebsocketOpts{
 			Port:  4443,
 			NoTLS: true,
@@ -68,6 +73,8 @@ func NewEmbeddedNATsServer(ctx context.Context, optns ...NewEmbeddedNATsServerOp
 
 	return &EmbeddedNATsServer{
 		NatsServer: ns,
+		directory:  c.embeddedNATSServer.directory,
+		clearData:  c.embeddedNATSServer.clearData,
 	}, nil
 }
 
