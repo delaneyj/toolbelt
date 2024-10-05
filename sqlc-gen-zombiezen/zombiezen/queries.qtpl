@@ -67,20 +67,27 @@ func (ps *{%s q.Name.Pascal %}Stmt) Run(
             } else if !hasRow {
                 break
             }
-            {%= fillResponse(q) -%}
 
+            {%- if q.ResponseIsSingularField -%}
+            {%s q.ResponseFields[0].Name.Camel %} := {%= fillResponse(q) -%}
+            res = append(res, {%s q.ResponseFields[0].Name.Camel %})
+            {%- else -%}
+            {%= fillResponse(q) -%}
             res = append(res, row)
+            {%- endif -%}
         }
     {%- else -%}
         if hasRow, err := ps.stmt.Step(); err != nil {
             {%- if q.ResponseIsSingularField -%}
-            return {%s q.ResponseFields[0].Name.Camel %}, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
+            return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
             {%- else -%}
             return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
             {%- endif -%}
         } else if hasRow {
+            {%- if q.ResponseIsSingularField -%}
+            res = {%= fillResponse(q) -%}
+            {%- else -%}
             {%= fillResponse(q) -%}
-            {%- if !q.ResponseIsSingularField -%}
             res = &row
             {%- endif -%}
         }
@@ -92,11 +99,7 @@ func (ps *{%s q.Name.Pascal %}Stmt) Run(
 {%- endif -%}
 
 {%- if q.HasResponse -%}
-    {%- if q.ResponseIsSingularField -%}
-    return {%s q.ResponseFields[0].Name.Camel %}, nil
-    {%- else -%}
     return res, nil
-    {%- endif -%}
 {%- else -%}
     return nil
 {%- endif -%}
@@ -123,37 +126,36 @@ func Once{%s q.Name.Pascal %}(
 
 {% endfunc %}
 
-{%- func fillResponse(q *GenerateQueryContext) %}
+{%- func fillResponse(q *GenerateQueryContext) -%}
 {%- if q.ResponseIsSingularField -%}
     {%- code
         f := q.ResponseFields[0]
      -%}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
-            {%s f.Name.Camel %} = toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
+            toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
         {%- case "time.Duration" -%}
-            {%s f.Name.Camel %} = toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
+            toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
         {%- case "[]byte" -%}
-            {%s f.Name.Camel %} = toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %}),
+            toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %}),
         {%- default -%}
-            {%s f.Name.Camel %} = ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
+            ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
     {%- endswitch -%}
 {%- else -%}
     row := {%s q.Name.Pascal %}Res{}
-
     {%- for _,f := range q.ResponseFields -%}
-        {% if f.IsNullable %}
+        {%- if f.IsNullable -%}
             isNull{%s f.Name.Pascal %} := ps.stmt.ColumnIsNull({%d f.Offset %})
             if !isNull{%s f.Name.Pascal %} {
                 tmp := {%= fillResponseField(f) -%}
                 row.{%s f.Name.Pascal %} = &tmp
             }
-        {%- else %}
-            row.{%s f.Name.Pascal %} = {%= fillResponseField(f) %}
-        {% endif %}
+        {%- else -%}
+            row.{%s f.Name.Pascal %} = {%= fillResponseField(f) -%}
+        {%- endif -%}
     {%- endfor -%}
-{%- endif %}
-{%- endfunc %}
+{%- endif -%}
+{%- endfunc -%}
 
 {%- func fillResponseField(f GenerateField) -%}
 {%- switch f.GoType.Original -%}
@@ -182,7 +184,7 @@ func Once{%s q.Name.Pascal %}(
 {%- func fillReturns(q *GenerateQueryContext) -%}
 {%- if q.HasResponse -%}
     {%- if q.ResponseIsSingularField -%}
-        {%s q.ResponseFields[0].Name.Camel %} {%s q.ResponseFields[0].GoType.Original -%},
+        res {% if q.ResponseHasMultiple %}[]{% endif %}{%s q.ResponseFields[0].GoType.Original -%},
     {%- else -%}
         res {% if q.ResponseHasMultiple %}[]{% else %}*{% endif %}{%s q.Name.Pascal %}Res,
     {%- endif -%}

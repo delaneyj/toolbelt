@@ -95,9 +95,12 @@ func toSQLType(c *plugin.Column) string {
 		return "bool"
 	case "blob":
 		return "bytes"
+	case "bool":
+		return "bool"
 	default:
 		panic(fmt.Sprintf("toSQLType unhandled type %s", c.Type.Name))
 	}
+
 }
 
 func toFieldName(c *plugin.Column) string {
@@ -123,12 +126,12 @@ func toGoType(c *plugin.Column) (val string, needsTime bool) {
 			return "int64", false
 		case "real":
 			return "float64", false
-		case "boolean":
+		case "boolean", "bool":
 			return "bool", false
 		case "blob":
 			return "[]byte", false
 		default:
-			panic(fmt.Sprintf("toGoType unhandled type %s for column %s ", c.Type.Name, c.Name))
+			panic(fmt.Sprintf("toGoType unhandled type '%s' for column '%s'", c.Type.Name, c.Name))
 		}
 	}
 }
