@@ -222,10 +222,10 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {% endfunc %}
 
 {%- func bindFields( tbl *GenerateCRUDTable) -%}
-    {%- for col, f := range tbl.Fields -%}
+    {%- for _, f := range tbl.Fields -%}
         {%- if f.IsNullable -%}
     if m.{%s f.Name.Pascal %} == nil {
-        ps.stmt.BindNull({%d col %})
+        ps.stmt.BindNull({%d f.Column %})
     } else {
         {%= bindField(f, true) -%}
     }
