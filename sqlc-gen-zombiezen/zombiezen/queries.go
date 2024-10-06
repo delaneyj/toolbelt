@@ -116,7 +116,7 @@ func toGoType(c *plugin.Column) (val string, needsTime bool) {
 
 	if strings.HasSuffix(c.Name, "ms") {
 		return "time.Duration", true
-	} else if strings.HasSuffix(c.Name, "at") || typ == "datetime" {
+	} else if c.Name == "at" || strings.HasSuffix(c.Name, "_at") || typ == "datetime" {
 		return "time.Time", true
 	} else {
 		switch typ {
