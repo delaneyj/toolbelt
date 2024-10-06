@@ -712,7 +712,7 @@ func GenerateCRUD(t *GenerateCRUDTable) string {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:224
 func streambindFields(qw422016 *qt422016.Writer, tbl *GenerateCRUDTable) {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:225
-	for col, f := range tbl.Fields {
+	for _, f := range tbl.Fields {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:226
 		if f.IsNullable {
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:226
@@ -723,7 +723,7 @@ func streambindFields(qw422016 *qt422016.Writer, tbl *GenerateCRUDTable) {
 			qw422016.N().S(` == nil {
         ps.stmt.BindNull(`)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:228
-			qw422016.N().D(col)
+			qw422016.N().D(f.Column)
 //line sqlc-gen-zombiezen/zombiezen/crud.qtpl:228
 			qw422016.N().S(`)
     } else {
