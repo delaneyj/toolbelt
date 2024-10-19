@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package natsrpc;
+
+option go_package = "github.com/delaneyj/toolbelt/natsrpc/protos/natsrpc";
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/duration.proto";
+
+extend google.protobuf.MessageOptions {
+  optional string kv_bucket = 13337;
+  optional bool kv_client_readonly = 13338;
+  optional google.protobuf.Duration kv_ttl = 13339;
+  optional uint32 kv_history_count = 13340;
+}
+
+extend google.protobuf.FieldOptions { optional bool kv_id = 14337; }
