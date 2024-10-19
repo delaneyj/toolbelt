@@ -2,10 +2,19 @@ package natsrpc
 
 import (
 	"fmt"
+	"log"
+	"path/filepath"
+	"time"
 
 	"github.com/delaneyj/toolbelt"
+	ext "github.com/delaneyj/toolbelt/natsrpc/protos/natsrpc"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
+
+var isFirst = true
 
 func Generate(gen *protogen.Plugin, file *protogen.File) error {
 
@@ -16,6 +25,18 @@ func Generate(gen *protogen.Plugin, file *protogen.File) error {
 
 	if pkgData == nil {
 		return nil
+	}
+
+	if isFirst {
+		isFirst = false
+		sharedFilepath := filepath.Join(filepath.Dir(pkgData.FileBasepath), "natsrpc_shared.go")
+		log.Printf("Writing to file %s", sharedFilepath)
+
+		sharedContent := goSharedTypesTemplate(pkgData)
+		g := gen.NewGeneratedFile(sharedFilepath, pkgData.GoImportPath)
+		if _, err := g.Write([]byte(sharedContent)); err != nil {
+			return fmt.Errorf("failed to write to file: %w", err)
+		}
 	}
 
 	if err := generateGoFile(gen, pkgData); err != nil {
@@ -38,20 +59,32 @@ type serviceTmplData struct {
 	Methods []*methodTmplData
 }
 
+type kvTemplData struct {
+	PackageName      toolbelt.CasedString
+	Name             toolbelt.CasedString
+	Bucket           string
+	IsClientReadonly bool
+	TTL              time.Duration
+	ID               toolbelt.CasedString
+	IdIsString       bool
+	HistoryCount     uint32
+}
+
 type packageTmplData struct {
 	GoImportPath protogen.GoImportPath
 	FileBasepath string
 	PackageName  toolbelt.CasedString
 	Services     []*serviceTmplData
+	KeyValues    []*kvTemplData
 }
 
-func optsToPackageData(file *protogen.File) (data *packageTmplData, err error) {
+func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 	if len(file.Services) == 0 {
 		return nil, nil
 	}
 
 	// log.Printf("Generating package %+v", file)
-	data = &packageTmplData{
+	data := &packageTmplData{
 		GoImportPath: file.GoImportPath,
 		FileBasepath: file.GeneratedFilenamePrefix + "_nrpc.pb",
 		PackageName:  toolbelt.ToCasedString(string(file.GoPackageName)),
@@ -88,6 +121,52 @@ func optsToPackageData(file *protogen.File) (data *packageTmplData, err error) {
 		data.Services = append(data.Services, svcData)
 	}
 
+	for _, msg := range file.Messages {
+		kvBucket, ok := proto.GetExtension(msg.Desc.Options(), ext.E_KvBucket).(string)
+		if !ok || kvBucket == "" {
+			continue
+		}
+
+		isReadonly := proto.GetExtension(msg.Desc.Options(), ext.E_KvClientReadonly).(bool)
+		ttl := proto.GetExtension(msg.Desc.Options(), ext.E_KvTtl).(*durationpb.Duration)
+		historyCount := proto.GetExtension(msg.Desc.Options(), ext.E_KvHistoryCount).(uint32)
+
+		var idField *protogen.Field
+		for _, f := range msg.Fields {
+			isID := proto.GetExtension(f.Desc.Options(), ext.E_KvId).(bool)
+			if isID {
+				idField = f
+				break
+			}
+		}
+
+		if idField == nil {
+			for _, f := range msg.Fields {
+				if f.Desc.Name() == "id" {
+					idField = f
+					break
+				}
+			}
+		}
+
+		if idField == nil {
+			return nil, fmt.Errorf("no id field found in message %s", msg.Desc.Name())
+		}
+
+		kvData := &kvTemplData{
+			PackageName:      data.PackageName,
+			Name:             toolbelt.ToCasedString(string(msg.Desc.Name())),
+			Bucket:           kvBucket,
+			IsClientReadonly: isReadonly,
+			TTL:              ttl.AsDuration(),
+			ID:               toolbelt.ToCasedString(string(idField.Desc.Name())),
+			IdIsString:       idField.Desc.Kind() == protoreflect.StringKind,
+			HistoryCount:     historyCount,
+		}
+
+		data.KeyValues = append(data.KeyValues, kvData)
+	}
+
 	return data, nil
 }
 
@@ -95,9 +174,12 @@ func generateGoFile(gen *protogen.Plugin, data *packageTmplData) error {
 	// log.Printf("Generating package %+v", data)
 
 	files := map[string]string{
-		data.FileBasepath + "_shared.go": goSharedTypesTemplate(data),
 		data.FileBasepath + "_server.go": goServerTemplate(data),
 		data.FileBasepath + "_client.go": goClientTemplate(data),
+	}
+
+	if len(data.KeyValues) > 0 {
+		files[data.FileBasepath+"_kv.go"] = goKVTemplate(data)
 	}
 
 	for filename, contents := range files {

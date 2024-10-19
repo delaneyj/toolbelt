@@ -147,71 +147,70 @@ import (
 	}
 //line services_client_go.qtpl:49
 	qw422016.N().S(`
-//#endregion Client
 `)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 }
 
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 func writegoClientTemplate(qq422016 qtio422016.Writer, pkg *packageTmplData) {
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	streamgoClientTemplate(qw422016, pkg)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	qt422016.ReleaseWriter(qw422016)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 }
 
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 func goClientTemplate(pkg *packageTmplData) string {
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	writegoClientTemplate(qb422016, pkg)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	qs422016 := string(qb422016.B)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 	return qs422016
-//line services_client_go.qtpl:51
+//line services_client_go.qtpl:50
 }
 
-//line services_client_go.qtpl:53
+//line services_client_go.qtpl:52
 func streamgoClientUnaryHandler(qw422016 *qt422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:53
+//line services_client_go.qtpl:52
 	qw422016.N().S(`
 `)
-//line services_client_go.qtpl:55
+//line services_client_go.qtpl:54
 	sn := method.Subject
 	mn := method.Name.Pascal
 	in := method.InputType.Original
 	out := method.OutputType.Original
 
-//line services_client_go.qtpl:59
+//line services_client_go.qtpl:58
 	qw422016.N().S(`
 // Unary call for `)
-//line services_client_go.qtpl:60
+//line services_client_go.qtpl:59
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:60
+//line services_client_go.qtpl:59
 	qw422016.N().S(`
 func (c *`)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.E().S(method.ServiceName.Pascal)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.N().S(`NATSClient) `)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.N().S(`(ctx context.Context, req *`)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.E().S(in)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.N().S(`, opts ...NatsRpcOption) (*`)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.E().S(out)
-//line services_client_go.qtpl:61
+//line services_client_go.qtpl:60
 	qw422016.N().S(`, error){
 	reqBytes, err := proto.Marshal(req)
 	if err != nil {
@@ -221,18 +220,18 @@ func (c *`)
 	opt := NewNatsRpcOptions(opts...)
 
 	msg, err := c.nc.Request("`)
-//line services_client_go.qtpl:69
+//line services_client_go.qtpl:68
 	qw422016.E().S(sn)
-//line services_client_go.qtpl:69
+//line services_client_go.qtpl:68
 	qw422016.N().S(`", reqBytes, opt.Timeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 
 	res := &`)
-//line services_client_go.qtpl:74
+//line services_client_go.qtpl:73
 	qw422016.E().S(out)
-//line services_client_go.qtpl:74
+//line services_client_go.qtpl:73
 	qw422016.N().S(`{}
 	if err := proto.Unmarshal(msg.Data, res); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
@@ -241,78 +240,78 @@ func (c *`)
 	return res, nil
 }
 `)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 }
 
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 func writegoClientUnaryHandler(qq422016 qtio422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	streamgoClientUnaryHandler(qw422016, method)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	qt422016.ReleaseWriter(qw422016)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 }
 
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 func goClientUnaryHandler(method *methodTmplData) string {
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	writegoClientUnaryHandler(qb422016, method)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	qs422016 := string(qb422016.B)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 	return qs422016
-//line services_client_go.qtpl:81
+//line services_client_go.qtpl:80
 }
 
-//line services_client_go.qtpl:83
+//line services_client_go.qtpl:82
 func streamgoClientClientStreamHandler(qw422016 *qt422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:83
+//line services_client_go.qtpl:82
 	qw422016.N().S(`
 `)
-//line services_client_go.qtpl:85
+//line services_client_go.qtpl:84
 	sn := method.Subject
 	mn := method.Name.Pascal
 	in := method.InputType.Original
 	out := method.OutputType.Original
 
-//line services_client_go.qtpl:89
+//line services_client_go.qtpl:88
 	qw422016.N().S(`
 // Client streaming call for `)
-//line services_client_go.qtpl:90
+//line services_client_go.qtpl:89
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:90
+//line services_client_go.qtpl:89
 	qw422016.N().S(`
 func( c *`)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.E().S(method.ServiceName.Pascal)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.N().S(`NATSClient) `)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.N().S(`(ctx context.Context, reqGen func(reqCh chan<- *`)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.E().S(in)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.N().S(`) error, opts ...NatsRpcOption) (res *`)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.E().S(out)
-//line services_client_go.qtpl:91
+//line services_client_go.qtpl:90
 	qw422016.N().S(`, err error) {
 	mailbox := nats.NewInbox()
 
 	var (
 		sub   *nats.Subscription
 		resCh = make(chan *`)
-//line services_client_go.qtpl:96
+//line services_client_go.qtpl:95
 	qw422016.E().S(out)
-//line services_client_go.qtpl:96
+//line services_client_go.qtpl:95
 	qw422016.N().S(`)
 		opt   = NewNatsRpcOptions(opts...)
 	)
@@ -332,9 +331,9 @@ func( c *`)
 			return
 		default:
 			res = &`)
-//line services_client_go.qtpl:114
+//line services_client_go.qtpl:113
 	qw422016.E().S(out)
-//line services_client_go.qtpl:114
+//line services_client_go.qtpl:113
 	qw422016.N().S(`{}
 			if err = proto.Unmarshal(msg.Data, res); err != nil {
 				res = nil
@@ -350,17 +349,17 @@ func( c *`)
 
 	doneReqGen := make(chan struct{})
 	reqCh := make(chan *`)
-//line services_client_go.qtpl:128
+//line services_client_go.qtpl:127
 	qw422016.E().S(in)
-//line services_client_go.qtpl:128
+//line services_client_go.qtpl:127
 	qw422016.N().S(`)
 	go func() {
 		defer func(){
 			eofMsg := &nats.Msg{
 				Subject: "`)
-//line services_client_go.qtpl:132
+//line services_client_go.qtpl:131
 	qw422016.E().S(sn)
-//line services_client_go.qtpl:132
+//line services_client_go.qtpl:131
 	qw422016.N().S(`",
 				Reply:   mailbox,
 				Data: nil,
@@ -384,9 +383,9 @@ func( c *`)
 		}
 		msg := &nats.Msg{
 			Subject: "`)
-//line services_client_go.qtpl:154
+//line services_client_go.qtpl:153
 	qw422016.E().S(sn)
-//line services_client_go.qtpl:154
+//line services_client_go.qtpl:153
 	qw422016.N().S(`",
 			Reply:   mailbox,
 			Data:    reqBytes,
@@ -401,69 +400,69 @@ func( c *`)
 	return
 }
 `)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 }
 
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 func writegoClientClientStreamHandler(qq422016 qtio422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	streamgoClientClientStreamHandler(qw422016, method)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	qt422016.ReleaseWriter(qw422016)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 }
 
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 func goClientClientStreamHandler(method *methodTmplData) string {
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	writegoClientClientStreamHandler(qb422016, method)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	qs422016 := string(qb422016.B)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 	return qs422016
-//line services_client_go.qtpl:167
+//line services_client_go.qtpl:166
 }
 
-//line services_client_go.qtpl:169
+//line services_client_go.qtpl:168
 func streamgoClientServerStreamHandler(qw422016 *qt422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:169
+//line services_client_go.qtpl:168
 	qw422016.N().S(`
 `)
-//line services_client_go.qtpl:171
+//line services_client_go.qtpl:170
 	sn := method.Subject
 	mn := method.Name.Pascal
 	in := method.InputType.Original
 	out := method.OutputType.Original
 
-//line services_client_go.qtpl:175
+//line services_client_go.qtpl:174
 	qw422016.N().S(`
 // Server streaming call for `)
-//line services_client_go.qtpl:176
+//line services_client_go.qtpl:175
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:176
+//line services_client_go.qtpl:175
 	qw422016.N().S(`
 func( c *`)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.E().S(method.ServiceName.Pascal)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.N().S(`NATSClient) `)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.N().S(`(ctx context.Context, req *`)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.E().S(in)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.N().S(`, onRes func(res *`)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.E().S(out)
-//line services_client_go.qtpl:177
+//line services_client_go.qtpl:176
 	qw422016.N().S(`) error, opt ...NatsRpcOption) ( error) {
 	reqBytes, err := proto.Marshal(req)
 	if err != nil {
@@ -473,9 +472,9 @@ func( c *`)
 	mailbox := nats.NewInbox()
 	msg := &nats.Msg{
 		Subject: "`)
-//line services_client_go.qtpl:185
+//line services_client_go.qtpl:184
 	qw422016.E().S(sn)
-//line services_client_go.qtpl:185
+//line services_client_go.qtpl:184
 	qw422016.N().S(`",
 		Reply :mailbox,
 		Data:  reqBytes,
@@ -489,9 +488,9 @@ func( c *`)
 		}
 
 		res :=  &`)
-//line services_client_go.qtpl:197
+//line services_client_go.qtpl:196
 	qw422016.E().S(out)
-//line services_client_go.qtpl:197
+//line services_client_go.qtpl:196
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, res); err != nil {
 			errCh <- fmt.Errorf("failed to unmarshal response: %w", err)
@@ -517,92 +516,92 @@ func( c *`)
 	return nil
 }
 `)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 }
 
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 func writegoClientServerStreamHandler(qq422016 qtio422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	streamgoClientServerStreamHandler(qw422016, method)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	qt422016.ReleaseWriter(qw422016)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 }
 
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 func goClientServerStreamHandler(method *methodTmplData) string {
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	writegoClientServerStreamHandler(qb422016, method)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	qs422016 := string(qb422016.B)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 	return qs422016
-//line services_client_go.qtpl:221
+//line services_client_go.qtpl:220
 }
 
-//line services_client_go.qtpl:223
+//line services_client_go.qtpl:222
 func streamgoClientBidiStreamHandler(qw422016 *qt422016.Writer, method *methodTmplData) {
-//line services_client_go.qtpl:223
+//line services_client_go.qtpl:222
 	qw422016.N().S(`
 `)
-//line services_client_go.qtpl:225
+//line services_client_go.qtpl:224
 	sn := method.Subject
 	mn := method.Name.Pascal
 	in := method.InputType.Original
 	out := method.OutputType.Original
 
-//line services_client_go.qtpl:229
+//line services_client_go.qtpl:228
 	qw422016.N().S(`
 type Bidirectional`)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.N().S(`Func func(ctx context.Context, reqCh chan<- *`)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.E().S(in)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.N().S(`, resCh <-chan *`)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.E().S(out)
-//line services_client_go.qtpl:230
+//line services_client_go.qtpl:229
 	qw422016.N().S(`) error
 // Bidi streaming call for `)
-//line services_client_go.qtpl:231
+//line services_client_go.qtpl:230
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:231
+//line services_client_go.qtpl:230
 	qw422016.N().S(`
 func(c *`)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.E().S(method.ServiceName.Pascal)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.N().S(`NATSClient) `)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.N().S(`(biDirectionalFunc Bidirectional`)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.E().S(mn)
-//line services_client_go.qtpl:232
+//line services_client_go.qtpl:231
 	qw422016.N().S(`Func) error {
 	var (
 		mailbox      = nats.NewInbox()
 		serverResSub *nats.Subscription
 		errCh        = make(chan error)
 		reqCh        = make(chan *`)
-//line services_client_go.qtpl:237
+//line services_client_go.qtpl:236
 	qw422016.E().S(in)
-//line services_client_go.qtpl:237
+//line services_client_go.qtpl:236
 	qw422016.N().S(`)
 		resCh        = make(chan *`)
-//line services_client_go.qtpl:238
+//line services_client_go.qtpl:237
 	qw422016.E().S(out)
-//line services_client_go.qtpl:238
+//line services_client_go.qtpl:237
 	qw422016.N().S(`)
 		doneCh       = make(chan struct{})
 	)
@@ -620,9 +619,9 @@ func(c *`)
 		}
 
 		res := &`)
-//line services_client_go.qtpl:254
+//line services_client_go.qtpl:253
 	qw422016.E().S(out)
-//line services_client_go.qtpl:254
+//line services_client_go.qtpl:253
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, res); err != nil {
 			errCh <- fmt.Errorf("failed to unmarshal response: %w", err)
@@ -655,9 +654,9 @@ func(c *`)
 			}
 			msg := &nats.Msg{
 				Subject: "`)
-//line services_client_go.qtpl:285
+//line services_client_go.qtpl:284
 	qw422016.E().S(sn)
-//line services_client_go.qtpl:285
+//line services_client_go.qtpl:284
 	qw422016.N().S(`",
 				Reply:   mailbox,
 				Data:    reqBytes,
@@ -685,6 +684,7 @@ func(c *`)
 		}
 	}
 }
+
 `)
 //line services_client_go.qtpl:312
 }

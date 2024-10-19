@@ -47,7 +47,6 @@ import (
     {% endfor %}
 
 {% endfor %}
-//#endregion Client
 {% endfunc %}
 
 {% func goClientUnaryHandler(method *methodTmplData) %}
@@ -309,4 +308,5 @@ func(c *{%s method.ServiceName.Pascal %}NATSClient) {%s mn %}(biDirectionalFunc 
 		}
 	}
 }
+
 {% endfunc %}
