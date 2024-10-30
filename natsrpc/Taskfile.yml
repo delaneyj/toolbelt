@@ -1,0 +1,50 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  tools:
+    cmds:
+      - go get -u github.com/valyala/quicktemplate/qtc
+      - go install github.com/valyala/quicktemplate/qtc@latest
+      - go install github.com/bufbuild/buf/cmd/buf@latest
+
+  qtc:
+    sources:
+      - "**/*.qtpl"
+    generates:
+      - "**/*.qtpl.go"
+    cmds:
+      - qtc
+
+  example:
+    deps:
+      - install
+    dir: example
+    sources:
+      - "**/*.proto"
+      - "**/*.yaml"
+    generates:
+      - "gen/**/*"
+    cmds:
+      - buf dep update
+      - rm -rf gen
+      - buf generate
+
+  install:
+    dir: cmd/protoc-gen-natsrpc
+    deps:
+      - qtc
+    sources:
+      - "../../**/*.go"
+      - exclude: "../../**.qtpl.go"
+    cmds:
+      - go install
+
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true

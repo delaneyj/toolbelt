@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package example;
+
+option go_package = "github.com/delaneyj/toolbelt/natsrpc/example";
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+import "natsrpc/ext.proto";
+
+// Test foo bar
+service Greeter {
+  // Unary example
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+
+  // Client streaming example
+  rpc SayHelloSendN(stream SayHelloRequest) returns (SayHelloResponse);
+
+  // Server streaming example
+  rpc SayHelloNTimes(SayHelloNTimesRequest) returns (stream SayHelloResponse);
+
+  // Bidirectional streaming example
+  rpc SayHelloNN(stream SayHelloRequest)
+      returns (stream SayHelloAdoptionResponse);
+}
+
+message SayHelloNTimesRequest {
+  string name = 1;
+  int32 count = 2;
+}
+
+message SayHelloRequest { string name = 1; }
+message SayHelloResponse { string message = 1; }
+
+message SayHelloAdoptionResponse {
+  string name = 1;
+  int64 adoption_id = 2;
+}
+
+message Test {
+  option (natsrpc.kv_bucket) = "test";
+  option (natsrpc.kv_client_readonly) = true;
+  option (natsrpc.kv_ttl).seconds = 60;
+  option (natsrpc.kv_history_count) = 5;
+
+  google.protobuf.Timestamp timestamp = 1;
+
+  string name = 2 [ (natsrpc.kv_id) = true ];
+  repeated float values = 3;
+}

@@ -1,0 +1,42 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  tools:
+    cmds:
+      - go get -u github.com/valyala/quicktemplate/qtc
+      - go install github.com/valyala/quicktemplate/qtc@latest
+      - go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+  qtc:
+    sources:
+      - "**/*.qtpl"
+    generates:
+      - "**/*.qtpl.go"
+    cmds:
+      - qtc
+
+  sqlc-examples:
+    dir: zombiezen/examples
+    cmds:
+      - sqlc generate
+      - goimports -w .
+
+  sqlc:
+    deps:
+      - qtc
+    sources:
+      - "**/*.go"
+      - exclude: "**.qtpl.go"
+    cmds:
+      - go install
+      - task sqlc-examples
+
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
