@@ -48,7 +48,6 @@ func Generate(gen *protogen.Plugin, file *protogen.File) error {
 
 type methodTmplData struct {
 	ServiceName, Name                    toolbelt.CasedString
-	Subject                              string
 	IsClientStreaming, IsServerStreaming bool
 	InputType, OutputType                toolbelt.CasedString
 }
@@ -86,7 +85,7 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 	// log.Printf("Generating package %+v", file)
 	data := &packageTmplData{
 		GoImportPath: file.GoImportPath,
-		FileBasepath: file.GeneratedFilenamePrefix + "_nrpc.pb",
+		FileBasepath: file.GeneratedFilenamePrefix + "_natsrpc",
 		PackageName:  toolbelt.ToCasedString(string(file.GoPackageName)),
 		Services:     make([]*serviceTmplData, 0, len(file.Services)),
 	}
@@ -109,7 +108,6 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 			methodData := &methodTmplData{
 				Name:              mn,
 				ServiceName:       sn,
-				Subject:           svcData.Subject + "." + mn.Kebab,
 				IsClientStreaming: m.Desc.IsStreamingClient(),
 				IsServerStreaming: m.Desc.IsStreamingServer(),
 				InputType:         toolbelt.ToCasedString(m.Input.GoIdent.GoName),

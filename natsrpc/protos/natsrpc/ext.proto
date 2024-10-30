@@ -7,6 +7,10 @@ option go_package = "github.com/delaneyj/toolbelt/natsrpc/protos/natsrpc";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/duration.proto";
 
+extend google.protobuf.ServiceOptions {
+  optional bool is_not_singleton = 12337;
+}
+
 extend google.protobuf.MessageOptions {
   optional string kv_bucket = 13337;
   optional bool kv_client_readonly = 13338;
