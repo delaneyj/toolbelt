@@ -50,11 +50,11 @@ type {%s nsp %}ServiceRunner struct {
     nc *nats.Conn
 }
 
-func New{%s nsp %}ServiceRunnerSingleton(nc *nats.Conn, service {%s nsp %}Service) (*{%s nsp %}ServiceRunner, error) {
-	return New{%s nsp %}ServiceRunner(nc, service, 0)
+func New{%s nsp %}ServiceRunnerSingleton(ctx context.Context, nc *nats.Conn, service {%s nsp %}Service) (*{%s nsp %}ServiceRunner, error) {
+	return New{%s nsp %}ServiceRunner(ctx, nc, service, 0)
 }
 
-func New{%s nsp %}ServiceRunner(nc *nats.Conn, service {%s nsp %}Service, instanceID int64) (*{%s nsp %}ServiceRunner, error) {
+func New{%s nsp %}ServiceRunner(ctx context.Context, nc *nats.Conn, service {%s nsp %}Service, instanceID int64) (*{%s nsp %}ServiceRunner, error) {
 	subjectSuffix := ""
 	if instanceID > 0 {
 		subjectSuffix = fmt.Sprintf(".%d", instanceID)
@@ -188,27 +188,29 @@ nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
         return
     }
 
-	resCh := make(chan *{%s method.OutputType.Original %})
-	defer close(resCh)
+	go func() {
+		resCh := make(chan *{%s method.OutputType.Original %})
+		defer close(resCh)
 
-	// Send responses to client
-	go func () {
-		defer sendEOF(msg)
-		for {
-			select {
-			case res, ok := <-resCh:
-				if !ok {
-					return
+		// Send responses to client
+		go func () {
+			defer sendEOF(msg)
+			for {
+				select {
+				case res, ok := <-resCh:
+					if !ok {
+						return
+					}
+					sendSuccess(msg, res)
 				}
-				sendSuccess(msg, res)
 			}
+		}()
+
+		// User defined handler, this will block until the context is done
+		if err := runner.service.{%s method.Name.Pascal%}(ctx, req, resCh); err != nil {
+			sendError(msg, err)
 		}
 	}()
-
-	// User defined handler
-	if err := runner.service.{%s method.Name.Pascal%}(context.Background(), req, resCh); err != nil {
-		sendError(msg, err)
-	}
 })
 {% endfunc %}
 

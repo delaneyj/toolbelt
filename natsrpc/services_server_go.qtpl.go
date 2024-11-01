@@ -185,7 +185,7 @@ func New`)
 //line services_server_go.qtpl:53
 		qw422016.E().S(nsp)
 //line services_server_go.qtpl:53
-		qw422016.N().S(`ServiceRunnerSingleton(nc *nats.Conn, service `)
+		qw422016.N().S(`ServiceRunnerSingleton(ctx context.Context, nc *nats.Conn, service `)
 //line services_server_go.qtpl:53
 		qw422016.E().S(nsp)
 //line services_server_go.qtpl:53
@@ -198,14 +198,14 @@ func New`)
 //line services_server_go.qtpl:54
 		qw422016.E().S(nsp)
 //line services_server_go.qtpl:54
-		qw422016.N().S(`ServiceRunner(nc, service, 0)
+		qw422016.N().S(`ServiceRunner(ctx, nc, service, 0)
 }
 
 func New`)
 //line services_server_go.qtpl:57
 		qw422016.E().S(nsp)
 //line services_server_go.qtpl:57
-		qw422016.N().S(`ServiceRunner(nc *nats.Conn, service `)
+		qw422016.N().S(`ServiceRunner(ctx context.Context, nc *nats.Conn, service `)
 //line services_server_go.qtpl:57
 		qw422016.E().S(nsp)
 //line services_server_go.qtpl:57
@@ -576,102 +576,104 @@ nc.Subscribe(`)
         return
     }
 
-	resCh := make(chan *`)
-//line services_server_go.qtpl:191
+	go func() {
+		resCh := make(chan *`)
+//line services_server_go.qtpl:192
 	qw422016.E().S(method.OutputType.Original)
-//line services_server_go.qtpl:191
+//line services_server_go.qtpl:192
 	qw422016.N().S(`)
-	defer close(resCh)
+		defer close(resCh)
 
-	// Send responses to client
-	go func () {
-		defer sendEOF(msg)
-		for {
-			select {
-			case res, ok := <-resCh:
-				if !ok {
-					return
+		// Send responses to client
+		go func () {
+			defer sendEOF(msg)
+			for {
+				select {
+				case res, ok := <-resCh:
+					if !ok {
+						return
+					}
+					sendSuccess(msg, res)
 				}
-				sendSuccess(msg, res)
 			}
+		}()
+
+		// User defined handler, this will block until the context is done
+		if err := runner.service.`)
+//line services_server_go.qtpl:210
+	qw422016.E().S(method.Name.Pascal)
+//line services_server_go.qtpl:210
+	qw422016.N().S(`(ctx, req, resCh); err != nil {
+			sendError(msg, err)
 		}
 	}()
-
-	// User defined handler
-	if err := runner.service.`)
-//line services_server_go.qtpl:209
-	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:209
-	qw422016.N().S(`(context.Background(), req, resCh); err != nil {
-		sendError(msg, err)
-	}
 })
 `)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 }
 
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 func writegoServerServerStreamHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	streamgoServerServerStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 }
 
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 func goServerServerStreamHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	writegoServerServerStreamHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 	return qs422016
-//line services_server_go.qtpl:213
+//line services_server_go.qtpl:215
 }
 
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:217
 func streamgoServerBidiStreamHandler(qw422016 *qt422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:217
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:217
+//line services_server_go.qtpl:219
 	reqChName := method.Name.Camel + "BiReqChs"
 	inputName := method.InputType.Original
 
-//line services_server_go.qtpl:219
+//line services_server_go.qtpl:221
 	qw422016.N().S(`
 // Bidirectional streaming call for `)
-//line services_server_go.qtpl:220
+//line services_server_go.qtpl:222
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:220
+//line services_server_go.qtpl:222
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:221
+//line services_server_go.qtpl:223
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:221
+//line services_server_go.qtpl:223
 	qw422016.N().S(` := sync2.Map[string, chan *`)
-//line services_server_go.qtpl:221
+//line services_server_go.qtpl:223
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:221
+//line services_server_go.qtpl:223
 	qw422016.N().S(`]{}
 nc.Subscribe(`)
-//line services_server_go.qtpl:222
+//line services_server_go.qtpl:224
 	qw422016.E().S(subjectName)
-//line services_server_go.qtpl:222
+//line services_server_go.qtpl:224
 	qw422016.N().S(`, func(msg *nats.Msg) {
 		// Check for end of stream
 		if len(msg.Data) == 0 {
 			reqCh, ok := `)
-//line services_server_go.qtpl:225
+//line services_server_go.qtpl:227
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:225
+//line services_server_go.qtpl:227
 	qw422016.N().S(`.Load(msg.Reply)
 			if !ok {
 				sendError(msg, errors.New("no request channel found"))
@@ -679,18 +681,18 @@ nc.Subscribe(`)
 			}
 			close(reqCh)
 			`)
-//line services_server_go.qtpl:231
+//line services_server_go.qtpl:233
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:231
+//line services_server_go.qtpl:233
 	qw422016.N().S(`.Delete(msg.Reply)
 			return
 		}
 
 		// Check for request
 		req := &`)
-//line services_server_go.qtpl:236
+//line services_server_go.qtpl:238
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:236
+//line services_server_go.qtpl:238
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, req); err != nil {
 			sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -699,29 +701,29 @@ nc.Subscribe(`)
 
 		// Check for request channel
 		reqCh, ok := `)
-//line services_server_go.qtpl:243
+//line services_server_go.qtpl:245
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:243
+//line services_server_go.qtpl:245
 	qw422016.N().S(`.Load(msg.Reply)
 		if !ok {
 			reqCh = make(chan *`)
-//line services_server_go.qtpl:245
+//line services_server_go.qtpl:247
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:245
+//line services_server_go.qtpl:247
 	qw422016.N().S(`)
 			`)
-//line services_server_go.qtpl:246
+//line services_server_go.qtpl:248
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:246
+//line services_server_go.qtpl:248
 	qw422016.N().S(`.Store(msg.Reply, reqCh)
 
 			go func() {
 				defer sendEOF(msg)
 
 				resCh := make(chan *`)
-//line services_server_go.qtpl:251
+//line services_server_go.qtpl:253
 	qw422016.E().S(method.OutputType.Original)
-//line services_server_go.qtpl:251
+//line services_server_go.qtpl:253
 	qw422016.N().S(`)
 				errCh := make(chan error)
 
@@ -740,9 +742,9 @@ nc.Subscribe(`)
 					}
 				}()
 				if err := runner.service.`)
-//line services_server_go.qtpl:268
+//line services_server_go.qtpl:270
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:268
+//line services_server_go.qtpl:270
 	qw422016.N().S(`(context.Background(), reqCh, resCh, errCh); err != nil {
 					sendError(msg, err)
 					return
@@ -752,31 +754,31 @@ nc.Subscribe(`)
 		reqCh <- req
 	})
 `)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 }
 
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 func writegoServerBidiStreamHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	streamgoServerBidiStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 }
 
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 func goServerBidiStreamHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	writegoServerBidiStreamHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 	return qs422016
-//line services_server_go.qtpl:276
+//line services_server_go.qtpl:278
 }
