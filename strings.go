@@ -18,6 +18,10 @@ func Snake(s string) string {
 	return strcase.ToSnake(s)
 }
 
+func ScreamingSnake(s string) string {
+	return strcase.ToScreamingSnake(s)
+}
+
 func Kebab(s string) string {
 	return strcase.ToKebab(s)
 }
