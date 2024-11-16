@@ -44,23 +44,25 @@ func Cased(s string, fn ...CasedFn) string {
 }
 
 type CasedString struct {
-	Original string
-	Pascal   string
-	Camel    string
-	Snake    string
-	Kebab    string
-	Upper    string
-	Lower    string
+	Original       string
+	Pascal         string
+	Camel          string
+	Snake          string
+	ScreamingSnake string
+	Kebab          string
+	Upper          string
+	Lower          string
 }
 
 func ToCasedString(s string) CasedString {
 	return CasedString{
-		Original: s,
-		Pascal:   Pascal(s),
-		Camel:    Camel(s),
-		Snake:    Snake(s),
-		Kebab:    Kebab(s),
-		Upper:    Upper(s),
-		Lower:    Lower(s),
+		Original:       s,
+		Pascal:         Pascal(s),
+		Camel:          Camel(s),
+		Snake:          Snake(s),
+		ScreamingSnake: ScreamingSnake(s),
+		Kebab:          Kebab(s),
+		Upper:          Upper(s),
+		Lower:          Lower(s),
 	}
 }
