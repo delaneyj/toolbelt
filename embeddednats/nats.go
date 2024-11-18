@@ -40,6 +40,8 @@ type Server struct {
 	NatsServer *server.Server
 }
 
+// New creates a new embedded NATS server. Will automatically start the server
+// and clean up when the context is cancelled.
 func New(ctx context.Context, opts ...Option) (*Server, error) {
 	options := &options{
 		DataDirectory: "./data/nats",
@@ -67,6 +69,11 @@ func New(ctx context.Context, opts ...Option) (*Server, error) {
 		panic(err)
 	}
 
+	go func() {
+		<-ctx.Done()
+		ns.Shutdown()
+	}()
+
 	// Start the server via goroutine
 	ns.Start()
 
@@ -76,7 +83,7 @@ func New(ctx context.Context, opts ...Option) (*Server, error) {
 }
 
 func (n *Server) Close() error {
-	if n.NatsServer != nil {
+	if n.NatsServer != nil && n.NatsServer.Running() {
 		n.NatsServer.Shutdown()
 	}
 	return nil
