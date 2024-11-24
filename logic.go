@@ -1,15 +1,14 @@
 package toolbelt
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 )
 
-type ErrFunc func() error
-
 // Throttle will only allow the function to be called once every d duration.
-func Throttle(d time.Duration, fn ErrFunc) ErrFunc {
+func Throttle(d time.Duration, fn CtxErrFunc) CtxErrFunc {
 	shouldWait := false
 	mu := &sync.RWMutex{}
 
@@ -19,7 +18,7 @@ func Throttle(d time.Duration, fn ErrFunc) ErrFunc {
 		return shouldWait
 	}
 
-	return func() error {
+	return func(ctx context.Context) error {
 		if checkShoulWait() {
 			return nil
 		}
@@ -33,7 +32,7 @@ func Throttle(d time.Duration, fn ErrFunc) ErrFunc {
 			shouldWait = false
 		}()
 
-		if err := fn(); err != nil {
+		if err := fn(ctx); err != nil {
 			return fmt.Errorf("throttled function failed: %w", err)
 		}
 
@@ -42,11 +41,11 @@ func Throttle(d time.Duration, fn ErrFunc) ErrFunc {
 }
 
 // Debounce will only call the function after d duration has passed since the last call.
-func Debounce(d time.Duration, fn ErrFunc) ErrFunc {
+func Debounce(d time.Duration, fn CtxErrFunc) CtxErrFunc {
 	var t *time.Timer
 	mu := &sync.RWMutex{}
 
-	return func() error {
+	return func(ctx context.Context) error {
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -55,7 +54,7 @@ func Debounce(d time.Duration, fn ErrFunc) ErrFunc {
 		}
 
 		t = time.AfterFunc(d, func() {
-			if err := fn(); err != nil {
+			if err := fn(ctx); err != nil {
 				fmt.Printf("debounced function failed: %v\n", err)
 			}
 		})
@@ -64,8 +63,8 @@ func Debounce(d time.Duration, fn ErrFunc) ErrFunc {
 	}
 }
 
-func CallNTimesWithDelay(d time.Duration, n int, fn ErrFunc) ErrFunc {
-	return func() error {
+func CallNTimesWithDelay(d time.Duration, n int, fn CtxErrFunc) CtxErrFunc {
+	return func(ctx context.Context) error {
 		called := 0
 		for {
 			shouldCall := false
@@ -78,7 +77,7 @@ func CallNTimesWithDelay(d time.Duration, n int, fn ErrFunc) ErrFunc {
 				break
 			}
 
-			if err := fn(); err != nil {
+			if err := fn(ctx); err != nil {
 				return fmt.Errorf("call n times with delay failed: %w", err)
 			}
 			called++
