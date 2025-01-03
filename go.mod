@@ -23,6 +23,7 @@ require (
 	github.com/rzajac/zflake v0.8.0
 	github.com/samber/lo v1.47.0
 	github.com/sqlc-dev/plugin-sdk-go v1.23.0
+	github.com/stretchr/testify v1.9.0
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/valyala/quicktemplate v1.8.0
 	github.com/zeebo/xxh3 v1.0.2
@@ -38,6 +39,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-resty/resty/v2 v2.16.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.7 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rzajac/clock v0.2.0 // indirect
 	github.com/ysmood/fetchup v0.2.4 // indirect
@@ -65,6 +68,7 @@ require (
 	golang.org/x/time v0.8.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241113202542-65e8d215514f // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.61.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
