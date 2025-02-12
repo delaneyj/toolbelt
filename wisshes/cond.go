@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -23,6 +24,9 @@ func RunAll(steps ...Step) Step {
 			if ctx == nil {
 				panic("ctx is nil")
 			}
+
+			log.Printf("step %s: %s", name, status)
+
 			names[i] = name
 			statuses[i] = status
 			errs[i] = err

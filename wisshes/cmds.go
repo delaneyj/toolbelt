@@ -11,7 +11,7 @@ import (
 	"github.com/zeebo/xxh3"
 )
 
-func RunFn(client *goph.Client, format string, args ...any) (string, error) {
+func RunF(client *goph.Client, format string, args ...any) (string, error) {
 	cmd := fmt.Sprintf(format, args...)
 	// log.Printf("Running %s", cmd)
 	out, err := client.Run(cmd)
@@ -29,7 +29,7 @@ func Commands(cmds ...string) Step {
 		results := make([]StepStatus, len(cmds))
 		errs := make([]error, len(cmds))
 		for i, cmd := range cmds {
-			out, err := RunFn(client, cmd)
+			out, err := RunF(client, "%s", cmd)
 			if err != nil {
 				log.Print(out)
 				results[i] = StepStatusFailed

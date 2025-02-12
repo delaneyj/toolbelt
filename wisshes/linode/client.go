@@ -3,6 +3,7 @@ package linode
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/delaneyj/toolbelt/wisshes"
@@ -60,6 +61,7 @@ func ClientFromToken(ctx context.Context, token string) (*linodego.Client, *lino
 
 	acc, err := linodeClient.GetAccount(ctx)
 	if err != nil {
+		log.Printf("failed to get account: %v", err)
 		return nil, nil, fmt.Errorf("failed to get account: %w", err)
 	}
 

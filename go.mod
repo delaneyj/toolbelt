@@ -11,7 +11,6 @@ require (
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gertd/go-pluralize v0.2.1
-	github.com/go-ping/ping v1.1.0
 	github.com/go-rod/rod v0.116.2
 	github.com/goccy/go-json v0.10.3
 	github.com/iancoleman/strcase v0.3.0

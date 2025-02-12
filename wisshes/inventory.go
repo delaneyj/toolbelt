@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/autosegment/ksuid"
@@ -83,47 +83,45 @@ func (inv *Inventory) Close() {
 }
 
 func (inv *Inventory) Run(ctx context.Context, steps ...Step) (StepStatus, error) {
-	log.Print("Removing all files in artifacts directory")
-
 	lastStatus := StepStatusUnchanged
 	ctx = CtxWithInventory(ctx, inv)
 
-	wg := &sync.WaitGroup{}
-	wg.Add(len(inv.Hosts))
-	errCh := make(chan error, len(inv.Hosts))
+	if len(steps) == 0 {
+		return lastStatus, nil
+	}
+
+	var (
+		name   string
+		status StepStatus
+		err    error
+	)
 
 	for h, host := range inv.Hosts {
 		hostName := inv.HostNames[h]
-		go func(hostName string, host *goph.Client) {
-			defer wg.Done()
-			ctx = CtxWithSSHClient(ctx, host)
-			ctx = CtxWithPreviousStep(ctx, StepStatusUnchanged)
+		if strings.Contains(hostName, "us-east") {
+			log.Print("us-east")
+		}
+		ctx = CtxWithSSHClient(ctx, host)
+		ctx = CtxWithPreviousStep(ctx, StepStatusUnchanged)
 
-			for i, step := range steps {
-				log.Printf("[%s:%s] step %d started", hostName, host.Config.Addr, i+1)
-				start := time.Now()
-				var (
-					name   string
-					status StepStatus
-					err    error
-				)
-				ctx, name, status, err = step(ctx)
-				if err != nil {
-					errCh <- fmt.Errorf("step: %w", err)
-					return
-				}
+		for i, step := range steps {
+			log.Printf("[%s:%s] step %d started", hostName, host.Config.Addr, i+1)
+			start := time.Now()
 
-				if status == StepStatusFailed {
-					errCh <- fmt.Errorf("step %d failed", i+1)
-				}
-
-				log.Printf("[%s:%s] step %d %s -> %s took %s", hostName, host.Config.Addr, i+1, name, status, time.Since(start))
-				ctx = CtxWithPreviousStep(ctx, status)
-				lastStatus = status
+			ctx, name, status, err = step(ctx)
+			if err != nil {
+				return status, fmt.Errorf("step %d: %w", i+1, err)
 			}
-		}(hostName, host)
+
+			if status == StepStatusFailed {
+				return status, fmt.Errorf("step %d: %w", i+1, err)
+			}
+
+			log.Printf("[%s:%s] step %d %s -> %s took %s", hostName, host.Config.Addr, i+1, name, status, time.Since(start))
+			ctx = CtxWithPreviousStep(ctx, status)
+			lastStatus = status
+		}
 	}
-	wg.Wait()
 
 	return lastStatus, nil
 }

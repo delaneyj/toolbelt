@@ -23,15 +23,16 @@ func Aptitude(desiredStatus AptitudeStatus, packageNames ...string) Step {
 
 		name := fmt.Sprintf("aptitude-%s-%s", desiredStatus, strcase.ToKebab(strings.Join(packageNames, "-")))
 
-		if _, err := RunFn(client, "apt-get update"); err != nil {
+		out, err := RunF(client, "apt-get update")
+		if err != nil {
 			return ctx, name, StepStatusFailed, fmt.Errorf("apt update: %w", err)
 		}
-		// log.Print(out)
+		log.Print(out)
 
 		results := make([]StepStatus, len(packageNames))
 		errs := make([]error, len(packageNames))
 		for i, packageName := range packageNames {
-			query, err := RunFn(client, "dpkg -l %s", packageName)
+			query, err := RunF(client, "dpkg -l %s", packageName)
 
 			isNotInstalled := strings.Contains(query, "no packages found matching")
 			shouldInstall := err != nil || (desiredStatus == AptitudeStatusInstalled && isNotInstalled)
@@ -44,7 +45,8 @@ func Aptitude(desiredStatus AptitudeStatus, packageNames ...string) Step {
 
 			switch desiredStatus {
 			case AptitudeStatusInstalled:
-				out, err := RunFn(client, "apt-get install -y %s", packageName)
+				log.Printf("installing %s", packageName)
+				out, err := RunF(client, "apt-get install -y %s", packageName)
 				if err != nil {
 					log.Print(out)
 					results[i] = StepStatusFailed
@@ -52,7 +54,8 @@ func Aptitude(desiredStatus AptitudeStatus, packageNames ...string) Step {
 					continue
 				}
 			case AptitudeStatusUninstalled:
-				out, err := RunFn(client, "apt remove -y %s", packageName)
+				log.Printf("removing %s", packageName)
+				out, err := RunF(client, "apt remove -y %s", packageName)
 				if err != nil {
 					log.Print(out)
 					results[i] = StepStatusFailed
