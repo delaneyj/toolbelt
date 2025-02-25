@@ -69,11 +69,17 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	}
 
 	if shouldClear {
-		if err := os.RemoveAll(db.filename + "*"); err != nil {
-			return fmt.Errorf("could not remove database file: %w", err)
+		dbFiles, err := filepath.Glob(db.filename + "*")
+		if err != nil {
+			return fmt.Errorf("could not glob database files: %w", err)
+		}
+		for _, file := range dbFiles {
+			if err := os.Remove(file); err != nil {
+				return fmt.Errorf("could not remove database file: %w", err)
+			}
 		}
 	}
-	if err := os.MkdirAll(filepath.Dir(db.filename), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(db.filename), 0o755); err != nil {
 		return fmt.Errorf("could not create database directory: %w", err)
 	}
 
@@ -106,7 +112,6 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	}
 
 	return nil
-
 }
 
 func (db *Database) Close() error {
