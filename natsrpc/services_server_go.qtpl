@@ -48,6 +48,7 @@ type {%s nsp %}ServiceRunner struct {
     baseSubject string
     service {%s nsp %}Service
     nc *nats.Conn
+	subs []*nats.Subscription
 }
 
 func New{%s nsp %}ServiceRunnerSingleton(ctx context.Context, nc *nats.Conn, service {%s nsp %}Service) (*{%s nsp %}ServiceRunner, error) {
@@ -70,29 +71,45 @@ func New{%s nsp %}ServiceRunner(ctx context.Context, nc *nats.Conn, service {%s 
         nc: nc,
     }
 
+	{% if len(service.Methods) > 0 %}
+		var (
+			sub *nats.Subscription
+			err error
+		)
     {%- for _, method := range service.Methods -%}
         {%- code
             subjectName := method.Name.Camel + "Subject"
             ss,cs := method.IsServerStreaming, method.IsClientStreaming
-
         -%}
         {%- switch  -%}
         {%- case !cs && !ss  -%}
             {%= goServerUnaryHandler(subjectName, method) %}
         {%- case cs && !ss -%}
-            {%= goServerClientStreamHandler(subjectName, method) %}
+			{%= goServerClientStreamHandler(subjectName, method) %}
         {%- case !cs && ss -%}
             {%= goServerServerStreamHandler(subjectName, method) %}
         {%- case cs && ss -%}
-            {%= goServerBidiStreamHandler(subjectName, method) %}
+			{%= goServerBidiStreamHandler(subjectName, method) %}
         {%- endswitch -%}
+		if err != nil {
+			return nil, fmt.Errorf("failed to subscribe to {%s method.Name.Pascal %}: %w", err)
+		}
+		runner.subs = append(runner.subs, sub)
     {%- endfor -%}
+	{% endif %}
 
     return runner,nil
 }
 
 func (runner *{%s nsp %}ServiceRunner) Close() error {
     var errs []error
+
+	for _, sub := range runner.subs {
+		if err := sub.Unsubscribe(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
     if runner.service != nil {
         if err := runner.service.OnClose(); err != nil {
             errs = append(errs, err)
@@ -113,7 +130,7 @@ func (runner *{%s nsp %}ServiceRunner) Close() error {
 
 {% func goServerUnaryHandler(subjectName string, method *methodTmplData) %}
 // Unary call for {%s method.Name.Pascal %}
-nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
+sub, err = nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
         req := &{%s method.InputType.Original %}{}
 		if err := proto.Unmarshal(msg.Data, req); err != nil {
 			sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -136,7 +153,7 @@ inputName := method.InputType.Original
 %}
 // Client streaming call for {%s method.Name.Pascal %}
 {%s reqChName %} := sync2.Map[string, chan *{%s= inputName  %}]{}
-nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
+sub, err = nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
 		// Check for end of stream
 		if len(msg.Data) == 0 {
 			log.Printf("Got EOF")
@@ -181,7 +198,7 @@ nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
 
 {% func goServerServerStreamHandler(subjectName string, method *methodTmplData) %}
 // Server streaming call for {%s method.Name.Pascal %}
-nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
+sub, err = nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
     req := &{%s method.InputType.Original %}{}
     if err := proto.Unmarshal(msg.Data, req); err != nil {
         sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -221,7 +238,7 @@ inputName := method.InputType.Original
 %}
 // Bidirectional streaming call for {%s method.Name.Pascal %}
 {%s reqChName %} := sync2.Map[string, chan *{%s= inputName  %}]{}
-nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
+sub, err = nc.Subscribe({%s subjectName %}, func(msg *nats.Msg) {
 		// Check for end of stream
 		if len(msg.Data) == 0 {
 			reqCh, ok := {%s reqChName %}.Load(msg.Reply)

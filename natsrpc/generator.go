@@ -14,7 +14,10 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-var isFirst = true
+var (
+	isFirst     = true
+	serviceSeen = map[string]struct{}{}
+)
 
 func Generate(gen *protogen.Plugin, file *protogen.File) error {
 
@@ -30,7 +33,7 @@ func Generate(gen *protogen.Plugin, file *protogen.File) error {
 	if isFirst {
 		isFirst = false
 		sharedFilepath := filepath.Join(filepath.Dir(pkgData.FileBasepath), "natsrpc_shared.go")
-		log.Printf("Writing to file %s", sharedFilepath)
+		// log.Printf("Writing to file %s", sharedFilepath)
 
 		sharedContent := goSharedTypesTemplate(pkgData)
 		g := gen.NewGeneratedFile(sharedFilepath, pkgData.GoImportPath)
@@ -78,10 +81,6 @@ type packageTmplData struct {
 }
 
 func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
-	if len(file.Services) == 0 {
-		return nil, nil
-	}
-
 	// log.Printf("Generating package %+v", file)
 	data := &packageTmplData{
 		GoImportPath: file.GoImportPath,
@@ -102,7 +101,6 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 			Subject: "natsrpc." + sn.Kebab,
 			Methods: make([]*methodTmplData, len(s.Methods)),
 		}
-
 		for i, m := range s.Methods {
 			mn := toolbelt.ToCasedString(string(m.Desc.Name()))
 			methodData := &methodTmplData{
@@ -125,6 +123,8 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 			continue
 		}
 
+		log.Printf("Generating key-value %+v", msg)
+
 		isReadonly := proto.GetExtension(msg.Desc.Options(), ext.E_KvClientReadonly).(bool)
 		ttl := proto.GetExtension(msg.Desc.Options(), ext.E_KvTtl).(*durationpb.Duration)
 		historyCount := proto.GetExtension(msg.Desc.Options(), ext.E_KvHistoryCount).(uint32)
@@ -137,7 +137,6 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 				break
 			}
 		}
-
 		if idField == nil {
 			for _, f := range msg.Fields {
 				if f.Desc.Name() == "id" {
@@ -165,18 +164,27 @@ func optsToPackageData(file *protogen.File) (*packageTmplData, error) {
 		data.KeyValues = append(data.KeyValues, kvData)
 	}
 
+	if len(data.Services) == 0 && len(data.KeyValues) == 0 {
+		return nil, nil
+	}
+
 	return data, nil
 }
 
 func generateGoFile(gen *protogen.Plugin, data *packageTmplData) error {
 	// log.Printf("Generating package %+v", data)
+	log.Printf("Generating package '%s'", data.PackageName.Original)
 
-	files := map[string]string{
-		data.FileBasepath + "_server.go": goServerTemplate(data),
-		data.FileBasepath + "_client.go": goClientTemplate(data),
+	files := map[string]string{}
+
+	if len(data.Services) > 0 {
+		log.Printf("Generating services for package '%s', %d services", data.PackageName.Original, len(data.Services))
+		files[data.FileBasepath+"_server.go"] = goServerTemplate(data)
+		files[data.FileBasepath+"_client.go"] = goClientTemplate(data)
 	}
 
 	if len(data.KeyValues) > 0 {
+		log.Printf("Generating key-values for package '%s'", data.PackageName.Original)
 		files[data.FileBasepath+"_kv.go"] = goKVTemplate(data)
 	}
 

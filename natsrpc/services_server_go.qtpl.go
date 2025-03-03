@@ -179,40 +179,41 @@ type `)
 //line services_server_go.qtpl:49
 		qw422016.N().S(`Service
     nc *nats.Conn
+	subs []*nats.Subscription
 }
 
 func New`)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.N().S(`ServiceRunnerSingleton(ctx context.Context, nc *nats.Conn, service `)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.N().S(`Service) (*`)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:53
+//line services_server_go.qtpl:54
 		qw422016.N().S(`ServiceRunner, error) {
 	return New`)
-//line services_server_go.qtpl:54
+//line services_server_go.qtpl:55
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:54
+//line services_server_go.qtpl:55
 		qw422016.N().S(`ServiceRunner(ctx, nc, service, 0)
 }
 
 func New`)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.N().S(`ServiceRunner(ctx context.Context, nc *nats.Conn, service `)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.N().S(`Service, instanceID int64) (*`)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:57
+//line services_server_go.qtpl:58
 		qw422016.N().S(`ServiceRunner, error) {
 	subjectSuffix := ""
 	if instanceID > 0 {
@@ -220,97 +221,128 @@ func New`)
 	}
 
 	baseSubject := fmt.Sprintf("`)
-//line services_server_go.qtpl:63
+//line services_server_go.qtpl:64
 		qw422016.E().S(service.Subject)
-//line services_server_go.qtpl:63
+//line services_server_go.qtpl:64
 		qw422016.N().S(`%s", subjectSuffix)
 `)
-//line services_server_go.qtpl:64
+//line services_server_go.qtpl:65
 		for _, method := range service.Methods {
-//line services_server_go.qtpl:64
+//line services_server_go.qtpl:65
 			qw422016.N().S(`       `)
-//line services_server_go.qtpl:65
+//line services_server_go.qtpl:66
 			qw422016.E().S(method.Name.Camel)
-//line services_server_go.qtpl:65
+//line services_server_go.qtpl:66
 			qw422016.N().S(`Subject := baseSubject + ".`)
-//line services_server_go.qtpl:65
+//line services_server_go.qtpl:66
 			qw422016.E().S(method.Name.Kebab)
-//line services_server_go.qtpl:65
+//line services_server_go.qtpl:66
 			qw422016.N().S(`"
 `)
-//line services_server_go.qtpl:66
+//line services_server_go.qtpl:67
 		}
-//line services_server_go.qtpl:66
+//line services_server_go.qtpl:67
 		qw422016.N().S(`
     runner := &`)
-//line services_server_go.qtpl:68
+//line services_server_go.qtpl:69
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:68
+//line services_server_go.qtpl:69
 		qw422016.N().S(`ServiceRunner{
         service: service,
         nc: nc,
     }
 
+	`)
+//line services_server_go.qtpl:74
+		if len(service.Methods) > 0 {
+//line services_server_go.qtpl:74
+			qw422016.N().S(`
+		var (
+			sub *nats.Subscription
+			err error
+		)
 `)
-//line services_server_go.qtpl:73
-		for _, method := range service.Methods {
-//line services_server_go.qtpl:75
-			subjectName := method.Name.Camel + "Subject"
-			ss, cs := method.IsServerStreaming, method.IsClientStreaming
-
 //line services_server_go.qtpl:79
-			switch {
-//line services_server_go.qtpl:80
-			case !cs && !ss:
-//line services_server_go.qtpl:80
-				qw422016.N().S(`            `)
+			for _, method := range service.Methods {
 //line services_server_go.qtpl:81
-				streamgoServerUnaryHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:81
-				qw422016.N().S(`
-`)
-//line services_server_go.qtpl:82
-			case cs && !ss:
-//line services_server_go.qtpl:82
-				qw422016.N().S(`            `)
-//line services_server_go.qtpl:83
-				streamgoServerClientStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:83
-				qw422016.N().S(`
-`)
+				subjectName := method.Name.Camel + "Subject"
+				ss, cs := method.IsServerStreaming, method.IsClientStreaming
+
 //line services_server_go.qtpl:84
-			case !cs && ss:
-//line services_server_go.qtpl:84
-				qw422016.N().S(`            `)
+				switch {
 //line services_server_go.qtpl:85
-				streamgoServerServerStreamHandler(qw422016, subjectName, method)
+				case !cs && !ss:
 //line services_server_go.qtpl:85
-				qw422016.N().S(`
-`)
+					qw422016.N().S(`            `)
 //line services_server_go.qtpl:86
-			case cs && ss:
+					streamgoServerUnaryHandler(qw422016, subjectName, method)
 //line services_server_go.qtpl:86
-				qw422016.N().S(`            `)
-//line services_server_go.qtpl:87
-				streamgoServerBidiStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:87
-				qw422016.N().S(`
+					qw422016.N().S(`
 `)
+//line services_server_go.qtpl:87
+				case cs && !ss:
+//line services_server_go.qtpl:87
+					qw422016.N().S(`			`)
 //line services_server_go.qtpl:88
-			}
+					streamgoServerClientStreamHandler(qw422016, subjectName, method)
+//line services_server_go.qtpl:88
+					qw422016.N().S(`
+`)
 //line services_server_go.qtpl:89
+				case !cs && ss:
+//line services_server_go.qtpl:89
+					qw422016.N().S(`            `)
+//line services_server_go.qtpl:90
+					streamgoServerServerStreamHandler(qw422016, subjectName, method)
+//line services_server_go.qtpl:90
+					qw422016.N().S(`
+`)
+//line services_server_go.qtpl:91
+				case cs && ss:
+//line services_server_go.qtpl:91
+					qw422016.N().S(`			`)
+//line services_server_go.qtpl:92
+					streamgoServerBidiStreamHandler(qw422016, subjectName, method)
+//line services_server_go.qtpl:92
+					qw422016.N().S(`
+`)
+//line services_server_go.qtpl:93
+				}
+//line services_server_go.qtpl:93
+				qw422016.N().S(`		if err != nil {
+			return nil, fmt.Errorf("failed to subscribe to `)
+//line services_server_go.qtpl:95
+				qw422016.E().S(method.Name.Pascal)
+//line services_server_go.qtpl:95
+				qw422016.N().S(`: %w", err)
 		}
-//line services_server_go.qtpl:89
+		runner.subs = append(runner.subs, sub)
+`)
+//line services_server_go.qtpl:98
+			}
+//line services_server_go.qtpl:98
+			qw422016.N().S(`	`)
+//line services_server_go.qtpl:99
+		}
+//line services_server_go.qtpl:99
 		qw422016.N().S(`
+
     return runner,nil
 }
 
 func (runner *`)
-//line services_server_go.qtpl:94
+//line services_server_go.qtpl:104
 		qw422016.E().S(nsp)
-//line services_server_go.qtpl:94
+//line services_server_go.qtpl:104
 		qw422016.N().S(`ServiceRunner) Close() error {
     var errs []error
+
+	for _, sub := range runner.subs {
+		if err := sub.Unsubscribe(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
     if runner.service != nil {
         if err := runner.service.OnClose(); err != nil {
             errs = append(errs, err)
@@ -325,58 +357,58 @@ func (runner *`)
 }
 
 `)
-//line services_server_go.qtpl:109
+//line services_server_go.qtpl:126
 	}
-//line services_server_go.qtpl:109
+//line services_server_go.qtpl:126
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 }
 
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 func writegoServerTemplate(qq422016 qtio422016.Writer, pkg *packageTmplData) {
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	streamgoServerTemplate(qw422016, pkg)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 }
 
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 func goServerTemplate(pkg *packageTmplData) string {
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	writegoServerTemplate(qb422016, pkg)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 	return qs422016
-//line services_server_go.qtpl:111
+//line services_server_go.qtpl:128
 }
 
-//line services_server_go.qtpl:114
+//line services_server_go.qtpl:131
 func streamgoServerUnaryHandler(qw422016 *qt422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:114
+//line services_server_go.qtpl:131
 	qw422016.N().S(`
 // Unary call for `)
-//line services_server_go.qtpl:115
+//line services_server_go.qtpl:132
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:115
+//line services_server_go.qtpl:132
 	qw422016.N().S(`
-nc.Subscribe(`)
-//line services_server_go.qtpl:116
+sub, err = nc.Subscribe(`)
+//line services_server_go.qtpl:133
 	qw422016.E().S(subjectName)
-//line services_server_go.qtpl:116
+//line services_server_go.qtpl:133
 	qw422016.N().S(`, func(msg *nats.Msg) {
         req := &`)
-//line services_server_go.qtpl:117
+//line services_server_go.qtpl:134
 	qw422016.E().S(method.InputType.Original)
-//line services_server_go.qtpl:117
+//line services_server_go.qtpl:134
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, req); err != nil {
 			sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -384,9 +416,9 @@ nc.Subscribe(`)
 		}
 
 		res, err := runner.service.`)
-//line services_server_go.qtpl:123
+//line services_server_go.qtpl:140
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:123
+//line services_server_go.qtpl:140
 	qw422016.N().S(`(context.Background(),req)
 		if err != nil {
 			sendError(msg, err)
@@ -395,72 +427,72 @@ nc.Subscribe(`)
 		sendSuccess(msg, res)
 	})
 `)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 }
 
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 func writegoServerUnaryHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	streamgoServerUnaryHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 }
 
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 func goServerUnaryHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	writegoServerUnaryHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 	return qs422016
-//line services_server_go.qtpl:130
+//line services_server_go.qtpl:147
 }
 
-//line services_server_go.qtpl:132
+//line services_server_go.qtpl:149
 func streamgoServerClientStreamHandler(qw422016 *qt422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:132
+//line services_server_go.qtpl:149
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:134
+//line services_server_go.qtpl:151
 	reqChName := method.Name.Camel + "ClientReqChs"
 	inputName := method.InputType.Original
 
-//line services_server_go.qtpl:136
+//line services_server_go.qtpl:153
 	qw422016.N().S(`
 // Client streaming call for `)
-//line services_server_go.qtpl:137
+//line services_server_go.qtpl:154
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:137
+//line services_server_go.qtpl:154
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:138
+//line services_server_go.qtpl:155
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:138
+//line services_server_go.qtpl:155
 	qw422016.N().S(` := sync2.Map[string, chan *`)
-//line services_server_go.qtpl:138
+//line services_server_go.qtpl:155
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:138
+//line services_server_go.qtpl:155
 	qw422016.N().S(`]{}
-nc.Subscribe(`)
-//line services_server_go.qtpl:139
+sub, err = nc.Subscribe(`)
+//line services_server_go.qtpl:156
 	qw422016.E().S(subjectName)
-//line services_server_go.qtpl:139
+//line services_server_go.qtpl:156
 	qw422016.N().S(`, func(msg *nats.Msg) {
 		// Check for end of stream
 		if len(msg.Data) == 0 {
 			log.Printf("Got EOF")
 			reqCh, ok := `)
-//line services_server_go.qtpl:143
+//line services_server_go.qtpl:160
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:143
+//line services_server_go.qtpl:160
 	qw422016.N().S(`.Load(msg.Reply)
 			if !ok {
 				sendError(msg, errors.New("no request channel found"))
@@ -468,18 +500,18 @@ nc.Subscribe(`)
 			}
 			close(reqCh)
 			`)
-//line services_server_go.qtpl:149
+//line services_server_go.qtpl:166
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:149
+//line services_server_go.qtpl:166
 	qw422016.N().S(`.Delete(msg.Reply)
 			return
 		}
 
 		// Check for request
 		req := &`)
-//line services_server_go.qtpl:154
+//line services_server_go.qtpl:171
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:154
+//line services_server_go.qtpl:171
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, req); err != nil {
 			sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -490,28 +522,28 @@ nc.Subscribe(`)
 
 		// Check for request channel
 		reqCh, ok := `)
-//line services_server_go.qtpl:163
+//line services_server_go.qtpl:180
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:163
+//line services_server_go.qtpl:180
 	qw422016.N().S(`.Load(msg.Reply)
 		if !ok {
 			reqCh = make(chan *`)
-//line services_server_go.qtpl:165
+//line services_server_go.qtpl:182
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:165
+//line services_server_go.qtpl:182
 	qw422016.N().S(`)
 
 			`)
-//line services_server_go.qtpl:167
+//line services_server_go.qtpl:184
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:167
+//line services_server_go.qtpl:184
 	qw422016.N().S(`.Store(msg.Reply, reqCh)
 
 			go func() {
 				res, err := runner.service.`)
-//line services_server_go.qtpl:170
+//line services_server_go.qtpl:187
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:170
+//line services_server_go.qtpl:187
 	qw422016.N().S(`(context.Background(),reqCh)
 				if err != nil {
 					sendError(msg, err)
@@ -523,53 +555,53 @@ nc.Subscribe(`)
 		reqCh <- req
 	})
 `)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 }
 
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 func writegoServerClientStreamHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	streamgoServerClientStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 }
 
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 func goServerClientStreamHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	writegoServerClientStreamHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 	return qs422016
-//line services_server_go.qtpl:180
+//line services_server_go.qtpl:197
 }
 
-//line services_server_go.qtpl:182
+//line services_server_go.qtpl:199
 func streamgoServerServerStreamHandler(qw422016 *qt422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:182
+//line services_server_go.qtpl:199
 	qw422016.N().S(`
 // Server streaming call for `)
-//line services_server_go.qtpl:183
+//line services_server_go.qtpl:200
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:183
+//line services_server_go.qtpl:200
 	qw422016.N().S(`
-nc.Subscribe(`)
-//line services_server_go.qtpl:184
+sub, err = nc.Subscribe(`)
+//line services_server_go.qtpl:201
 	qw422016.E().S(subjectName)
-//line services_server_go.qtpl:184
+//line services_server_go.qtpl:201
 	qw422016.N().S(`, func(msg *nats.Msg) {
     req := &`)
-//line services_server_go.qtpl:185
+//line services_server_go.qtpl:202
 	qw422016.E().S(method.InputType.Original)
-//line services_server_go.qtpl:185
+//line services_server_go.qtpl:202
 	qw422016.N().S(`{}
     if err := proto.Unmarshal(msg.Data, req); err != nil {
         sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -578,9 +610,9 @@ nc.Subscribe(`)
 
 	go func() {
 		resCh := make(chan *`)
-//line services_server_go.qtpl:192
+//line services_server_go.qtpl:209
 	qw422016.E().S(method.OutputType.Original)
-//line services_server_go.qtpl:192
+//line services_server_go.qtpl:209
 	qw422016.N().S(`)
 		defer close(resCh)
 
@@ -600,80 +632,80 @@ nc.Subscribe(`)
 
 		// User defined handler, this will block until the context is done
 		if err := runner.service.`)
-//line services_server_go.qtpl:210
+//line services_server_go.qtpl:227
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:210
+//line services_server_go.qtpl:227
 	qw422016.N().S(`(ctx, req, resCh); err != nil {
 			sendError(msg, err)
 		}
 	}()
 })
 `)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 }
 
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 func writegoServerServerStreamHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	streamgoServerServerStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 }
 
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 func goServerServerStreamHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	writegoServerServerStreamHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 	return qs422016
-//line services_server_go.qtpl:215
+//line services_server_go.qtpl:232
 }
 
-//line services_server_go.qtpl:217
+//line services_server_go.qtpl:234
 func streamgoServerBidiStreamHandler(qw422016 *qt422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:217
+//line services_server_go.qtpl:234
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:219
+//line services_server_go.qtpl:236
 	reqChName := method.Name.Camel + "BiReqChs"
 	inputName := method.InputType.Original
 
-//line services_server_go.qtpl:221
+//line services_server_go.qtpl:238
 	qw422016.N().S(`
 // Bidirectional streaming call for `)
-//line services_server_go.qtpl:222
+//line services_server_go.qtpl:239
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:222
+//line services_server_go.qtpl:239
 	qw422016.N().S(`
 `)
-//line services_server_go.qtpl:223
+//line services_server_go.qtpl:240
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:223
+//line services_server_go.qtpl:240
 	qw422016.N().S(` := sync2.Map[string, chan *`)
-//line services_server_go.qtpl:223
+//line services_server_go.qtpl:240
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:223
+//line services_server_go.qtpl:240
 	qw422016.N().S(`]{}
-nc.Subscribe(`)
-//line services_server_go.qtpl:224
+sub, err = nc.Subscribe(`)
+//line services_server_go.qtpl:241
 	qw422016.E().S(subjectName)
-//line services_server_go.qtpl:224
+//line services_server_go.qtpl:241
 	qw422016.N().S(`, func(msg *nats.Msg) {
 		// Check for end of stream
 		if len(msg.Data) == 0 {
 			reqCh, ok := `)
-//line services_server_go.qtpl:227
+//line services_server_go.qtpl:244
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:227
+//line services_server_go.qtpl:244
 	qw422016.N().S(`.Load(msg.Reply)
 			if !ok {
 				sendError(msg, errors.New("no request channel found"))
@@ -681,18 +713,18 @@ nc.Subscribe(`)
 			}
 			close(reqCh)
 			`)
-//line services_server_go.qtpl:233
+//line services_server_go.qtpl:250
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:233
+//line services_server_go.qtpl:250
 	qw422016.N().S(`.Delete(msg.Reply)
 			return
 		}
 
 		// Check for request
 		req := &`)
-//line services_server_go.qtpl:238
+//line services_server_go.qtpl:255
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:238
+//line services_server_go.qtpl:255
 	qw422016.N().S(`{}
 		if err := proto.Unmarshal(msg.Data, req); err != nil {
 			sendError(msg, fmt.Errorf("failed to unmarshal request: %w", err))
@@ -701,29 +733,29 @@ nc.Subscribe(`)
 
 		// Check for request channel
 		reqCh, ok := `)
-//line services_server_go.qtpl:245
+//line services_server_go.qtpl:262
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:245
+//line services_server_go.qtpl:262
 	qw422016.N().S(`.Load(msg.Reply)
 		if !ok {
 			reqCh = make(chan *`)
-//line services_server_go.qtpl:247
+//line services_server_go.qtpl:264
 	qw422016.N().S(inputName)
-//line services_server_go.qtpl:247
+//line services_server_go.qtpl:264
 	qw422016.N().S(`)
 			`)
-//line services_server_go.qtpl:248
+//line services_server_go.qtpl:265
 	qw422016.E().S(reqChName)
-//line services_server_go.qtpl:248
+//line services_server_go.qtpl:265
 	qw422016.N().S(`.Store(msg.Reply, reqCh)
 
 			go func() {
 				defer sendEOF(msg)
 
 				resCh := make(chan *`)
-//line services_server_go.qtpl:253
+//line services_server_go.qtpl:270
 	qw422016.E().S(method.OutputType.Original)
-//line services_server_go.qtpl:253
+//line services_server_go.qtpl:270
 	qw422016.N().S(`)
 				errCh := make(chan error)
 
@@ -742,9 +774,9 @@ nc.Subscribe(`)
 					}
 				}()
 				if err := runner.service.`)
-//line services_server_go.qtpl:270
+//line services_server_go.qtpl:287
 	qw422016.E().S(method.Name.Pascal)
-//line services_server_go.qtpl:270
+//line services_server_go.qtpl:287
 	qw422016.N().S(`(context.Background(), reqCh, resCh, errCh); err != nil {
 					sendError(msg, err)
 					return
@@ -754,31 +786,31 @@ nc.Subscribe(`)
 		reqCh <- req
 	})
 `)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 }
 
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 func writegoServerBidiStreamHandler(qq422016 qtio422016.Writer, subjectName string, method *methodTmplData) {
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	streamgoServerBidiStreamHandler(qw422016, subjectName, method)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	qt422016.ReleaseWriter(qw422016)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 }
 
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 func goServerBidiStreamHandler(subjectName string, method *methodTmplData) string {
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	qb422016 := qt422016.AcquireByteBuffer()
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	writegoServerBidiStreamHandler(qb422016, subjectName, method)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	qs422016 := string(qb422016.B)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	qt422016.ReleaseByteBuffer(qb422016)
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 	return qs422016
-//line services_server_go.qtpl:278
+//line services_server_go.qtpl:295
 }
