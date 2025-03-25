@@ -11,9 +11,9 @@ import (
 )
 
 type options struct {
-	DataDirectory    string
-	ShouldClearData  bool
-	NATSSeverOptions *server.Options
+	DataDirectory     string
+	ShouldClearData   bool
+	NATSServerOptions *server.Options
 }
 
 type Option func(*options)
@@ -32,7 +32,7 @@ func WithShouldClearData(shouldClearData bool) Option {
 
 func WithNATSServerOptions(natsServerOptions *server.Options) Option {
 	return func(o *options) {
-		o.NATSSeverOptions = natsServerOptions
+		o.NATSServerOptions = natsServerOptions
 	}
 }
 
@@ -56,15 +56,15 @@ func New(ctx context.Context, opts ...Option) (*Server, error) {
 		}
 	}
 
-	if options.NATSSeverOptions == nil {
-		options.NATSSeverOptions = &server.Options{
+	if options.NATSServerOptions == nil {
+		options.NATSServerOptions = &server.Options{
 			JetStream: true,
 			StoreDir:  options.DataDirectory,
 		}
 	}
 
 	// Initialize new server with options
-	ns, err := server.NewServer(options.NATSSeverOptions)
+	ns, err := server.NewServer(options.NATSServerOptions)
 	if err != nil {
 		panic(err)
 	}
