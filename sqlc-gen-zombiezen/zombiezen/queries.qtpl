@@ -11,7 +11,6 @@ import (
 
     {% if q.NeedsTimePackage %}
     "time"
-    "github.com/delaneyj/toolbelt"
     {% endif %}
 )
 
@@ -133,11 +132,11 @@ func Once{%s q.Name.Pascal %}(
      -%}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
-            toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
+            JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
         {%- case "time.Duration" -%}
-            toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
+            MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
         {%- case "[]byte" -%}
-            toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %}),
+            StmtBytesByCol(ps.stmt, {%d f.Offset %}),
         {%- default -%}
             ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
     {%- endswitch -%}
@@ -160,11 +159,11 @@ func Once{%s q.Name.Pascal %}(
 {%- func fillResponseField(f GenerateField) -%}
 {%- switch f.GoType.Original -%}
     {%- case "time.Time" -%}
-        toolbelt.JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
+        JulianDayToTime(ps.stmt.ColumnFloat({%d f.Offset %}))
     {%- case "time.Duration" -%}
-        toolbelt.MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
+        MillisecondsToDuration(ps.stmt.ColumnInt64({%d f.Offset %}))
     {%- case "[]byte" -%}
-        toolbelt.StmtBytesByCol(ps.stmt, {%d f.Offset %})
+        StmtBytesByCol(ps.stmt, {%d f.Offset %})
     {%- default -%}
         ps.stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
 {%- endswitch -%}
@@ -213,9 +212,9 @@ if !isSingle {
 {%- func fillParam(goType, sqlType toolbelt.CasedString, col int, pName string ) -%}
 {%- switch goType.Original -%}
     {%- case "time.Time" -%}
-        ps.stmt.Bind{%s sqlType.Pascal %}({%d col %}, toolbelt.TimeToJulianDay({%s pName %}))
+        ps.stmt.Bind{%s sqlType.Pascal %}({%d col %}, TimeToJulianDay({%s pName %}))
     {%- case "time.Duration" -%}
-        ps.stmt.Bind{%s sqlType.Pascal %}({%d col %}, toolbelt.DurationToMilliseconds({%s pName %}))
+        ps.stmt.Bind{%s sqlType.Pascal %}({%d col %}, DurationToMilliseconds({%s pName %}))
     {%- default -%}
         ps.stmt.Bind{%s sqlType.Pascal %}({%d col %}, {%s pName %})
 {%- endswitch -%}

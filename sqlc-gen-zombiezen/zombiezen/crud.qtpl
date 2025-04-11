@@ -6,7 +6,10 @@ package {%s t.PackageName.Lower %}
 import (
     "fmt"
     "zombiezen.com/go/sqlite"
-    "github.com/delaneyj/toolbelt"
+
+    {% if t.NeedsTimePackage %}
+    "time"
+    {% endif %}
 )
 
 type {%s t.SingleName.Pascal %}Model struct {
@@ -238,9 +241,9 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {%- func bindField(f GenerateField, isNullable bool) -%}
     ps.{%- switch f.GoType.Original -%}
         {%-  case "time.Time" -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
         {%- case "time.Duration" -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
         {%- default -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, {% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %})
     {%- endswitch -%}
@@ -265,11 +268,11 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {%- func fillResStructField(f GenerateField, i int) -%}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
-            toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "time.Duration" -%}
-            toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "[]byte" -%}
-            toolbelt.StmtBytesByCol(ps.stmt, {%d i %})
+            StmtBytesByCol(ps.stmt, {%d i %})
         {%- default -%}
             ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
     {%- endswitch -%}
