@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "description": "Notification system schema with discriminated unions"
+  },
+  "definitions": {
+    "notification": {
+      "metadata": {
+        "description": "represents different types of notifications"
+      },
+      "discriminator": "type",
+      "mapping": {
+        "email": {
+          "properties": {
+            "to": { "type": "string" },
+            "from": { "type": "string" },
+            "subject": { "type": "string" },
+            "body": { "type": "string" },
+            "isHtml": { "type": "boolean" }
+          },
+          "optionalProperties": {
+            "cc": { "elements": { "type": "string" } },
+            "bcc": { "elements": { "type": "string" } },
+            "attachments": { 
+              "elements": { 
+                "properties": {
+                  "filename": { "type": "string" },
+                  "contentType": { "type": "string" },
+                  "size": { "type": "int32" }
+                }
+              }
+            }
+          }
+        },
+        "sms": {
+          "properties": {
+            "to": { "type": "string" },
+            "message": { "type": "string" }
+          },
+          "optionalProperties": {
+            "provider": { "type": "string" }
+          }
+        },
+        "push": {
+          "properties": {
+            "deviceToken": { "type": "string" },
+            "title": { "type": "string" },
+            "body": { "type": "string" }
+          },
+          "optionalProperties": {
+            "badge": { "type": "int32" },
+            "sound": { "type": "string" },
+            "data": { "values": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "notificationStatus": {
+      "enum": ["pending", "sent", "delivered", "failed"]
+    },
+    "notificationLog": {
+      "properties": {
+        "id": { "type": "string" },
+        "notification": { "ref": "notification" },
+        "status": { "ref": "notificationStatus" },
+        "timestamp": { "type": "timestamp" },
+        "attempts": { "type": "int32" }
+      },
+      "optionalProperties": {
+        "error": { "type": "string", "nullable": true }
+      }
+    }
+  }
+}

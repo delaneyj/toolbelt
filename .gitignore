@@ -20,3 +20,7 @@
 # Go workspace file
 go.work
 .task
+
+# JTD generator binary
+jtd/cmd/jtd2go/jtd2go
+pixel2svg/pixel2svg

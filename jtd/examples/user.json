@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "description": "User management schema"
+  },
+  "definitions": {
+    "user": {
+      "metadata": {
+        "description": "represents a user in the system"
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "metadata": {
+            "description": "unique identifier"
+          }
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "age": {
+          "type": "int32",
+          "nullable": true
+        },
+        "created": {
+          "type": "timestamp"
+        }
+      },
+      "optionalProperties": {
+        "bio": {
+          "type": "string",
+          "metadata": {
+            "description": "user biography"
+          }
+        },
+        "avatar": {
+          "type": "string",
+          "metadata": {
+            "description": "URL to avatar image"
+          }
+        }
+      }
+    },
+    "userRole": {
+      "metadata": {
+        "description": "available user roles"
+      },
+      "enum": ["admin", "moderator", "user", "guest"]
+    },
+    "userList": {
+      "elements": { "ref": "user" }
+    },
+    "userMap": {
+      "values": { "ref": "user" }
+    }
+  }
+}

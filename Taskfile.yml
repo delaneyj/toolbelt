@@ -3,7 +3,7 @@
 version: "3"
 
 vars:
-  VERSION: 0.4.4
+  VERSION: 0.4.5
 
 interval: 200ms
 
@@ -14,3 +14,15 @@ tasks:
       - git tag v{{.VERSION}}
       - git push --tags
       - GOPROXY=proxy.golang.org go list -m github.com/delaneyj/toolbelt@v{{.VERSION}}
+
+  install-jtd:
+    desc: Install the JTD to Go generator
+    dir: jtd/cmd/jtd2go
+    cmds:
+      - go install .
+
+  install-pixel2svg:
+    desc: Install the pixel2svg tool
+    dir: pixel2svg
+    cmds:
+      - go install .

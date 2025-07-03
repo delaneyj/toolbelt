@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "int32" },
+    "isActive": { "type": "boolean" }
+  },
+  "optionalProperties": {
+    "tags": { 
+      "elements": { "type": "string" } 
+    },
+    "metadata": { 
+      "values": { "type": "string" } 
+    }
+  }
+}
