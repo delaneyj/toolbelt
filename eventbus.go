@@ -79,9 +79,9 @@ func (b *EventBusSync[T]) Emit(ctx context.Context, msg T) error {
 
 type EventBusAsync[T any] struct {
 	*baseEventBus[T]
-	errs  []error
-	errMu sync.Mutex
-	wg    sync.WaitGroup
+	errs []error
+	mu   sync.Mutex
+	wg   sync.WaitGroup
 }
 
 func NewEventBusAsync[T any]() *EventBusAsync[T] {
@@ -91,12 +91,15 @@ func NewEventBusAsync[T any]() *EventBusAsync[T] {
 }
 
 func (b *EventBusAsync[T]) Emit(ctx context.Context, msg T) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
 	// Subs might be modified while we are iterating over them,
 	// so we need to copy them first.
-	b.mu.RLock()
+	b.baseEventBus.mu.RLock()
 	subs := make([]*Subscriber[T], len(b.subs))
 	copy(subs, b.subs)
-	b.mu.RUnlock()
+	b.baseEventBus.mu.RUnlock()
 
 	clear(b.errs)
 
@@ -105,9 +108,7 @@ func (b *EventBusAsync[T]) Emit(ctx context.Context, msg T) error {
 		go func(sub Subscriber[T]) {
 			defer b.wg.Done()
 			if err := sub(msg); err != nil {
-				b.errMu.Lock()
 				b.errs = append(b.errs, err)
-				b.errMu.Unlock()
 			}
 		}(*sub)
 	}

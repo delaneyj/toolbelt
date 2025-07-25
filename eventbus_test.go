@@ -563,6 +563,63 @@ func TestEventBus_EmptyBus(t *testing.T) {
 	})
 }
 
+func TestEventBusAsync_ConcurrentEmit(t *testing.T) {
+	bus := NewEventBusAsync[string]()
+
+	bus.Subscribe(context.Background(), func(msg string) error {
+		time.Sleep(1 * time.Millisecond)
+		return nil
+	})
+
+	const numGoroutines = 10
+	const emissionsPerGoroutine = 100
+
+	var wg sync.WaitGroup
+	errChan := make(chan error, numGoroutines*emissionsPerGoroutine)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < emissionsPerGoroutine; j++ {
+				err := bus.Emit(context.Background(), "event")
+				if err != nil {
+					errChan <- err
+					return
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	for err := range errChan {
+		t.Errorf("Emit failed: %v", err)
+	}
+}
+
+func TestEventBusAsync_PanicRecovery(t *testing.T) {
+	bus := NewEventBusAsync[string]()
+	bus.Subscribe(context.Background(), func(msg string) error {
+		return nil
+	})
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("EventBus panicked: %v", r)
+		}
+	}()
+
+	for i := 0; i < 1000; i++ {
+		go func() {
+			bus.Emit(context.Background(), "rapid-event")
+		}()
+	}
+
+	time.Sleep(100 * time.Millisecond)
+}
+
 // Helper function
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && s[:len(substr)] == substr || len(s) > len(substr) && contains(s[1:], substr)
