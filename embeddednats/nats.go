@@ -14,6 +14,9 @@ type options struct {
 	DataDirectory    string
 	ShouldClearData  bool
 	NATSSeverOptions *server.Options
+	Logging          bool
+	Debug            bool
+	Verbose          bool
 }
 
 type Option func(*options)
@@ -33,6 +36,14 @@ func WithShouldClearData(shouldClearData bool) Option {
 func WithNATSServerOptions(natsServerOptions *server.Options) Option {
 	return func(o *options) {
 		o.NATSSeverOptions = natsServerOptions
+	}
+}
+
+func WithLogging(trace bool, debug bool) Option {
+	return func(o *options) {
+		o.Logging = true
+		o.Debug = debug
+		o.Verbose = trace
 	}
 }
 
@@ -61,12 +72,20 @@ func New(ctx context.Context, opts ...Option) (*Server, error) {
 			JetStream: true,
 			StoreDir:  options.DataDirectory,
 		}
+		if options.Logging {
+			options.NATSSeverOptions.Debug = options.Debug
+			options.NATSSeverOptions.Trace = options.Verbose
+			options.NATSSeverOptions.TraceVerbose = options.Verbose
+		}
 	}
 
 	// Initialize new server with options
 	ns, err := server.NewServer(options.NATSSeverOptions)
 	if err != nil {
 		panic(err)
+	}
+	if options.Logging {
+		ns.ConfigureLogger()
 	}
 
 	go func() {
