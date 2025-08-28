@@ -88,3 +88,62 @@ func CallNTimesWithDelay(d time.Duration, n int, fn CtxErrFunc) CtxErrFunc {
 		return nil
 	}
 }
+
+// DebounceWithMaxWait creates a debounced function that waits for a quiet period
+// before executing, but guarantees execution within a maximum wait time.
+func DebounceWithMaxWait(waitTime time.Duration, maxWaitTime time.Duration, fn func(context.Context) error) func(context.Context) error {
+	var (
+		mu          sync.Mutex
+		timer       *time.Timer
+		maxTimer    *time.Timer
+		latestCtx   context.Context
+		firstCallAt time.Time
+	)
+
+	execute := func() {
+		mu.Lock()
+		ctx := latestCtx
+		mu.Unlock()
+
+		if ctx != nil {
+			fn(ctx)
+		}
+
+		mu.Lock()
+		timer = nil
+		maxTimer = nil
+		latestCtx = nil
+		firstCallAt = time.Time{}
+		mu.Unlock()
+	}
+
+	return func(ctx context.Context) error {
+		mu.Lock()
+		defer mu.Unlock()
+
+		latestCtx = ctx
+
+		// First call in this burst
+		if firstCallAt.IsZero() {
+			firstCallAt = time.Now()
+			
+			// Start max wait timer
+			maxTimer = time.AfterFunc(maxWaitTime, execute)
+		}
+
+		// Reset debounce timer
+		if timer != nil {
+			timer.Stop()
+		}
+		timer = time.AfterFunc(waitTime, func() {
+			mu.Lock()
+			if maxTimer != nil {
+				maxTimer.Stop()
+			}
+			mu.Unlock()
+			execute()
+		})
+
+		return nil
+	}
+}
