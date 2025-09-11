@@ -22,11 +22,17 @@ func Fit[T Float](
 	newMin T,
 	newMax T,
 ) T {
-	return newMin + ((x-oldMin)*(newMax-newMin))/(oldMax-oldMin)
+	// Normalize x to [0,1], apply linear easing, then scale to new range.
+	// This is equivalent to linear interpolation but keeps easing extensible.
+	t := (x - oldMin) / (oldMax - oldMin)
+	e := EaseLinear[T](t)
+	return newMin + e*(newMax-newMin)
 }
 
 func Fit01[T Float](x T, newMin T, newMax T) T {
-	return Fit(x, 0, 1, newMin, newMax)
+	// x is expected in [0,1]. Apply linear easing and scale to new range.
+	e := EaseLinear[T](x)
+	return newMin + e*(newMax-newMin)
 }
 
 func RoundFit01[T Float](x T, newMin T, newMax T) T {
