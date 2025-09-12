@@ -5,8 +5,9 @@ package {%s t.PackageName.Lower %}
 
 import (
     "fmt"
+    {% if t.NeedsTimePackage %}"time"{% endif %}
     "zombiezen.com/go/sqlite"
-    "github.com/delaneyj/toolbelt"
+    {% if t.NeedsTimePackage %}"github.com/delaneyj/toolbelt"{% endif %}
 )
 
 type {%s t.SingleName.Pascal %}Model struct {
