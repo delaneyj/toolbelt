@@ -31,7 +31,8 @@ func SetupDB(ctx context.Context, dataFolder string, shouldClear bool) (*toolbel
 	migrations := make([]string, len(migrationsFiles))
 	for i, file := range migrationsFiles {
 		fn := filepath.Join(migrationsDir, file.Name())
-		f, err := migrationsFS.Open(fn)
+		fnts := filepath.ToSlash(fn)
+		f, err := migrationsFS.Open(fnts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open migration file: %w", err)
 		}
