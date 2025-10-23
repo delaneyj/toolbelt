@@ -1,4 +1,4 @@
-CREATE TABLE nullableTestTable (id integer PRIMARY KEY, myBool boolean) strict;
+CREATE TABLE nullableTestTable (id integer PRIMARY KEY, myBool integer) strict;
 
 CREATE TABLE NAMES (
     id integer PRIMARY KEY,
