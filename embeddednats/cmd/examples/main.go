@@ -21,8 +21,6 @@ func main() {
 	}
 
 	// behold ze server
-	ns.NatsServer.Start()
-
 	ns.WaitForServer()
 	nc, err := ns.Client()
 	if err != nil {
