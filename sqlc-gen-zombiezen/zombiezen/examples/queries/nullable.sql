@@ -23,3 +23,12 @@ SELECT
     COUNT(*) > 0
 FROM
     authors;
+
+-- name: ListNullableTestTableByIDs :many
+SELECT
+    id,
+    myBool
+FROM
+    nullableTestTable
+WHERE
+    id IN (sqlc.slice('ids'));

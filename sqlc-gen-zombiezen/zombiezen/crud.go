@@ -2,7 +2,6 @@ package zombiezen
 
 import (
 	"fmt"
-
 	"strings"
 
 	"github.com/delaneyj/toolbelt"
@@ -10,10 +9,8 @@ import (
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
 )
 
-func generateCRUD(req *plugin.GenerateRequest) (files []*plugin.File, err error) {
+func generateCRUD(req *plugin.GenerateRequest, opts *Options, packageName toolbelt.CasedString) (files []*plugin.File, err error) {
 	pluralClient := pluralize.NewClient()
-
-	packageName := toolbelt.ToCasedString(req.Settings.Codegen.Out)
 	for _, schema := range req.Catalog.Schemas {
 		schemaName := toolbelt.ToCasedString(schema.Name)
 
@@ -34,17 +31,19 @@ func generateCRUD(req *plugin.GenerateRequest) (files []*plugin.File, err error)
 				}
 				columnName := toolbelt.ToCasedString(column.Name)
 
-				goType, needsTime := toGoType(column)
+				goType, needsTime := toGoType(column, opts)
 				if needsTime {
 					tbl.NeedsTimePackage = true
 				}
 				f := GenerateField{
-					Column:     i + 1,
-					Offset:     i,
-					Name:       columnName,
-					SQLType:    toolbelt.ToCasedString(toSQLType(column)),
-					GoType:     toolbelt.ToCasedString(goType),
-					IsNullable: !column.NotNull,
+					Column:       i + 1,
+					Offset:       i,
+					Name:         columnName,
+					SQLType:      toolbelt.ToCasedString(toSQLType(column)),
+					GoType:       toolbelt.ToCasedString(goType),
+					BindGoType:   toolbelt.ToCasedString(goType),
+					OriginalName: column.Name,
+					IsNullable:   !column.NotNull,
 				}
 				tbl.Fields = append(tbl.Fields, f)
 			}

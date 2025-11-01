@@ -11,8 +11,7 @@ import (
 	"github.com/valyala/bytebufferpool"
 )
 
-func generateQueries(req *plugin.GenerateRequest) (files []*plugin.File, err error) {
-	packageName := toolbelt.ToCasedString(req.Settings.Codegen.Out)
+func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName toolbelt.CasedString) (files []*plugin.File, err error) {
 	queries := make([]*GenerateQueryContext, len(req.Queries))
 	for i, q := range req.Queries {
 		queryCtx := &GenerateQueryContext{
@@ -25,18 +24,30 @@ func generateQueries(req *plugin.GenerateRequest) (files []*plugin.File, err err
 		}
 
 		queryCtx.Params = lo.Map(q.Params, func(p *plugin.Parameter, pi int) GenerateField {
-			goType, needsTime := toGoType(p.Column)
+			goType, needsTime := toGoType(p.Column, opts)
 			if needsTime {
 				queryCtx.NeedsTimePackage = true
 			}
 
+			isSlice := p.Column.GetIsSqlcSlice()
+			fieldGoType := toolbelt.ToCasedString(goType)
+			if isSlice {
+				fieldGoType = toolbelt.ToCasedString("[]" + goType)
+			}
+
 			param := GenerateField{
-				Column:     int(p.Number),
-				Offset:     int(p.Number) - 1,
-				Name:       toolbelt.ToCasedString(toFieldName(p.Column)),
-				SQLType:    toolbelt.ToCasedString(toSQLType(p.Column)),
-				GoType:     toolbelt.ToCasedString(goType),
-				IsNullable: !p.Column.NotNull,
+				Column:       int(p.Number),
+				Offset:       int(p.Number) - 1,
+				Name:         toolbelt.ToCasedString(toFieldName(p.Column)),
+				SQLType:      toolbelt.ToCasedString(toSQLType(p.Column)),
+				GoType:       fieldGoType,
+				BindGoType:   toolbelt.ToCasedString(goType),
+				OriginalName: p.Column.Name,
+				IsNullable:   !p.Column.NotNull,
+				IsSlice:      isSlice,
+			}
+			if isSlice {
+				queryCtx.HasSliceParams = true
 			}
 			return param
 		})
@@ -46,18 +57,20 @@ func generateQueries(req *plugin.GenerateRequest) (files []*plugin.File, err err
 		if len(q.Columns) > 0 {
 			queryCtx.HasResponse = true
 			queryCtx.ResponseFields = lo.Map(q.Columns, func(c *plugin.Column, ci int) GenerateField {
-				goType, needsTime := toGoType(c)
+				goType, needsTime := toGoType(c, opts)
 				if needsTime {
 					queryCtx.NeedsTimePackage = true
 				}
 
 				col := GenerateField{
-					Column:     ci + 1,
-					Offset:     ci,
-					Name:       toolbelt.ToCasedString(toFieldName(c)),
-					SQLType:    toolbelt.ToCasedString(toSQLType(c)),
-					GoType:     toolbelt.ToCasedString(goType),
-					IsNullable: !c.NotNull,
+					Column:       ci + 1,
+					Offset:       ci,
+					Name:         toolbelt.ToCasedString(toFieldName(c)),
+					SQLType:      toolbelt.ToCasedString(toSQLType(c)),
+					GoType:       toolbelt.ToCasedString(goType),
+					BindGoType:   toolbelt.ToCasedString(goType),
+					OriginalName: c.Name,
+					IsNullable:   !c.NotNull,
 				}
 				return col
 			})
@@ -111,38 +124,46 @@ func toFieldName(c *plugin.Column) string {
 	return n
 }
 
-func toGoType(c *plugin.Column) (val string, needsTime bool) {
+func toGoType(c *plugin.Column, opts *Options) (val string, needsTime bool) {
 	typ := toolbelt.Lower(c.Type.Name)
+	disableTime := opts != nil && opts.DisableTimeConversion
 
 	if strings.HasSuffix(c.Name, "ms") {
 		return "time.Duration", true
-	} else if c.Name == "at" || strings.HasSuffix(c.Name, "_at") || typ == "datetime" {
+	}
+
+	if !disableTime && (c.Name == "at" || strings.HasSuffix(c.Name, "_at") || typ == "datetime") {
 		return "time.Time", true
-	} else {
-		switch typ {
-		case "text":
-			return "string", false
-		case "integer", "int":
-			return "int64", false
-		case "real":
-			return "float64", false
-		case "boolean", "bool":
-			return "bool", false
-		case "blob":
-			return "[]byte", false
-		default:
-			panic(fmt.Sprintf("toGoType unhandled type '%s' for column '%s'", c.Type.Name, c.Name))
-		}
+	}
+
+	switch typ {
+	case "text":
+		return "string", false
+	case "integer", "int":
+		return "int64", false
+	case "real":
+		return "float64", false
+	case "datetime":
+		return "string", false
+	case "boolean", "bool":
+		return "bool", false
+	case "blob":
+		return "[]byte", false
+	default:
+		panic(fmt.Sprintf("toGoType unhandled type '%s' for column '%s'", c.Type.Name, c.Name))
 	}
 }
 
 type GenerateField struct {
-	Column     int // 1-indexed
-	Offset     int // 0-indexed
-	Name       toolbelt.CasedString
-	SQLType    toolbelt.CasedString
-	GoType     toolbelt.CasedString
-	IsNullable bool
+	Column       int // 1-indexed
+	Offset       int // 0-indexed
+	Name         toolbelt.CasedString
+	SQLType      toolbelt.CasedString
+	GoType       toolbelt.CasedString
+	BindGoType   toolbelt.CasedString
+	OriginalName string
+	IsNullable   bool
+	IsSlice      bool
 }
 
 type GenerateQueryContext struct {
@@ -157,4 +178,5 @@ type GenerateQueryContext struct {
 	ResponseHasMultiple              bool
 
 	NeedsTimePackage bool
+	HasSliceParams   bool
 }
