@@ -7,12 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/iancoleman/strcase"
+	"github.com/delaneyj/toolbelt"
 	"github.com/zeebo/xxh3"
 )
 
 func FileRawToRemote(remotePath string, contents []byte) Step {
-	name := fmt.Sprintf("file-remote-%s", strcase.ToKebab(remotePath))
+	name := fmt.Sprintf("file-remote-%s", toolbelt.Kebab(remotePath))
 	return func(ctx context.Context) (context.Context, string, StepStatus, error) {
 		client := CtxSSHClient(ctx)
 		inv := CtxInventory(ctx)
@@ -69,7 +69,7 @@ func FileRawToRemote(remotePath string, contents []byte) Step {
 }
 
 func FilepathToRemote(remotePath string, localPath string) Step {
-	name := fmt.Sprintf("file-remote-%s", strcase.ToKebab(remotePath))
+	name := fmt.Sprintf("file-remote-%s", toolbelt.Kebab(remotePath))
 	return func(ctx context.Context) (context.Context, string, StepStatus, error) {
 		client := CtxSSHClient(ctx)
 

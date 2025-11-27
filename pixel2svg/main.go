@@ -39,10 +39,10 @@ type CLI struct {
 
 func run(ctx context.Context) error {
 	godotenv.Load()
-	
+
 	var cli CLI
 	kong.Parse(&cli)
-	
+
 	return convert(ctx, &cli)
 }
 
@@ -73,22 +73,22 @@ func convertAnimatedGIF(ctx context.Context, cmd *CLI, g *gif.GIF) error {
 func convertGIFToFrameFiles(ctx context.Context, cmd *CLI, g *gif.GIF) error {
 	// Get base filename without extension
 	base := strings.TrimSuffix(cmd.Output, filepath.Ext(cmd.Output))
-	
+
 	for i, frame := range g.Image {
 		// Create filename for this frame
 		frameOutput := fmt.Sprintf("%s_frame%03d.svg", base, i)
-		
+
 		// Update command with frame-specific output
 		frameCmd := *cmd
 		frameCmd.Output = frameOutput
 		frameCmd.Verbose = false // Don't repeat verbose output for each frame
-		
+
 		log.Printf("Converting frame %d/%d...", i+1, len(g.Image))
 		if err := convertSingleImage(ctx, &frameCmd, frame); err != nil {
 			return fmt.Errorf("failed to convert frame %d: %w", i, err)
 		}
 	}
-	
+
 	log.Printf("Generated %d SVG files: %s_frame*.svg", len(g.Image), base)
 	return nil
 }
@@ -99,20 +99,20 @@ func convertGIFToAnimatedSVG(ctx context.Context, cmd *CLI, g *gif.GIF) error {
 	bounds := g.Image[0].Bounds()
 	rgba := image.NewRGBA(bounds)
 	draw.Draw(rgba, bounds, g.Image[0], bounds.Min, draw.Src)
-	
+
 	configs := generateOptimizationConfigs()
 	bestConfig, _, _ := findBestOptimization(rgba, bounds, cmd, configs)
-	
+
 	// Create output file
 	out, err := os.Create(cmd.Output)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
 	defer out.Close()
-	
+
 	// Generate animated SVG
 	generateAnimatedSVG(out, g, bounds, cmd, bestConfig)
-	
+
 	log.Printf("Generated animated SVG: %s (%d frames)", cmd.Output, len(g.Image))
 	return nil
 }
@@ -122,12 +122,12 @@ func generateAnimatedSVG(w io.Writer, g *gif.GIF, bounds image.Rectangle, cmd *C
 	baseHeight := bounds.Dy()
 	scaledWidth := baseWidth * cmd.Scale
 	scaledHeight := baseHeight * cmd.Scale
-	
+
 	// Write SVG header
 	fmt.Fprintf(w, `<?xml version="1.0"?>
-<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`, 
+<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		scaledWidth, scaledHeight, baseWidth, baseHeight)
-	
+
 	// Calculate total duration
 	totalDuration := 0
 	for _, delay := range g.Delay {
@@ -136,14 +136,13 @@ func generateAnimatedSVG(w io.Writer, g *gif.GIF, bounds image.Rectangle, cmd *C
 	if totalDuration == 0 {
 		totalDuration = len(g.Image) * 100 // Default 100ms per frame
 	}
-	
+
 	// Process each frame
 	for frameIdx, frame := range g.Image {
 		// Convert frame to RGBA
 		rgba := image.NewRGBA(bounds)
 		draw.Draw(rgba, bounds, frame, bounds.Min, draw.Src)
-		
-		
+
 		// Calculate visibility times
 		startTime := 0
 		for i := 0; i < frameIdx; i++ {
@@ -153,12 +152,12 @@ func generateAnimatedSVG(w io.Writer, g *gif.GIF, bounds image.Rectangle, cmd *C
 				startTime += 100
 			}
 		}
-		
+
 		// Create a group for this frame with visibility animation
 		fmt.Fprintf(w, "\n<g visibility=\"hidden\">")
 		fmt.Fprintf(w, "\n  <animate attributeName=\"visibility\" values=\"hidden;visible;hidden\" ")
 		fmt.Fprintf(w, "dur=\"%dms\" begin=\"%dms\" repeatCount=\"indefinite\" />", totalDuration, startTime)
-		
+
 		// Generate shapes for this frame
 		if config.pixelTrace {
 			pixelPaths := tracePixelBoundaries(rgba)
@@ -170,10 +169,10 @@ func generateAnimatedSVG(w io.Writer, g *gif.GIF, bounds image.Rectangle, cmd *C
 			} else {
 				horizontalRuns := findPixelRuns(rgba)
 				verticalMerged := mergeRunsVertically(horizontalRuns)
-				
+
 				verticalRuns := findPixelRunsVertical(rgba)
 				horizontalMerged := mergeRunsHorizontally(verticalRuns)
-				
+
 				if len(verticalMerged) <= len(horizontalMerged) {
 					optimizedRuns = verticalMerged
 				} else {
@@ -182,10 +181,10 @@ func generateAnimatedSVG(w io.Writer, g *gif.GIF, bounds image.Rectangle, cmd *C
 			}
 			generateAnimatedShapes(w, optimizedRuns, config)
 		}
-		
+
 		fmt.Fprintln(w, "\n</g>")
 	}
-	
+
 	fmt.Fprintln(w, "\n</svg>")
 }
 
@@ -194,18 +193,18 @@ func generateAnimatedPixelPaths(w io.Writer, paths []pixelPath, config optimizat
 		if len(pixelPath.edges) == 0 {
 			continue
 		}
-		
+
 		// Build SVG path
 		pathStr := ""
 		if len(pixelPath.edges) > 0 {
 			firstEdge := pixelPath.edges[0]
 			pathStr = fmt.Sprintf("M%d %d", firstEdge.start.x, firstEdge.start.y)
-			
+
 			prevEnd := firstEdge.start
 			for _, edge := range pixelPath.edges {
 				dx := edge.end.x - prevEnd.x
 				dy := edge.end.y - prevEnd.y
-				
+
 				if dx == 0 && dy != 0 {
 					pathStr += fmt.Sprintf("v%d", dy)
 				} else if dy == 0 && dx != 0 {
@@ -213,13 +212,13 @@ func generateAnimatedPixelPaths(w io.Writer, paths []pixelPath, config optimizat
 				} else if dx != 0 || dy != 0 {
 					pathStr += fmt.Sprintf("l%d %d", dx, dy)
 				}
-				
+
 				prevEnd = edge.end
 			}
-			
+
 			pathStr += "z"
 		}
-		
+
 		fillColor := fmt.Sprintf("#%02x%02x%02x", pixelPath.color.R, pixelPath.color.G, pixelPath.color.B)
 		if pixelPath.color.A < 255 {
 			opacity := float64(pixelPath.color.A) / 255.0
@@ -235,25 +234,25 @@ func generateAnimatedShapes(w io.Writer, runs []pixelRun, config optimizationCon
 		if run.color.A == 0 {
 			continue
 		}
-		
+
 		fillColor := fmt.Sprintf("#%02x%02x%02x", run.color.R, run.color.G, run.color.B)
-		
+
 		if config.usePaths {
 			if run.color.A < 255 {
 				opacity := float64(run.color.A) / 255.0
-				fmt.Fprintf(w, "\n  <path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\" opacity=\"%.3f\"/>", 
+				fmt.Fprintf(w, "\n  <path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\" opacity=\"%.3f\"/>",
 					run.x, run.y, run.width, run.height, run.width, fillColor, opacity)
 			} else {
-				fmt.Fprintf(w, "\n  <path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\"/>", 
+				fmt.Fprintf(w, "\n  <path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\"/>",
 					run.x, run.y, run.width, run.height, run.width, fillColor)
 			}
 		} else {
 			if run.color.A < 255 {
 				opacity := float64(run.color.A) / 255.0
-				fmt.Fprintf(w, "\n  <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>", 
+				fmt.Fprintf(w, "\n  <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>",
 					run.x, run.y, run.width, run.height, fillColor, opacity)
 			} else {
-				fmt.Fprintf(w, "\n  <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>", 
+				fmt.Fprintf(w, "\n  <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>",
 					run.x, run.y, run.width, run.height, fillColor)
 			}
 		}
@@ -265,7 +264,7 @@ func convert(ctx context.Context, cmd *CLI) error {
 	if cmd.Output == "" {
 		cmd.Output = strings.TrimSuffix(cmd.Input, filepath.Ext(cmd.Input)) + ".svg"
 	}
-	
+
 	// Open input file
 	file, err := os.Open(cmd.Input)
 	if err != nil {
@@ -289,7 +288,7 @@ func convert(ctx context.Context, cmd *CLI) error {
 		if err != nil {
 			return fmt.Errorf("failed to decode GIF: %w", err)
 		}
-		
+
 		// Check if it's animated
 		if len(g.Image) > 1 && (cmd.Animated || cmd.FrameFiles) {
 			return convertAnimatedGIF(ctx, cmd, g)
@@ -310,10 +309,10 @@ func convertSingleImage(ctx context.Context, cmd *CLI, img image.Image) error {
 
 	// Define all optimization combinations to try
 	configs := generateOptimizationConfigs()
-	
+
 	// Try each configuration and find the best one
 	bestConfig, bestSize, results := findBestOptimization(rgba, bounds, cmd, configs)
-	
+
 	if cmd.Verbose {
 		// Find baseline (no optimizations) for comparison
 		var baselineSize int
@@ -323,11 +322,11 @@ func convertSingleImage(ctx context.Context, cmd *CLI, img image.Image) error {
 				break
 			}
 		}
-		
+
 		// Show all results
 		log.Printf("Tested %d optimization combinations:", len(results))
 		log.Printf("Baseline (no optimizations): %d bytes", baselineSize)
-		
+
 		// Show top 10 results with savings
 		log.Println("\nTop 10 results:")
 		for i, result := range results {
@@ -343,7 +342,7 @@ func convertSingleImage(ctx context.Context, cmd *CLI, img image.Image) error {
 				log.Printf("  %2d. %s: %d bytes (same size)", i+1, result.config.name, result.size)
 			}
 		}
-		
+
 		// Show worst result for comparison
 		if len(results) > 10 {
 			worst := results[len(results)-1]
@@ -354,31 +353,31 @@ func convertSingleImage(ctx context.Context, cmd *CLI, img image.Image) error {
 				log.Printf("  ...\n  %2d. %s: %d bytes (worst)", len(results), worst.config.name, worst.size)
 			}
 		}
-		
+
 		// Show details of the best configuration
 		log.Printf("\nBest configuration: %s", bestConfig.name)
 		log.Printf("  Size: %d bytes", bestSize)
 		bestSavings := float64(baselineSize-bestSize) / float64(baselineSize) * 100
 		log.Printf("  Reduction: %.1f%% from baseline (%d → %d bytes)", bestSavings, baselineSize, bestSize)
-		
+
 		if bestConfig.pixelTrace {
 			log.Printf("  Method: Pixel boundary tracing")
 		} else {
 			log.Printf("  Method: Rectangle generation")
 			log.Printf("  - 2D packing: %v", bestConfig.pack2D)
-			log.Printf("  - Use paths: %v", bestConfig.usePaths) 
+			log.Printf("  - Use paths: %v", bestConfig.usePaths)
 			log.Printf("  - Group colors: %v", bestConfig.groupColors)
 		}
 		log.Printf("  - CSS classes: %v", bestConfig.cssColors)
 	}
-	
+
 	// Generate the final output using the best configuration
 	return generateOptimizedOutput(cmd.Output, rgba, bounds, cmd, bestConfig)
 }
 
 func generateOptimizationConfigs() []optimizationConfig {
 	var configs []optimizationConfig
-	
+
 	// Generate all possible combinations
 	// For pixel trace, we only vary cssColors (other flags don't apply)
 	for _, pixelTrace := range []bool{false, true} {
@@ -422,12 +421,12 @@ func generateOptimizationConfigs() []optimizationConfig {
 							if cssColors {
 								features = append(features, "CSS")
 							}
-							
+
 							name := strings.Join(features, " + ")
 							if name == "" {
 								name = "No optimizations"
 							}
-							
+
 							configs = append(configs, optimizationConfig{
 								name:        name,
 								cssColors:   cssColors,
@@ -442,7 +441,7 @@ func generateOptimizationConfigs() []optimizationConfig {
 			}
 		}
 	}
-	
+
 	return configs
 }
 
@@ -455,26 +454,26 @@ func findBestOptimization(img *image.RGBA, bounds image.Rectangle, cmd *CLI, con
 	var results []optimizationResult
 	var bestConfig optimizationConfig
 	bestSize := int(^uint(0) >> 1) // Max int
-	
+
 	for _, config := range configs {
 		// Generate SVG to buffer
 		var buf strings.Builder
 		generateWithConfig(&buf, img, bounds, cmd, config)
-		
+
 		size := buf.Len()
 		results = append(results, optimizationResult{config: config, size: size})
-		
+
 		if size < bestSize {
 			bestSize = size
 			bestConfig = config
 		}
 	}
-	
+
 	// Sort results by size for verbose output
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].size < results[j].size
 	})
-	
+
 	return bestConfig, bestSize, results
 }
 
@@ -482,7 +481,7 @@ func generateWithConfig(w io.Writer, img *image.RGBA, bounds image.Rectangle, cm
 	// Find shapes using the appropriate algorithm
 	var optimizedRuns []pixelRun
 	var pixelPaths []pixelPath
-	
+
 	if config.pixelTrace {
 		// Use pixel boundary tracing
 		pixelPaths = tracePixelBoundaries(img)
@@ -493,11 +492,11 @@ func generateWithConfig(w io.Writer, img *image.RGBA, bounds image.Rectangle, cm
 		// Use original run-length encoding approach
 		horizontalRuns := findPixelRuns(img)
 		verticalMerged := mergeRunsVertically(horizontalRuns)
-		
+
 		// Try vertical-first approach
 		verticalRuns := findPixelRunsVertical(img)
 		horizontalMerged := mergeRunsHorizontally(verticalRuns)
-		
+
 		// Choose the approach with fewer rectangles
 		if len(verticalMerged) <= len(horizontalMerged) {
 			optimizedRuns = verticalMerged
@@ -505,12 +504,12 @@ func generateWithConfig(w io.Writer, img *image.RGBA, bounds image.Rectangle, cm
 			optimizedRuns = horizontalMerged
 		}
 	}
-	
+
 	// Create a temporary command structure with the config settings
 	tempCmd := &CLI{
 		Scale: cmd.Scale,
 	}
-	
+
 	// Generate SVG
 	if config.pixelTrace && len(pixelPaths) > 0 {
 		generatePixelTraceSVGWithConfig(w, pixelPaths, bounds, tempCmd, config)
@@ -529,16 +528,16 @@ func generateOptimizedOutput(outputPath string, img *image.RGBA, bounds image.Re
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
 	defer out.Close()
-	
+
 	// Generate with best config
 	generateWithConfig(out, img, bounds, cmd, config)
-	
+
 	// Get file size
 	stat, err := out.Stat()
 	if err != nil {
 		return err
 	}
-	
+
 	// Calculate baseline size for comparison (if not verbose)
 	if !cmd.Verbose {
 		var buf strings.Builder
@@ -552,7 +551,7 @@ func generateOptimizedOutput(outputPath string, img *image.RGBA, bounds image.Re
 		}
 		generateWithConfig(&buf, img, bounds, cmd, baselineConfig)
 		baselineSize := buf.Len()
-		
+
 		savings := float64(baselineSize-int(stat.Size())) / float64(baselineSize) * 100
 		if savings > 0 {
 			log.Printf("Generated %s (%d bytes, %.1f%% smaller than baseline)", outputPath, stat.Size(), savings)
@@ -562,7 +561,7 @@ func generateOptimizedOutput(outputPath string, img *image.RGBA, bounds image.Re
 	} else {
 		log.Printf("Generated %s using '%s' optimization", outputPath, config.name)
 	}
-	
+
 	return nil
 }
 
@@ -572,10 +571,10 @@ func findPixelRuns(img *image.RGBA) []pixelRun {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		var currentRun *pixelRun
-		
+
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			pixel := img.RGBAAt(x, y)
-			
+
 			// Skip transparent pixels
 			if pixel.A == 0 {
 				if currentRun != nil {
@@ -584,7 +583,7 @@ func findPixelRuns(img *image.RGBA) []pixelRun {
 				}
 				continue
 			}
-			
+
 			if currentRun == nil || !colorsEqual(currentRun.color, pixel) {
 				// Start new run
 				if currentRun != nil {
@@ -602,7 +601,7 @@ func findPixelRuns(img *image.RGBA) []pixelRun {
 				currentRun.width++
 			}
 		}
-		
+
 		// Add final run if exists
 		if currentRun != nil {
 			runs = append(runs, *currentRun)
@@ -622,16 +621,16 @@ func mergeRunsVertically(runs []pixelRun) []pixelRun {
 		x, width int
 		color    color.RGBA
 	}
-	
+
 	runMap := make(map[runKey][]pixelRun)
-	
+
 	for _, run := range runs {
 		key := runKey{x: run.x, width: run.width, color: run.color}
 		runMap[key] = append(runMap[key], run)
 	}
-	
+
 	var optimized []pixelRun
-	
+
 	for _, group := range runMap {
 		// Sort by y coordinate
 		sortedRuns := group
@@ -642,14 +641,14 @@ func mergeRunsVertically(runs []pixelRun) []pixelRun {
 				}
 			}
 		}
-		
+
 		// Merge consecutive runs
 		merged := []pixelRun{}
 		current := sortedRuns[0]
-		
+
 		for i := 1; i < len(sortedRuns); i++ {
 			next := sortedRuns[i]
-			
+
 			// Check if runs are adjacent vertically
 			if current.y+current.height == next.y {
 				// Extend the height
@@ -662,10 +661,10 @@ func mergeRunsVertically(runs []pixelRun) []pixelRun {
 		}
 		// Don't forget the last one
 		merged = append(merged, current)
-		
+
 		optimized = append(optimized, merged...)
 	}
-	
+
 	return optimized
 }
 
@@ -679,10 +678,10 @@ func findPixelRunsVertical(img *image.RGBA) []pixelRun {
 
 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
 		var currentRun *pixelRun
-		
+
 		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 			pixel := img.RGBAAt(x, y)
-			
+
 			// Skip transparent pixels
 			if pixel.A == 0 {
 				if currentRun != nil {
@@ -691,7 +690,7 @@ func findPixelRunsVertical(img *image.RGBA) []pixelRun {
 				}
 				continue
 			}
-			
+
 			if currentRun == nil || !colorsEqual(currentRun.color, pixel) {
 				// Start new run
 				if currentRun != nil {
@@ -709,7 +708,7 @@ func findPixelRunsVertical(img *image.RGBA) []pixelRun {
 				currentRun.height++
 			}
 		}
-		
+
 		// Add final run if exists
 		if currentRun != nil {
 			runs = append(runs, *currentRun)
@@ -729,16 +728,16 @@ func mergeRunsHorizontally(runs []pixelRun) []pixelRun {
 		y, height int
 		color     color.RGBA
 	}
-	
+
 	runMap := make(map[runKey][]pixelRun)
-	
+
 	for _, run := range runs {
 		key := runKey{y: run.y, height: run.height, color: run.color}
 		runMap[key] = append(runMap[key], run)
 	}
-	
+
 	var optimized []pixelRun
-	
+
 	for _, group := range runMap {
 		// Sort by x coordinate
 		sortedRuns := group
@@ -749,14 +748,14 @@ func mergeRunsHorizontally(runs []pixelRun) []pixelRun {
 				}
 			}
 		}
-		
+
 		// Merge consecutive runs
 		merged := []pixelRun{}
 		current := sortedRuns[0]
-		
+
 		for i := 1; i < len(sortedRuns); i++ {
 			next := sortedRuns[i]
-			
+
 			// Check if runs are adjacent horizontally
 			if current.x+current.width == next.x {
 				// Extend the width
@@ -769,10 +768,10 @@ func mergeRunsHorizontally(runs []pixelRun) []pixelRun {
 		}
 		// Don't forget the last one
 		merged = append(merged, current)
-		
+
 		optimized = append(optimized, merged...)
 	}
-	
+
 	return optimized
 }
 
@@ -781,28 +780,28 @@ func generateSimpleSVG(w io.Writer, runs []pixelRun, bounds image.Rectangle, cmd
 	baseHeight := bounds.Dy()
 	scaledWidth := baseWidth * cmd.Scale
 	scaledHeight := baseHeight * cmd.Scale
-	
+
 	fmt.Fprintf(w, `<?xml version="1.0"?>
-<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`, 
+<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		scaledWidth, scaledHeight, baseWidth, baseHeight)
-	
+
 	for _, run := range runs {
 		if run.color.A == 0 {
 			continue
 		}
-		
+
 		fillColor := fmt.Sprintf("#%02x%02x%02x", run.color.R, run.color.G, run.color.B)
-		
+
 		if run.color.A < 255 {
 			opacity := float64(run.color.A) / 255.0
-			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>", 
+			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>",
 				run.x, run.y, run.width, run.height, fillColor, opacity)
 		} else {
-			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>", 
+			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>",
 				run.x, run.y, run.width, run.height, fillColor)
 		}
 	}
-	
+
 	fmt.Fprintln(w, "\n</svg>")
 }
 
@@ -811,12 +810,12 @@ func generateOptimizedSVGWithConfig(w io.Writer, runs []pixelRun, bounds image.R
 	baseHeight := bounds.Dy()
 	scaledWidth := baseWidth * cmd.Scale
 	scaledHeight := baseHeight * cmd.Scale
-	
+
 	// Write SVG header
 	fmt.Fprintf(w, `<?xml version="1.0"?>
-<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`, 
+<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		scaledWidth, scaledHeight, baseWidth, baseHeight)
-	
+
 	// Filter out transparent pixels
 	opaqueRuns := []pixelRun{}
 	for _, run := range runs {
@@ -824,13 +823,13 @@ func generateOptimizedSVGWithConfig(w io.Writer, runs []pixelRun, bounds image.R
 			opaqueRuns = append(opaqueRuns, run)
 		}
 	}
-	
+
 	// Generate CSS classes if needed
 	var classMap map[color.RGBA]string
 	if config.cssColors {
 		classMap = generateCSSColors(w, opaqueRuns)
 	}
-	
+
 	if config.groupColors {
 		// Group rectangles by color
 		generateGroupedRectsWithConfig(w, opaqueRuns, cmd, classMap, config)
@@ -844,7 +843,7 @@ func generateOptimizedSVGWithConfig(w io.Writer, runs []pixelRun, bounds image.R
 			}
 		}
 	}
-	
+
 	fmt.Fprintln(w, "\n</svg>")
 }
 
@@ -853,12 +852,12 @@ func generatePixelTraceSVGWithConfig(w io.Writer, paths []pixelPath, bounds imag
 	baseHeight := bounds.Dy()
 	scaledWidth := baseWidth * cmd.Scale
 	scaledHeight := baseHeight * cmd.Scale
-	
+
 	// Write SVG header
 	fmt.Fprintf(w, `<?xml version="1.0"?>
-<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`, 
+<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		scaledWidth, scaledHeight, baseWidth, baseHeight)
-	
+
 	// Generate CSS classes if needed
 	var classMap map[color.RGBA]string
 	if config.cssColors {
@@ -867,65 +866,65 @@ func generatePixelTraceSVGWithConfig(w io.Writer, paths []pixelPath, bounds imag
 		for _, p := range paths {
 			colorCount[p.color]++
 		}
-		
+
 		// Sort colors by frequency
 		type colorFreq struct {
 			color color.RGBA
 			count int
 		}
-		
+
 		colors := []colorFreq{}
 		for c, count := range colorCount {
 			colors = append(colors, colorFreq{c, count})
 		}
-		
+
 		sort.Slice(colors, func(i, j int) bool {
 			return colors[i].count > colors[j].count
 		})
-		
+
 		// Generate CSS classes
 		fmt.Fprintln(w, "\n<defs><style>")
 		classMap = make(map[color.RGBA]string)
-		
+
 		for i, cf := range colors {
 			if i >= 26 { // Limit to single letters
 				break
 			}
 			className := string(rune('a' + i))
 			classMap[cf.color] = className
-			
+
 			if cf.color.A < 255 {
-				fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x;opacity:%.3f}\n", 
-					className, cf.color.R, cf.color.G, cf.color.B, 
+				fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x;opacity:%.3f}\n",
+					className, cf.color.R, cf.color.G, cf.color.B,
 					float64(cf.color.A)/255.0)
 			} else {
-				fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x}\n", 
+				fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x}\n",
 					className, cf.color.R, cf.color.G, cf.color.B)
 			}
 		}
-		
+
 		fmt.Fprintln(w, "</style></defs>")
 	}
-	
+
 	// Generate paths
 	for _, pixelPath := range paths {
 		if len(pixelPath.edges) == 0 {
 			continue
 		}
-		
+
 		// Build SVG path with optimized commands
 		pathStr := ""
 		if len(pixelPath.edges) > 0 {
 			// Move to the start of the first edge
 			firstEdge := pixelPath.edges[0]
 			pathStr = fmt.Sprintf("M%d %d", firstEdge.start.x, firstEdge.start.y)
-			
+
 			// Add optimized path commands
 			prevEnd := firstEdge.start
 			for _, edge := range pixelPath.edges {
 				dx := edge.end.x - prevEnd.x
 				dy := edge.end.y - prevEnd.y
-				
+
 				if dx == 0 && dy != 0 {
 					pathStr += fmt.Sprintf("v%d", dy)
 				} else if dy == 0 && dx != 0 {
@@ -933,13 +932,13 @@ func generatePixelTraceSVGWithConfig(w io.Writer, paths []pixelPath, bounds imag
 				} else if dx != 0 || dy != 0 {
 					pathStr += fmt.Sprintf("l%d %d", dx, dy)
 				}
-				
+
 				prevEnd = edge.end
 			}
-			
+
 			pathStr += "z" // Close the path
 		}
-		
+
 		// Write path element
 		if config.cssColors && classMap != nil {
 			if className, ok := classMap[pixelPath.color]; ok {
@@ -963,10 +962,9 @@ func generatePixelTraceSVGWithConfig(w io.Writer, paths []pixelPath, bounds imag
 			}
 		}
 	}
-	
+
 	fmt.Fprintln(w, "\n</svg>")
 }
-
 
 func generateCSSColors(w io.Writer, runs []pixelRun) map[color.RGBA]string {
 	// Count color frequency
@@ -974,45 +972,45 @@ func generateCSSColors(w io.Writer, runs []pixelRun) map[color.RGBA]string {
 	for _, run := range runs {
 		colorCount[run.color]++
 	}
-	
+
 	// Sort colors by frequency
 	type colorFreq struct {
 		color color.RGBA
 		count int
 	}
-	
+
 	colors := []colorFreq{}
 	for c, count := range colorCount {
 		colors = append(colors, colorFreq{c, count})
 	}
-	
+
 	sort.Slice(colors, func(i, j int) bool {
 		return colors[i].count > colors[j].count
 	})
-	
+
 	// Generate CSS classes for top colors
 	fmt.Fprintln(w, "\n<defs><style>")
 	classMap := make(map[color.RGBA]string)
-	
+
 	for i, cf := range colors {
 		if i >= 26 { // Limit to single letters a-z
 			break
 		}
 		className := string(rune('a' + i))
 		classMap[cf.color] = className
-		
+
 		if cf.color.A < 255 {
-			fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x;opacity:%.3f}\n", 
-				className, cf.color.R, cf.color.G, cf.color.B, 
+			fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x;opacity:%.3f}\n",
+				className, cf.color.R, cf.color.G, cf.color.B,
 				float64(cf.color.A)/255.0)
 		} else {
-			fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x}\n", 
+			fmt.Fprintf(w, ".%s{fill:#%02x%02x%02x}\n",
 				className, cf.color.R, cf.color.G, cf.color.B)
 		}
 	}
-	
+
 	fmt.Fprintln(w, "</style></defs>")
-	
+
 	return classMap
 }
 
@@ -1022,7 +1020,7 @@ func generateGroupedRectsWithConfig(w io.Writer, runs []pixelRun, cmd *CLI, clas
 	for _, run := range runs {
 		colorGroups[run.color] = append(colorGroups[run.color], run)
 	}
-	
+
 	// Generate groups
 	for c, group := range colorGroups {
 		// Check if we have a CSS class for this color
@@ -1048,7 +1046,7 @@ func generateGroupedRectsWithConfig(w io.Writer, runs []pixelRun, cmd *CLI, clas
 				fmt.Fprintf(w, "\n<g fill=\"%s\">", fillColor)
 			}
 		}
-		
+
 		for _, run := range group {
 			if config.usePaths {
 				fmt.Fprintf(w, "\n  <path d=\"M%d %dh%dv%dh-%dz\"/>", run.x, run.y, run.width, run.height, run.width)
@@ -1056,7 +1054,7 @@ func generateGroupedRectsWithConfig(w io.Writer, runs []pixelRun, cmd *CLI, clas
 				fmt.Fprintf(w, "\n  <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\"/>", run.x, run.y, run.width, run.height)
 			}
 		}
-		
+
 		fmt.Fprintln(w, "\n</g>")
 	}
 }
@@ -1065,21 +1063,21 @@ func generatePathWithConfig(w io.Writer, run pixelRun, cmd *CLI, classMap map[co
 	// Check for CSS class
 	if config.cssColors && classMap != nil {
 		if className, ok := classMap[run.color]; ok {
-			fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" class=\"%s\"/>", 
+			fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" class=\"%s\"/>",
 				run.x, run.y, run.width, run.height, run.width, className)
 			return
 		}
 	}
-	
+
 	// Fall back to inline style
 	fillColor := fmt.Sprintf("#%02x%02x%02x", run.color.R, run.color.G, run.color.B)
-	
+
 	if run.color.A < 255 {
 		opacity := float64(run.color.A) / 255.0
-		fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\" opacity=\"%.3f\"/>", 
+		fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\" opacity=\"%.3f\"/>",
 			run.x, run.y, run.width, run.height, run.width, fillColor, opacity)
 	} else {
-		fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\"/>", 
+		fmt.Fprintf(w, "\n<path d=\"M%d %dh%dv%dh-%dz\" fill=\"%s\"/>",
 			run.x, run.y, run.width, run.height, run.width, fillColor)
 	}
 }
@@ -1088,54 +1086,51 @@ func generateRectWithConfig(w io.Writer, run pixelRun, cmd *CLI, classMap map[co
 	// Check for CSS class
 	if config.cssColors && classMap != nil {
 		if className, ok := classMap[run.color]; ok {
-			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" class=\"%s\"/>", 
+			fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" class=\"%s\"/>",
 				run.x, run.y, run.width, run.height, className)
 			return
 		}
 	}
-	
+
 	// Fall back to inline style
 	fillColor := fmt.Sprintf("#%02x%02x%02x", run.color.R, run.color.G, run.color.B)
-	
+
 	if run.color.A < 255 {
 		opacity := float64(run.color.A) / 255.0
-		fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>", 
+		fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" opacity=\"%.3f\"/>",
 			run.x, run.y, run.width, run.height, fillColor, opacity)
 	} else {
-		fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>", 
+		fmt.Fprintf(w, "\n<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\"/>",
 			run.x, run.y, run.width, run.height, fillColor)
 	}
 }
-
-
-
 
 func find2DRectangles(img *image.RGBA) []pixelRun {
 	bounds := img.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
-	
+
 	// Create a visited map
 	visited := make([][]bool, height)
 	for i := range visited {
 		visited[i] = make([]bool, width)
 	}
-	
+
 	var rectangles []pixelRun
-	
+
 	// Scan the image for unvisited pixels
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			if visited[y-bounds.Min.Y][x-bounds.Min.X] {
 				continue
 			}
-			
+
 			pixel := img.RGBAAt(x, y)
 			if pixel.A == 0 {
 				visited[y-bounds.Min.Y][x-bounds.Min.X] = true
 				continue
 			}
-			
+
 			// Find the largest rectangle starting from this pixel
 			rect := findMaxRectangle(img, x, y, pixel, visited, bounds)
 			if rect.width > 0 && rect.height > 0 {
@@ -1143,7 +1138,7 @@ func find2DRectangles(img *image.RGBA) []pixelRun {
 			}
 		}
 	}
-	
+
 	return rectangles
 }
 
@@ -1156,11 +1151,11 @@ func findMaxRectangle(img *image.RGBA, startX, startY int, targetColor color.RGB
 		}
 		maxWidth++
 	}
-	
+
 	if maxWidth == 0 {
 		return pixelRun{}
 	}
-	
+
 	// Find maximum height that maintains the width
 	maxHeight := 1
 	for y := startY + 1; y < bounds.Max.Y; y++ {
@@ -1172,20 +1167,20 @@ func findMaxRectangle(img *image.RGBA, startX, startY int, targetColor color.RGB
 				break
 			}
 		}
-		
+
 		if !canExtend {
 			break
 		}
 		maxHeight++
 	}
-	
+
 	// Mark all pixels in the rectangle as visited
 	for y := startY; y < startY+maxHeight; y++ {
 		for x := startX; x < startX+maxWidth; x++ {
 			visited[y-bounds.Min.Y][x-bounds.Min.X] = true
 		}
 	}
-	
+
 	return pixelRun{
 		x:      startX,
 		y:      startY,
@@ -1213,34 +1208,34 @@ func tracePixelBoundaries(img *image.RGBA) []pixelPath {
 	bounds := img.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
-	
+
 	// Track visited pixels
 	visited := make([][]bool, height)
 	for i := range visited {
 		visited[i] = make([]bool, width)
 	}
-	
+
 	var paths []pixelPath
-	
+
 	// Process each unvisited pixel
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			if visited[y-bounds.Min.Y][x-bounds.Min.X] {
 				continue
 			}
-			
+
 			pixel := img.RGBAAt(x, y)
 			if pixel.A == 0 {
 				visited[y-bounds.Min.Y][x-bounds.Min.X] = true
 				continue
 			}
-			
+
 			// Find all connected pixels of this color
 			region := floodFill(img, x, y, pixel, visited, bounds)
 			if len(region) == 0 {
 				continue
 			}
-			
+
 			// Trace the boundary of this region
 			edges := traceBoundaryEdges(region, pixel, img, bounds)
 			if len(edges) > 0 {
@@ -1251,40 +1246,40 @@ func tracePixelBoundaries(img *image.RGBA) []pixelPath {
 			}
 		}
 	}
-	
+
 	return paths
 }
 
 func floodFill(img *image.RGBA, startX, startY int, targetColor color.RGBA, visited [][]bool, bounds image.Rectangle) map[point]bool {
 	region := make(map[point]bool)
 	queue := []point{{startX, startY}}
-	
+
 	for len(queue) > 0 {
 		p := queue[0]
 		queue = queue[1:]
-		
+
 		if p.x < bounds.Min.X || p.x >= bounds.Max.X || p.y < bounds.Min.Y || p.y >= bounds.Max.Y {
 			continue
 		}
-		
+
 		if visited[p.y-bounds.Min.Y][p.x-bounds.Min.X] {
 			continue
 		}
-		
+
 		if !colorsEqual(img.RGBAAt(p.x, p.y), targetColor) {
 			continue
 		}
-		
+
 		visited[p.y-bounds.Min.Y][p.x-bounds.Min.X] = true
 		region[p] = true
-		
+
 		// Add 4-connected neighbors
 		queue = append(queue, point{p.x + 1, p.y})
 		queue = append(queue, point{p.x - 1, p.y})
 		queue = append(queue, point{p.x, p.y + 1})
 		queue = append(queue, point{p.x, p.y - 1})
 	}
-	
+
 	return region
 }
 
@@ -1292,56 +1287,56 @@ func traceBoundaryEdges(region map[point]bool, targetColor color.RGBA, img *imag
 	// For each pixel in the region, check its 4 edges
 	// An edge is on the boundary if the pixel on the other side is different
 	edgeSet := make(map[edge]bool)
-	
+
 	for p := range region {
 		x, y := p.x, p.y
-		
+
 		// Check top edge
-		if y == bounds.Min.Y || !region[point{x, y-1}] {
-			edgeSet[edge{point{x, y}, point{x+1, y}}] = true
+		if y == bounds.Min.Y || !region[point{x, y - 1}] {
+			edgeSet[edge{point{x, y}, point{x + 1, y}}] = true
 		}
-		
+
 		// Check right edge
-		if x == bounds.Max.X-1 || !region[point{x+1, y}] {
-			edgeSet[edge{point{x+1, y}, point{x+1, y+1}}] = true
+		if x == bounds.Max.X-1 || !region[point{x + 1, y}] {
+			edgeSet[edge{point{x + 1, y}, point{x + 1, y + 1}}] = true
 		}
-		
+
 		// Check bottom edge
-		if y == bounds.Max.Y-1 || !region[point{x, y+1}] {
-			edgeSet[edge{point{x+1, y+1}, point{x, y+1}}] = true
+		if y == bounds.Max.Y-1 || !region[point{x, y + 1}] {
+			edgeSet[edge{point{x + 1, y + 1}, point{x, y + 1}}] = true
 		}
-		
+
 		// Check left edge
-		if x == bounds.Min.X || !region[point{x-1, y}] {
-			edgeSet[edge{point{x, y+1}, point{x, y}}] = true
+		if x == bounds.Min.X || !region[point{x - 1, y}] {
+			edgeSet[edge{point{x, y + 1}, point{x, y}}] = true
 		}
 	}
-	
+
 	// Convert edge set to ordered path
 	if len(edgeSet) == 0 {
 		return nil
 	}
-	
+
 	// Build adjacency map
 	adjacency := make(map[point][]point)
 	for e := range edgeSet {
 		adjacency[e.start] = append(adjacency[e.start], e.end)
 		adjacency[e.end] = append(adjacency[e.end], e.start)
 	}
-	
+
 	// Find a starting point
 	var start point
 	for p := range adjacency {
 		start = p
 		break
 	}
-	
+
 	// Trace the path
 	var path []edge
 	current := start
 	var prev point
 	visited := make(map[edge]bool)
-	
+
 	for {
 		// Find next point
 		found := false
@@ -1349,14 +1344,14 @@ func traceBoundaryEdges(region map[point]bool, targetColor color.RGBA, img *imag
 			if next == prev {
 				continue
 			}
-			
+
 			e := edge{current, next}
 			reverseE := edge{next, current}
-			
+
 			if visited[e] || visited[reverseE] {
 				continue
 			}
-			
+
 			path = append(path, e)
 			visited[e] = true
 			visited[reverseE] = true
@@ -1365,12 +1360,11 @@ func traceBoundaryEdges(region map[point]bool, targetColor color.RGBA, img *imag
 			found = true
 			break
 		}
-		
+
 		if !found || current == start {
 			break
 		}
 	}
-	
+
 	return path
 }
-

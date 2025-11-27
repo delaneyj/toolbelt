@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/iancoleman/strcase"
+	"github.com/delaneyj/toolbelt"
 )
 
 type AptitudeStatus string
@@ -21,7 +21,7 @@ func Aptitude(desiredStatus AptitudeStatus, packageNames ...string) Step {
 	return func(ctx context.Context) (context.Context, string, StepStatus, error) {
 		client := CtxSSHClient(ctx)
 
-		name := fmt.Sprintf("aptitude-%s-%s", desiredStatus, strcase.ToKebab(strings.Join(packageNames, "-")))
+		name := fmt.Sprintf("aptitude-%s-%s", desiredStatus, toolbelt.Kebab(strings.Join(packageNames, "-")))
 
 		out, err := RunF(client, "apt-get update")
 		if err != nil {

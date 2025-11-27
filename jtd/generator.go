@@ -153,7 +153,7 @@ func (g *Generator) generateType(info SchemaInfo) (string, error) {
 	case "properties":
 		// Struct type
 		fmt.Fprintf(&buf, "type %s struct {\n", info.GoName)
-		
+
 		// Generate fields for required properties
 		var fields []fieldInfo
 		for name, prop := range info.Schema.Properties {
@@ -164,7 +164,7 @@ func (g *Generator) generateType(info SchemaInfo) (string, error) {
 				required: true,
 			})
 		}
-		
+
 		// Generate fields for optional properties
 		for name, prop := range info.Schema.OptionalProperties {
 			fields = append(fields, fieldInfo{
@@ -174,24 +174,24 @@ func (g *Generator) generateType(info SchemaInfo) (string, error) {
 				required: false,
 			})
 		}
-		
+
 		// Sort fields for consistent output
 		sort.Slice(fields, func(i, j int) bool {
 			return fields[i].name < fields[j].name
 		})
-		
+
 		// Generate field declarations
 		for _, field := range fields {
 			g.generateStructField(&buf, field)
 		}
-		
+
 		// Add additional properties field if allowed
 		if info.Schema.AdditionalProperties {
 			g.imports["encoding/json"] = true
 			fmt.Fprintf(&buf, "\t// AdditionalProperties captures any extra properties\n")
 			fmt.Fprintf(&buf, "\tAdditionalProperties map[string]json.RawMessage `json:\"-\"`\n")
 		}
-		
+
 		fmt.Fprintf(&buf, "}\n")
 
 	case "values":
@@ -210,18 +210,18 @@ func (g *Generator) generateType(info SchemaInfo) (string, error) {
 		// Generate concrete types for each mapping
 		for tag, schema := range info.Schema.Mapping {
 			typeName := fmt.Sprintf("%s%s", info.GoName, toGoName(tag))
-			
+
 			// Generate the concrete type
 			fmt.Fprintf(&buf, "\n// %s is the %q variant of %s\n", typeName, tag, info.GoName)
 			fmt.Fprintf(&buf, "type %s struct {\n", typeName)
-			
+
 			// Add discriminator field with underscore prefix to avoid conflicts
 			discriminatorFieldName := toGoName(info.Schema.Discriminator)
 			if discriminatorFieldName == "Type" {
 				discriminatorFieldName = "Type_"
 			}
 			fmt.Fprintf(&buf, "\t%s string `json:%q`\n", discriminatorFieldName, info.Schema.Discriminator)
-			
+
 			// Add fields from the mapping schema
 			var fields []fieldInfo
 			for name, prop := range schema.Properties {
@@ -240,17 +240,17 @@ func (g *Generator) generateType(info SchemaInfo) (string, error) {
 					required: false,
 				})
 			}
-			
+
 			sort.Slice(fields, func(i, j int) bool {
 				return fields[i].name < fields[j].name
 			})
-			
+
 			for _, field := range fields {
 				g.generateStructField(&buf, field)
 			}
-			
+
 			fmt.Fprintf(&buf, "}\n")
-			
+
 			// Implement interface methods
 			fmt.Fprintf(&buf, "\nfunc (%s) is%s() {}\n", typeName, info.GoName)
 			fmt.Fprintf(&buf, "func (v %s) %s() string { return v.%s }\n", typeName, toGoName(info.Schema.Discriminator), discriminatorFieldName)
@@ -367,9 +367,9 @@ func (g *Generator) getGoType(schema *Schema, forcePointer bool) string {
 	// Add pointer if nullable or optional
 	if schema.Nullable || forcePointer {
 		// Don't add pointer to slices, maps, or interfaces
-		if !strings.HasPrefix(baseType, "[]") && 
-		   !strings.HasPrefix(baseType, "map[") && 
-		   baseType != "any" {
+		if !strings.HasPrefix(baseType, "[]") &&
+			!strings.HasPrefix(baseType, "map[") &&
+			baseType != "any" {
 			baseType = "*" + baseType
 		}
 	}

@@ -31,7 +31,7 @@ type Schema struct {
 	Values *Schema `json:"values,omitempty"`
 
 	// Discriminator form (for tagged unions)
-	Discriminator string              `json:"discriminator,omitempty"`
+	Discriminator string             `json:"discriminator,omitempty"`
 	Mapping       map[string]*Schema `json:"mapping,omitempty"`
 
 	// Ref form
