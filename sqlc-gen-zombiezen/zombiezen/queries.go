@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/delaneyj/toolbelt"
+	"github.com/delaneyj/toolbelt/bytebufferpool"
 	"github.com/samber/lo"
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
-	"github.com/valyala/bytebufferpool"
 )
 
 func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName toolbelt.CasedString) (files []*plugin.File, err error) {
