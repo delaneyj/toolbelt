@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/delaneyj/toolbelt"
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
+	"golang.org/x/tools/imports"
 )
 
 type Options struct {
@@ -52,6 +54,10 @@ func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.Generat
 			return nil, fmt.Errorf("generating crud: %w", err)
 		}
 		res.Files = append(res.Files, crudFiles...)
+	}
+
+	if err := formatGeneratedFiles(res.Files); err != nil {
+		return nil, fmt.Errorf("formatting generated files: %w", err)
 	}
 
 	return res, nil
@@ -144,4 +150,32 @@ func parseOptions(req *plugin.GenerateRequest) (*Options, error) {
 	}
 
 	return opts, nil
+}
+
+func formatGeneratedFiles(files []*plugin.File) error {
+	opts := &imports.Options{
+		Comments:  true,
+		TabIndent: true,
+		TabWidth:  8,
+	}
+
+	for _, f := range files {
+		if filepath.Ext(f.Name) != ".go" {
+			continue
+		}
+
+		formatted, err := imports.Process(f.Name, f.Contents, opts)
+		if err == nil {
+			f.Contents = formatted
+			continue
+		}
+
+		formatted, err = format.Source(f.Contents)
+		if err != nil {
+			return fmt.Errorf("formatting %s: %w", f.Name, err)
+		}
+		f.Contents = formatted
+	}
+
+	return nil
 }

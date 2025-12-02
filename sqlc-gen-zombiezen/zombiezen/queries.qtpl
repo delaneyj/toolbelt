@@ -7,17 +7,19 @@ import (
     "fmt"
     "zombiezen.com/go/sqlite"
 
-    {% if q.HasSliceParams %}
+    {%- if q.HasSliceParams %}
     "strings"
-    {% endif %}
+    {%- endif %}
 
-    {% if q.NeedsTimePackage %}
+    {%- if q.NeedsTimePackage %}
     "time"
+    {%- endif %}
+    {%- if q.NeedsToolbelt %}
     "github.com/delaneyj/toolbelt"
-    {% endif %}
+    {%- endif %}
 )
 
-{% if q.HasResponse && !q.ResponseIsSingularField %}
+{% if q.HasResponse && !q.ResponseIsSingularField && !q.ResponseHasModel %}
 type {%s q.Name.Pascal %}Res struct {
     {%- for _,f := range q.ResponseFields -%}
         {%s f.Name.Pascal %} {% if f.IsNullable %}*{% endif %}{%s f.GoType.Original %} `json:"{%s f.Name.Lower %}"`
@@ -98,11 +100,16 @@ func (ps *{%s q.Name.Pascal %}Stmt) Run(
             }
 
             {%- if q.ResponseIsSingularField -%}
-            {%s q.ResponseFields[0].Name.Camel %} := {%= fillResponse(q) -%}
-            res = append(res, {%s q.ResponseFields[0].Name.Camel %})
+            {%= fillResponse(q) -%}
+            res = append(res, resVal)
+            {%- else -%}
+            {%- if q.ResponseHasModel -%}
+            {%= fillResponse(q) -%}
+            res = append(res, row)
             {%- else -%}
             {%= fillResponse(q) -%}
             res = append(res, row)
+            {%- endif -%}
             {%- endif -%}
         }
     {%- else -%}
@@ -110,14 +117,24 @@ func (ps *{%s q.Name.Pascal %}Stmt) Run(
             {%- if q.ResponseIsSingularField -%}
             return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
             {%- else -%}
+            {%- if q.ResponseHasModel -%}
             return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
+            {%- else -%}
+            return res, fmt.Errorf("failed to execute {{.Name.Lower}} SQL: %w", err)
+            {%- endif -%}
             {%- endif -%}
         } else if hasRow {
             {%- if q.ResponseIsSingularField -%}
-            res = {%= fillResponse(q) -%}
+            {%= fillResponse(q) -%}
+            res = resVal
+            {%- else -%}
+            {%- if q.ResponseHasModel -%}
+            {%= fillResponse(q) -%}
+            res = row
             {%- else -%}
             {%= fillResponse(q) -%}
             res = &row
+            {%- endif -%}
             {%- endif -%}
         }
     {%- endif -%}
@@ -160,19 +177,63 @@ func Once{%s q.Name.Pascal %}(
     {%- code
         f := q.ResponseFields[0]
      -%}
-    {%- switch f.GoType.Original -%}
-        {%- case "time.Time" -%}
-            toolbelt.JulianDayToTime(stmt.ColumnFloat({%d f.Offset %}))
-        {%- case "time.Duration" -%}
-            toolbelt.MillisecondsToDuration(stmt.ColumnInt64({%d f.Offset %}))
-        {%- case "[]byte" -%}
-            toolbelt.StmtBytesByCol(stmt, {%d f.Offset %}),
-        {%- default -%}
-            stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
-    {%- endswitch -%}
+    {%- if f.GoType.Original == "time.Duration" && f.DurationFromText -%}
+    durStr := stmt.ColumnText({%d f.Offset %})
+    val, err := time.ParseDuration(durStr)
+    if err != nil {
+        return res, fmt.Errorf("parsing {{.Name.Lower}}.{%s f.Name.Lower %}: %w", err)
+    }
+    resVal := val
+    {%- else -%}
+    resVal := {%= fillResponseField(f) %}
+    {%- endif -%}
 {%- else -%}
+    {%- if q.ResponseHasModel -%}
+    row := &{%s q.ResponseModelName.Pascal %}Model{}
+    {%- for _,f := range q.ResponseFields -%}
+        {%- if f.GoType.Original == "time.Duration" && f.DurationFromText -%}
+    {
+        durStr := stmt.ColumnText({%d f.Offset %})
+        dur, err := time.ParseDuration(durStr)
+        if err != nil {
+            return res, fmt.Errorf("parsing {{.Name.Lower}}.{%s f.Name.Lower %}: %w", err)
+        }
+        {%- if f.IsNullable %}
+        row.{%s f.Name.Pascal %} = &dur
+        {%- else %}
+        row.{%s f.Name.Pascal %} = dur
+        {%- endif %}
+    }
+        {%- else -%}
+        {%- if f.IsNullable -%}
+    if stmt.ColumnIsNull({%d f.Offset %}) {
+        row.{%s f.Name.Pascal %} = nil
+    } else {
+        tmp := {%= fillResponseField(f) -%}
+        row.{%s f.Name.Pascal %} = &tmp
+    }
+        {%- else -%}
+    row.{%s f.Name.Pascal %} = {%= fillResponseField(f) -%}
+        {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- else -%}
     row := {%s q.Name.Pascal %}Res{}
     {%- for _,f := range q.ResponseFields -%}
+        {%- if f.GoType.Original == "time.Duration" && f.DurationFromText -%}
+    {
+        durStr := stmt.ColumnText({%d f.Offset %})
+        dur, err := time.ParseDuration(durStr)
+        if err != nil {
+            return res, fmt.Errorf("parsing {{.Name.Lower}}.{%s f.Name.Lower %}: %w", err)
+        }
+        {%- if f.IsNullable %}
+        row.{%s f.Name.Pascal %} = &dur
+        {%- else %}
+        row.{%s f.Name.Pascal %} = dur
+        {%- endif %}
+    }
+        {%- else -%}
         {%- if f.IsNullable -%}
             isNull{%s f.Name.Pascal %} := stmt.ColumnIsNull({%d f.Offset %})
             if !isNull{%s f.Name.Pascal %} {
@@ -182,7 +243,9 @@ func Once{%s q.Name.Pascal %}(
         {%- else -%}
             row.{%s f.Name.Pascal %} = {%= fillResponseField(f) -%}
         {%- endif -%}
+        {%- endif -%}
     {%- endfor -%}
+    {%- endif -%}
 {%- endif -%}
 {%- endfunc -%}
 
@@ -215,7 +278,11 @@ func Once{%s q.Name.Pascal %}(
     {%- if q.ResponseIsSingularField -%}
         res {% if q.ResponseHasMultiple %}[]{% endif %}{%s q.ResponseFields[0].GoType.Original -%},
     {%- else -%}
+        {%- if q.ResponseHasModel -%}
+        res {% if q.ResponseHasMultiple %}[]{% else %}*{% endif %}{%s q.ResponseModelName.Pascal %}Model,
+        {%- else -%}
         res {% if q.ResponseHasMultiple %}[]{% else %}*{% endif %}{%s q.Name.Pascal %}Res,
+        {%- endif -%}
     {%- endif -%}
 {%- endif -%}
     err error,
@@ -280,7 +347,11 @@ if !isSingle {
     {%- case "time.Time" -%}
         stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, toolbelt.TimeToJulianDay({%s value %}))
     {%- case "time.Duration" -%}
+        {%- if p.DurationFromText -%}
+        stmt.BindText(bindIndex, {%s value %}.String())
+        {%- else -%}
         stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, toolbelt.DurationToMilliseconds({%s value %}))
+        {%- endif -%}
     {%- default -%}
         stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, {%s value %})
 {%- endswitch -%}

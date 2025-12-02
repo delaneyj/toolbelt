@@ -7,7 +7,7 @@ import (
     "fmt"
     {% if t.NeedsTimePackage %}"time"{% endif %}
     "zombiezen.com/go/sqlite"
-    {% if t.NeedsTimePackage %}"github.com/delaneyj/toolbelt"{% endif %}
+    {% if t.NeedsToolbelt %}"github.com/delaneyj/toolbelt"{% endif %}
 )
 
 type {%s t.SingleName.Pascal %}Model struct {
@@ -241,25 +241,46 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
         {%-  case "time.Time" -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
         {%- case "time.Duration" -%}
+            {%- if f.DurationFromText -%}
+            stmt.BindText({%d f.Column %}, {% if isNullable %}(*{% endif %}m.{%s f.Name.Pascal %}{% if isNullable %}){% endif %}.String())
+            {%- else -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
+            {%- endif -%}
         {%- default -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, {% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %})
     {%- endswitch -%}
 {%- endfunc -%}
 
 {%- func fillResStruct(t *GenerateCRUDTable) -%}
-
 {%- for i,f := range t.Fields -%}
-    {%- if f.IsNullable -%}
+    {%- if f.IsNullable %}
     if ps.stmt.ColumnIsNull({%d i %}) {
         m.{%s f.Name.Pascal %} = nil
     } else {
-        tmp :=  {%= fillResStructField(f, i) -%}
+        {%- if f.GoType.Original == "time.Duration" && f.DurationFromText %}
+        durStr := ps.stmt.ColumnText({%d i %})
+        dur, err := time.ParseDuration(durStr)
+        if err != nil {
+            return nil, fmt.Errorf("parsing {%s t.Name.Lower %}.{%s f.Name.Lower %}: %w", err)
+        }
+        m.{%s f.Name.Pascal %} = &dur
+        {%- else %}
+        tmp := {%= fillResStructField(f, i) %}
         m.{%s f.Name.Pascal %} = &tmp
+        {%- endif %}
     }
-    {%- else -%}
+    {%- else %}
+        {%- if f.GoType.Original == "time.Duration" && f.DurationFromText %}
+    durStr := ps.stmt.ColumnText({%d i %})
+    dur, err := time.ParseDuration(durStr)
+    if err != nil {
+        return nil, fmt.Errorf("parsing {%s t.Name.Lower %}.{%s f.Name.Lower %}: %w", err)
+    }
+    m.{%s f.Name.Pascal %} = dur
+        {%- else %}
     m.{%s f.Name.Pascal %} = {%= fillResStructField(f,i) %}
-    {%- endif -%}
+        {%- endif %}
+    {%- endif %}
 {%- endfor -%}
 {%- endfunc -%}
 

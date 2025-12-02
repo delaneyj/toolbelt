@@ -3,7 +3,7 @@
 version: "3"
 
 vars:
-  VERSION: 0.6.2
+  VERSION: 0.6.3
   
 interval: 200ms
 
@@ -24,5 +24,11 @@ tasks:
   install-pixel2svg:
     desc: Install the pixel2svg tool
     dir: pixel2svg
+    cmds:
+      - go install .
+
+  install-sqlc-gen-zombiezen:
+    desc: Install the sqlc zombiezen plugin
+    dir: sqlc-gen-zombiezen
     cmds:
       - go install .

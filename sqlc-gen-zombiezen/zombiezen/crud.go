@@ -25,6 +25,7 @@ func generateCRUD(req *plugin.GenerateRequest, opts *Options, packageName toolbe
 			if strings.HasSuffix(tbl.Name.Snake, "_fts") {
 				continue
 			}
+			needsToolbelt := false
 			for i, column := range table.Columns {
 				if column.Name == "id" {
 					tbl.HasID = true
@@ -36,17 +37,27 @@ func generateCRUD(req *plugin.GenerateRequest, opts *Options, packageName toolbe
 					tbl.NeedsTimePackage = true
 				}
 				f := GenerateField{
-					Column:       i + 1,
-					Offset:       i,
-					Name:         columnName,
-					SQLType:      toolbelt.ToCasedString(toSQLType(column)),
-					GoType:       toolbelt.ToCasedString(goType),
-					BindGoType:   toolbelt.ToCasedString(goType),
-					OriginalName: column.Name,
-					IsNullable:   !column.NotNull,
+					Column:           i + 1,
+					Offset:           i,
+					Name:             columnName,
+					SQLType:          toolbelt.ToCasedString(toSQLType(column)),
+					GoType:           toolbelt.ToCasedString(goType),
+					BindGoType:       toolbelt.ToCasedString(goType),
+					OriginalName:     column.Name,
+					IsNullable:       !column.NotNull,
+					DurationFromText: isDurationFromText(column),
 				}
 				tbl.Fields = append(tbl.Fields, f)
+
+				if usesToolbeltField(f) {
+					needsToolbelt = true
+				}
+				if f.GoType.Original == "time.Duration" || f.GoType.Original == "time.Time" {
+					tbl.NeedsTimePackage = true
+				}
 			}
+
+			tbl.NeedsToolbelt = needsToolbelt
 
 			contents := GenerateCRUD(tbl)
 			filename := fmt.Sprintf("crud_%s_%s.go", schemaName.Snake, tbl.Name.Snake)
@@ -63,9 +74,23 @@ func generateCRUD(req *plugin.GenerateRequest, opts *Options, packageName toolbe
 type GenerateCRUDTable struct {
 	PackageName      toolbelt.CasedString
 	NeedsTimePackage bool
+	NeedsToolbelt    bool
 	Schema           toolbelt.CasedString
 	Name             toolbelt.CasedString
 	SingleName       toolbelt.CasedString
 	Fields           []GenerateField
 	HasID            bool
+}
+
+func usesToolbeltField(f GenerateField) bool {
+	switch f.GoType.Original {
+	case "time.Time":
+		return true
+	case "time.Duration":
+		return !f.DurationFromText
+	case "[]byte":
+		return true
+	default:
+		return false
+	}
 }

@@ -7,11 +7,13 @@ import (
 
 	"github.com/delaneyj/toolbelt"
 	"github.com/delaneyj/toolbelt/bytebufferpool"
+	pluralize "github.com/gertd/go-pluralize"
 	"github.com/samber/lo"
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
 )
 
 func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName toolbelt.CasedString) (files []*plugin.File, err error) {
+	pluralClient := pluralize.NewClient()
 	queries := make([]*GenerateQueryContext, len(req.Queries))
 	for i, q := range req.Queries {
 		queryCtx := &GenerateQueryContext{
@@ -36,18 +38,22 @@ func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName too
 			}
 
 			param := GenerateField{
-				Column:       int(p.Number),
-				Offset:       int(p.Number) - 1,
-				Name:         toolbelt.ToCasedString(toFieldName(p.Column)),
-				SQLType:      toolbelt.ToCasedString(toSQLType(p.Column)),
-				GoType:       fieldGoType,
-				BindGoType:   toolbelt.ToCasedString(goType),
-				OriginalName: p.Column.Name,
-				IsNullable:   !p.Column.NotNull,
-				IsSlice:      isSlice,
+				Column:           int(p.Number),
+				Offset:           int(p.Number) - 1,
+				Name:             toolbelt.ToCasedString(toFieldName(p.Column)),
+				SQLType:          toolbelt.ToCasedString(toSQLType(p.Column)),
+				GoType:           fieldGoType,
+				BindGoType:       toolbelt.ToCasedString(goType),
+				OriginalName:     p.Column.Name,
+				IsNullable:       !p.Column.NotNull,
+				IsSlice:          isSlice,
+				DurationFromText: isDurationFromText(p.Column),
 			}
 			if isSlice {
 				queryCtx.HasSliceParams = true
+			}
+			if usesToolbeltParam(param) {
+				queryCtx.NeedsToolbelt = true
 			}
 			return param
 		})
@@ -63,19 +69,28 @@ func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName too
 				}
 
 				col := GenerateField{
-					Column:       ci + 1,
-					Offset:       ci,
-					Name:         toolbelt.ToCasedString(toFieldName(c)),
-					SQLType:      toolbelt.ToCasedString(toSQLType(c)),
-					GoType:       toolbelt.ToCasedString(goType),
-					BindGoType:   toolbelt.ToCasedString(goType),
-					OriginalName: c.Name,
-					IsNullable:   !c.NotNull,
+					Column:           ci + 1,
+					Offset:           ci,
+					Name:             toolbelt.ToCasedString(toFieldName(c)),
+					SQLType:          toolbelt.ToCasedString(toSQLType(c)),
+					GoType:           toolbelt.ToCasedString(goType),
+					BindGoType:       toolbelt.ToCasedString(goType),
+					OriginalName:     c.Name,
+					IsNullable:       !c.NotNull,
+					DurationFromText: isDurationFromText(c),
+				}
+				if usesToolbeltResponse(col) {
+					queryCtx.NeedsToolbelt = true
 				}
 				return col
 			})
 			queryCtx.ResponseHasMultiple = q.Cmd == ":many"
 			queryCtx.ResponseIsSingularField = len(q.Columns) == 1
+
+			if modelName, ok := findModelReturn(pluralClient, req, q.Columns); ok {
+				queryCtx.ResponseModelName = modelName
+				queryCtx.ResponseHasModel = true
+			}
 		}
 
 		queries[i] = queryCtx
@@ -131,6 +146,9 @@ func toGoType(c *plugin.Column, opts *Options) (val string, needsTime bool) {
 	if strings.HasSuffix(c.Name, "ms") {
 		return "time.Duration", true
 	}
+	if strings.HasSuffix(c.Name, "_interval") && typ == "text" {
+		return "time.Duration", true
+	}
 
 	if !disableTime && (c.Name == "at" || strings.HasSuffix(c.Name, "_at") || typ == "datetime") {
 		return "time.Time", true
@@ -155,15 +173,16 @@ func toGoType(c *plugin.Column, opts *Options) (val string, needsTime bool) {
 }
 
 type GenerateField struct {
-	Column       int // 1-indexed
-	Offset       int // 0-indexed
-	Name         toolbelt.CasedString
-	SQLType      toolbelt.CasedString
-	GoType       toolbelt.CasedString
-	BindGoType   toolbelt.CasedString
-	OriginalName string
-	IsNullable   bool
-	IsSlice      bool
+	Column           int // 1-indexed
+	Offset           int // 0-indexed
+	Name             toolbelt.CasedString
+	SQLType          toolbelt.CasedString
+	GoType           toolbelt.CasedString
+	BindGoType       toolbelt.CasedString
+	OriginalName     string
+	IsNullable       bool
+	IsSlice          bool
+	DurationFromText bool
 }
 
 type GenerateQueryContext struct {
@@ -177,6 +196,95 @@ type GenerateQueryContext struct {
 	ResponseFields                   []GenerateField
 	ResponseHasMultiple              bool
 
+	ResponseHasModel  bool
+	ResponseModelName toolbelt.CasedString
+
 	NeedsTimePackage bool
+	NeedsToolbelt    bool
 	HasSliceParams   bool
+}
+
+func findModelReturn(pluralClient *pluralize.Client, req *plugin.GenerateRequest, cols []*plugin.Column) (toolbelt.CasedString, bool) {
+	if len(cols) == 0 {
+		return toolbelt.CasedString{}, false
+	}
+
+	names := make([]string, len(cols))
+	for i, c := range cols {
+		names[i] = c.Name
+	}
+
+	var hint *plugin.Identifier
+	for i, c := range cols {
+		if c.Table == nil || c.Table.Name == "" {
+			break
+		}
+		if i == 0 {
+			hint = c.Table
+			continue
+		}
+		if c.Table.GetName() != hint.GetName() || c.Table.GetSchema() != hint.GetSchema() {
+			break
+		}
+	}
+
+	candidates := make([]*plugin.Table, 0, 1)
+	for _, schema := range req.Catalog.Schemas {
+		if hint != nil && hint.GetSchema() != "" && schema.Name != hint.GetSchema() {
+			continue
+		}
+		for _, t := range schema.Tables {
+			if hint != nil && t.Rel != nil && t.Rel.GetName() != hint.GetName() {
+				continue
+			}
+			if len(t.Columns) != len(names) {
+				continue
+			}
+			match := true
+			for i := range t.Columns {
+				if t.Columns[i].Name != names[i] {
+					match = false
+					break
+				}
+			}
+			if match {
+				candidates = append(candidates, t)
+			}
+		}
+	}
+
+	if len(candidates) != 1 {
+		return toolbelt.CasedString{}, false
+	}
+
+	return toolbelt.ToCasedString(pluralClient.Singular(candidates[0].Rel.GetName())), true
+}
+
+func isDurationFromText(c *plugin.Column) bool {
+	typ := toolbelt.Lower(c.Type.Name)
+	return strings.HasSuffix(c.Name, "_interval") && typ == "text"
+}
+
+func usesToolbeltResponse(f GenerateField) bool {
+	switch f.GoType.Original {
+	case "time.Time":
+		return true
+	case "time.Duration":
+		return !f.DurationFromText
+	case "[]byte":
+		return true
+	default:
+		return false
+	}
+}
+
+func usesToolbeltParam(f GenerateField) bool {
+	switch f.BindGoType.Original {
+	case "time.Time":
+		return true
+	case "time.Duration":
+		return !f.DurationFromText
+	default:
+		return false
+	}
 }
