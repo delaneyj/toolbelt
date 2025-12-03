@@ -54,7 +54,11 @@ func SetupDB(ctx context.Context, dataFolder string, shouldClear bool) (*toolbel
 		}
 	}
 	dbFilename := filepath.Join(dbFolder, "examples.sqlite")
-	db, err := toolbelt.NewDatabase(ctx, dbFilename, migrations)
+	db, err := toolbelt.NewDatabase(
+		ctx,
+		toolbelt.DatabaseWithFilename(dbFilename),
+		toolbelt.DatabaseWithMigrations(migrations),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %w", err)
 	}
