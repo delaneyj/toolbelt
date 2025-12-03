@@ -32,25 +32,17 @@ type Database struct {
 }
 
 type litestreamState struct {
-	config  DatabaseLitestreamConfig
+	client  litestream.ReplicaClient
 	db      *litestream.DB
 	replica *litestream.Replica
 }
 
-type DatabaseLitestreamConfig struct {
-	ReplicaClient litestream.ReplicaClient
-
-	MonitorInterval    time.Duration
-	RestoreParallelism int
-	SyncInterval       time.Duration
-}
-
 type databaseOptions struct {
-	filename    string
-	migrations  []string
-	litestream  *DatabaseLitestreamConfig
-	pragmas     []string
-	shouldClear bool
+	filename         string
+	migrations       []string
+	litestreamClient litestream.ReplicaClient
+	pragmas          []string
+	shouldClear      bool
 }
 
 type DatabaseOption func(*databaseOptions)
@@ -79,13 +71,7 @@ func DatabaseWithPragmas(pragmas ...string) DatabaseOption {
 
 func DatabaseWithLitestreamReplica(client litestream.ReplicaClient) DatabaseOption {
 	return func(o *databaseOptions) {
-		if client == nil {
-			o.litestream = nil
-			return
-		}
-		o.litestream = &DatabaseLitestreamConfig{
-			ReplicaClient: client,
-		}
+		o.litestreamClient = client
 	}
 }
 
@@ -93,39 +79,6 @@ func DatabaseWithShouldClear(shouldClear bool) DatabaseOption {
 	return func(o *databaseOptions) {
 		o.shouldClear = shouldClear
 	}
-}
-
-func WithDatabaseLitestreamConfig(cfg DatabaseLitestreamConfig) DatabaseOption {
-	return func(o *databaseOptions) {
-		o.litestream = &cfg
-	}
-}
-
-func (ls *litestreamState) build(dbPath string) error {
-	if ls.config.ReplicaClient == nil {
-		return fmt.Errorf("litestream replica client is required")
-	}
-
-	ls.db = litestream.NewDB(dbPath)
-	ls.db.MonitorInterval = ls.config.MonitorInterval
-
-	ls.replica = litestream.NewReplica(ls.db)
-	ls.replica.SyncInterval = ls.config.SyncInterval
-	ls.replica.MonitorEnabled = ls.config.SyncInterval > 0
-	ls.replica.Client = ls.config.ReplicaClient
-	ls.db.Replica = ls.replica
-
-	return nil
-}
-
-func (ls *litestreamState) close(ctx context.Context) error {
-	if ls.db == nil {
-		return nil
-	}
-
-	err := ls.db.Close(ctx)
-	ls.db, ls.replica = nil, nil
-	return err
 }
 
 func normalizePragma(pragma string) string {
@@ -161,13 +114,9 @@ func NewDatabase(ctx context.Context, opts ...DatabaseOption) (*Database, error)
 		pragmas:    options.pragmas,
 	}
 
-	if options.litestream != nil {
-		if options.litestream.ReplicaClient == nil {
-			return nil, fmt.Errorf("litestream replica client is required")
-		}
-
+	if options.litestreamClient != nil {
 		db.litestream = &litestreamState{
-			config: *options.litestream,
+			client: options.litestreamClient,
 		}
 	}
 
@@ -212,34 +161,33 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	}
 
 	if db.litestream != nil {
-		if err := db.litestream.build(db.filename); err != nil {
-			return fmt.Errorf("could not configure litestream: %w", err)
+		db.litestream.db = litestream.NewDB(db.filename)
+		db.litestream.replica = litestream.NewReplica(db.litestream.db)
+		db.litestream.replica.Client = db.litestream.client
+		db.litestream.db.Replica = db.litestream.replica
+	}
+
+	dbFiles, err := filepath.Glob(db.filename + "*")
+	if err != nil {
+		return fmt.Errorf("could not glob database files: %w", err)
+	}
+	for _, file := range dbFiles {
+		if err := os.Remove(file); err != nil {
+			return fmt.Errorf("could not remove database file: %w", err)
 		}
 	}
 
-	if shouldClear {
-		dbFiles, err := filepath.Glob(db.filename + "*")
-		if err != nil {
-			return fmt.Errorf("could not glob database files: %w", err)
-		}
-		for _, file := range dbFiles {
-			if err := os.Remove(file); err != nil {
-				return fmt.Errorf("could not remove database file: %w", err)
-			}
-		}
-
-		if db.litestream != nil && db.litestream.db != nil {
-			if err := os.RemoveAll(db.litestream.db.MetaPath()); err != nil {
-				return fmt.Errorf("could not remove litestream metadata: %w", err)
-			}
+	if db.litestream != nil && db.litestream.db != nil {
+		if err := os.RemoveAll(db.litestream.db.MetaPath()); err != nil {
+			return fmt.Errorf("could not remove litestream metadata: %w", err)
 		}
 	}
 	if err := os.MkdirAll(filepath.Dir(db.filename), 0o755); err != nil {
 		return fmt.Errorf("could not create database directory: %w", err)
 	}
 
-	if db.litestream != nil && !shouldClear {
-		if err := db.restoreLitestreamIfNeeded(ctx); err != nil {
+	if db.litestream != nil {
+		if err := db.restoreLitestream(ctx); err != nil {
 			return fmt.Errorf("could not restore litestream replica: %w", err)
 		}
 	}
@@ -293,15 +241,9 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	return nil
 }
 
-func (db *Database) restoreLitestreamIfNeeded(ctx context.Context) error {
+func (db *Database) restoreLitestream(ctx context.Context) error {
 	if db.litestream == nil || db.litestream.replica == nil {
 		return nil
-	}
-
-	if _, err := os.Stat(db.filename); err == nil {
-		return nil
-	} else if !os.IsNotExist(err) {
-		return err
 	}
 
 	itr, err := db.litestream.replica.Client.LTXFiles(ctx, 0, 0, true)
@@ -318,10 +260,6 @@ func (db *Database) restoreLitestreamIfNeeded(ctx context.Context) error {
 
 	opt := litestream.NewRestoreOptions()
 	opt.OutputPath = db.filename
-	if db.litestream.config.RestoreParallelism > 0 {
-		opt.Parallelism = db.litestream.config.RestoreParallelism
-	}
-
 	return db.litestream.replica.Restore(ctx, opt)
 }
 
@@ -354,7 +292,12 @@ func (db *Database) Close() error {
 	}
 
 	if db.litestream != nil {
-		errs = append(errs, db.litestream.close(context.Background()))
+		if db.litestream.replica != nil {
+			errs = append(errs, db.litestream.replica.Stop(true))
+		}
+		if db.litestream.db != nil {
+			errs = append(errs, db.litestream.db.Close(context.Background()))
+		}
 	}
 
 	return errors.Join(errs...)

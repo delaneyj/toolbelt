@@ -35,17 +35,11 @@ func TestDatabaseLitestreamFileReplicaRestore(t *testing.T) {
 		"CREATE TABLE IF NOT EXISTS foo (id INTEGER PRIMARY KEY, val TEXT);",
 	}
 
-	cfg := DatabaseLitestreamConfig{
-		ReplicaClient:   file.NewReplicaClient(replicaPath),
-		MonitorInterval: 0,
-		SyncInterval:    0,
-	}
-
 	db, err := NewDatabase(
 		ctx,
 		DatabaseWithFilename(dbPath),
 		DatabaseWithMigrations(migrations),
-		WithDatabaseLitestreamConfig(cfg),
+		DatabaseWithLitestreamReplica(file.NewReplicaClient(replicaPath)),
 	)
 	require.NoError(t, err)
 
@@ -72,7 +66,7 @@ func TestDatabaseLitestreamFileReplicaRestore(t *testing.T) {
 		ctx,
 		DatabaseWithFilename(dbPath),
 		DatabaseWithMigrations(migrations),
-		WithDatabaseLitestreamConfig(cfg),
+		DatabaseWithLitestreamReplica(file.NewReplicaClient(replicaPath)),
 	)
 	require.NoError(t, err)
 	defer func() {
