@@ -278,6 +278,10 @@ func (db *Database) startLitestream(ctx context.Context) error {
 		return err
 	}
 
+	if err := db.litestream.replica.Start(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
