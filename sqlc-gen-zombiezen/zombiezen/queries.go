@@ -26,10 +26,7 @@ func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName too
 		}
 
 		queryCtx.Params = lo.Map(q.Params, func(p *plugin.Parameter, pi int) GenerateField {
-			goType, needsTime := toGoType(p.Column, opts)
-			if needsTime {
-				queryCtx.NeedsTimePackage = true
-			}
+			goType, _ := toGoType(p.Column, opts)
 
 			isSlice := p.Column.GetIsSqlcSlice()
 			fieldGoType := toolbelt.ToCasedString(goType)
@@ -63,10 +60,7 @@ func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName too
 		if len(q.Columns) > 0 {
 			queryCtx.HasResponse = true
 			queryCtx.ResponseFields = lo.Map(q.Columns, func(c *plugin.Column, ci int) GenerateField {
-				goType, needsTime := toGoType(c, opts)
-				if needsTime {
-					queryCtx.NeedsTimePackage = true
-				}
+				goType, _ := toGoType(c, opts)
 
 				col := GenerateField{
 					Column:           ci + 1,
@@ -92,6 +86,7 @@ func generateQueries(req *plugin.GenerateRequest, opts *Options, packageName too
 				queryCtx.ResponseHasModel = true
 			}
 		}
+		queryCtx.NeedsTimePackage = queryNeedsTimeImport(queryCtx)
 
 		queries[i] = queryCtx
 	}
@@ -202,6 +197,51 @@ type GenerateQueryContext struct {
 	NeedsTimePackage bool
 	NeedsToolbelt    bool
 	HasSliceParams   bool
+}
+
+func queryNeedsTimeImport(q *GenerateQueryContext) bool {
+	usesDurationParse := func(fields []GenerateField) bool {
+		for _, f := range fields {
+			if f.GoType.Original == "time.Duration" && f.DurationFromText {
+				return true
+			}
+		}
+		return false
+	}
+	usesTimeType := func(fields []GenerateField) bool {
+		for _, f := range fields {
+			if strings.Contains(f.GoType.Original, "time.") {
+				return true
+			}
+		}
+		return false
+	}
+
+	if usesDurationParse(q.Params) || usesDurationParse(q.ResponseFields) {
+		return true
+	}
+
+	if q.HasParams {
+		if q.ParamsIsSingularField {
+			if strings.Contains(q.Params[0].GoType.Original, "time.") {
+				return true
+			}
+		} else if usesTimeType(q.Params) {
+			return true
+		}
+	}
+
+	if q.HasResponse {
+		if q.ResponseIsSingularField {
+			if strings.Contains(q.ResponseFields[0].GoType.Original, "time.") {
+				return true
+			}
+		} else if !q.ResponseHasModel && usesTimeType(q.ResponseFields) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func findModelReturn(pluralClient *pluralize.Client, req *plugin.GenerateRequest, cols []*plugin.Column) (toolbelt.CasedString, bool) {
