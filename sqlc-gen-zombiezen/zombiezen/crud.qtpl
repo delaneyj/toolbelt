@@ -54,6 +54,51 @@ func OnceCreate{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.P
     return ps.Run(m)
 }
 
+{%- if t.HasID -%}
+type Upsert{%s t.SingleName.Pascal %}Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func Upsert{%s t.SingleName.Pascal %}(tx *sqlite.Conn) *Upsert{%s t.SingleName.Pascal %}Stmt {
+    stmt := tx.Prep(`
+INSERT INTO {%s t.Name.Lower %} (
+    {%- for i,f := range t.Fields -%}
+        {%s f.Name.Lower %}{% if i < len(t.Fields) - 1 %},{% endif %}
+    {%- endfor -%}
+) VALUES (
+    {%- for i :=  range t.Fields -%}
+        ?{% if i < len(t.Fields) - 1 %},{% endif %}
+    {%- endfor -%}
+)
+ON CONFLICT(id) DO UPDATE SET
+    {%- for i,f := range t.Fields -%}
+        {%- if i > 0 -%}
+        {%s f.Name.Lower %} = excluded.{%s f.Name.Lower %}{% if i < len(t.Fields) - 1 %},{% endif %}
+        {%- endif -%}
+    {%- endfor -%}
+    `)
+    return &Upsert{%s t.SingleName.Pascal %}Stmt{stmt: stmt}
+}
+
+func (ps *Upsert{%s t.SingleName.Pascal %}Stmt) Run(m *{%s t.SingleName.Pascal %}Model) error {
+    defer ps.stmt.Reset()
+
+    // Bind parameters
+    {%= bindFields(t) %}
+
+    if _, err := ps.stmt.Step(); err != nil {
+        return fmt.Errorf("failed to upsert {%s t.Name.Lower %}: %w", err)
+    }
+
+    return nil
+}
+
+func OnceUpsert{%s t.SingleName.Pascal %}(tx *sqlite.Conn, m *{%s t.SingleName.Pascal %}Model) error {
+    ps := Upsert{%s t.SingleName.Pascal %}(tx)
+    return ps.Run(m)
+}
+{%- endif -%}
+
 type ReadAll{%s t.Name.Pascal %}Stmt struct {
     stmt *sqlite.Stmt
 }

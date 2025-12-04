@@ -218,102 +218,261 @@ func OnceCreate`)
     return ps.Run(m)
 }
 
+`)
+//line crud.qtpl:57
+	if t.HasID {
+//line crud.qtpl:57
+		qw422016.N().S(`type Upsert`)
+//line crud.qtpl:58
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:58
+		qw422016.N().S(`Stmt struct {
+    stmt *sqlite.Stmt
+}
+
+func Upsert`)
+//line crud.qtpl:62
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:62
+		qw422016.N().S(`(tx *sqlite.Conn) *Upsert`)
+//line crud.qtpl:62
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:62
+		qw422016.N().S(`Stmt {
+    stmt := tx.Prep(`)
+//line crud.qtpl:62
+		qw422016.N().S("`")
+//line crud.qtpl:62
+		qw422016.N().S(`
+INSERT INTO `)
+//line crud.qtpl:64
+		qw422016.E().S(t.Name.Lower)
+//line crud.qtpl:64
+		qw422016.N().S(` (
+`)
+//line crud.qtpl:65
+		for i, f := range t.Fields {
+//line crud.qtpl:65
+			qw422016.N().S(`        `)
+//line crud.qtpl:66
+			qw422016.E().S(f.Name.Lower)
+//line crud.qtpl:66
+			if i < len(t.Fields)-1 {
+//line crud.qtpl:66
+				qw422016.N().S(`,`)
+//line crud.qtpl:66
+			}
+//line crud.qtpl:66
+			qw422016.N().S(`
+`)
+//line crud.qtpl:67
+		}
+//line crud.qtpl:67
+		qw422016.N().S(`) VALUES (
+`)
+//line crud.qtpl:69
+		for i := range t.Fields {
+//line crud.qtpl:69
+			qw422016.N().S(`        ?`)
+//line crud.qtpl:70
+			if i < len(t.Fields)-1 {
+//line crud.qtpl:70
+				qw422016.N().S(`,`)
+//line crud.qtpl:70
+			}
+//line crud.qtpl:70
+			qw422016.N().S(`
+`)
+//line crud.qtpl:71
+		}
+//line crud.qtpl:71
+		qw422016.N().S(`)
+ON CONFLICT(id) DO UPDATE SET
+`)
+//line crud.qtpl:74
+		for i, f := range t.Fields {
+//line crud.qtpl:75
+			if i > 0 {
+//line crud.qtpl:75
+				qw422016.N().S(`        `)
+//line crud.qtpl:76
+				qw422016.E().S(f.Name.Lower)
+//line crud.qtpl:76
+				qw422016.N().S(` = excluded.`)
+//line crud.qtpl:76
+				qw422016.E().S(f.Name.Lower)
+//line crud.qtpl:76
+				if i < len(t.Fields)-1 {
+//line crud.qtpl:76
+					qw422016.N().S(`,`)
+//line crud.qtpl:76
+				}
+//line crud.qtpl:76
+				qw422016.N().S(`
+`)
+//line crud.qtpl:77
+			}
+//line crud.qtpl:78
+		}
+//line crud.qtpl:78
+		qw422016.N().S(`    `)
+//line crud.qtpl:78
+		qw422016.N().S("`")
+//line crud.qtpl:78
+		qw422016.N().S(`)
+    return &Upsert`)
+//line crud.qtpl:80
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:80
+		qw422016.N().S(`Stmt{stmt: stmt}
+}
+
+func (ps *Upsert`)
+//line crud.qtpl:83
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:83
+		qw422016.N().S(`Stmt) Run(m *`)
+//line crud.qtpl:83
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:83
+		qw422016.N().S(`Model) error {
+    defer ps.stmt.Reset()
+
+    // Bind parameters
+    `)
+//line crud.qtpl:87
+		streambindFields(qw422016, t)
+//line crud.qtpl:87
+		qw422016.N().S(`
+
+    if _, err := ps.stmt.Step(); err != nil {
+        return fmt.Errorf("failed to upsert `)
+//line crud.qtpl:90
+		qw422016.E().S(t.Name.Lower)
+//line crud.qtpl:90
+		qw422016.N().S(`: %w", err)
+    }
+
+    return nil
+}
+
+func OnceUpsert`)
+//line crud.qtpl:96
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:96
+		qw422016.N().S(`(tx *sqlite.Conn, m *`)
+//line crud.qtpl:96
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:96
+		qw422016.N().S(`Model) error {
+    ps := Upsert`)
+//line crud.qtpl:97
+		qw422016.E().S(t.SingleName.Pascal)
+//line crud.qtpl:97
+		qw422016.N().S(`(tx)
+    return ps.Run(m)
+}
+`)
+//line crud.qtpl:100
+	}
+//line crud.qtpl:100
+	qw422016.N().S(`
 type ReadAll`)
-//line crud.qtpl:57
+//line crud.qtpl:102
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:57
+//line crud.qtpl:102
 	qw422016.N().S(`Stmt struct {
     stmt *sqlite.Stmt
 }
 
 func ReadAll`)
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.N().S(`(tx *sqlite.Conn) *ReadAll`)
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.N().S(`Stmt {
     stmt := tx.Prep(`)
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.N().S("`")
-//line crud.qtpl:61
+//line crud.qtpl:106
 	qw422016.N().S(`
 SELECT
 `)
-//line crud.qtpl:64
+//line crud.qtpl:109
 	for i, f := range t.Fields {
-//line crud.qtpl:64
+//line crud.qtpl:109
 		qw422016.N().S(`        `)
-//line crud.qtpl:65
+//line crud.qtpl:110
 		qw422016.E().S(f.Name.Lower)
-//line crud.qtpl:65
+//line crud.qtpl:110
 		if i < len(t.Fields)-1 {
-//line crud.qtpl:65
+//line crud.qtpl:110
 			qw422016.N().S(`,`)
-//line crud.qtpl:65
+//line crud.qtpl:110
 		}
-//line crud.qtpl:65
+//line crud.qtpl:110
 		qw422016.N().S(`
 `)
-//line crud.qtpl:66
+//line crud.qtpl:111
 	}
-//line crud.qtpl:66
+//line crud.qtpl:111
 	qw422016.N().S(`FROM `)
-//line crud.qtpl:67
+//line crud.qtpl:112
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:67
+//line crud.qtpl:112
 	qw422016.N().S(`
     `)
-//line crud.qtpl:67
+//line crud.qtpl:112
 	qw422016.N().S("`")
-//line crud.qtpl:67
+//line crud.qtpl:112
 	qw422016.N().S(`)
     return &ReadAll`)
-//line crud.qtpl:69
+//line crud.qtpl:114
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:69
+//line crud.qtpl:114
 	qw422016.N().S(`Stmt{stmt: stmt}
 }
 
 func (ps *ReadAll`)
-//line crud.qtpl:72
+//line crud.qtpl:117
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:72
+//line crud.qtpl:117
 	qw422016.N().S(`Stmt) Run() ([]*`)
-//line crud.qtpl:72
+//line crud.qtpl:117
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:72
+//line crud.qtpl:117
 	qw422016.N().S(`Model, error) {
     defer ps.stmt.Reset()
 
     var models []*`)
-//line crud.qtpl:75
+//line crud.qtpl:120
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:75
+//line crud.qtpl:120
 	qw422016.N().S(`Model
     for {
         hasRow, err := ps.stmt.Step()
         if err != nil {
             return nil, fmt.Errorf("failed to read `)
-//line crud.qtpl:79
+//line crud.qtpl:124
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:79
+//line crud.qtpl:124
 	qw422016.N().S(`: %w", err)
         } else if !hasRow {
             break
         }
 
         m := &`)
-//line crud.qtpl:84
+//line crud.qtpl:129
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:84
+//line crud.qtpl:129
 	qw422016.N().S(`Model{}
         `)
-//line crud.qtpl:85
+//line crud.qtpl:130
 	streamfillResStruct(qw422016, t)
-//line crud.qtpl:85
+//line crud.qtpl:130
 	qw422016.N().S(`
 
         models = append(models, m)
@@ -323,94 +482,94 @@ func (ps *ReadAll`)
 }
 
 func OnceReadAll`)
-//line crud.qtpl:93
+//line crud.qtpl:138
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:93
+//line crud.qtpl:138
 	qw422016.N().S(`(tx *sqlite.Conn) ([]*`)
-//line crud.qtpl:93
+//line crud.qtpl:138
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:93
+//line crud.qtpl:138
 	qw422016.N().S(`Model, error) {
     ps := ReadAll`)
-//line crud.qtpl:94
+//line crud.qtpl:139
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:94
+//line crud.qtpl:139
 	qw422016.N().S(`(tx)
     return ps.Run()
 }
 
 `)
-//line crud.qtpl:98
+//line crud.qtpl:143
 	if t.HasID {
-//line crud.qtpl:98
+//line crud.qtpl:143
 		qw422016.N().S(`type ReadByID`)
-//line crud.qtpl:99
+//line crud.qtpl:144
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:99
+//line crud.qtpl:144
 		qw422016.N().S(`Stmt struct {
     stmt *sqlite.Stmt
 }
 
 func ReadByID`)
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.N().S(`(tx *sqlite.Conn) *ReadByID`)
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.N().S(`Stmt {
     stmt := tx.Prep(`)
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.N().S("`")
-//line crud.qtpl:103
+//line crud.qtpl:148
 		qw422016.N().S(`
 SELECT
 `)
-//line crud.qtpl:106
+//line crud.qtpl:151
 		for i, f := range t.Fields {
-//line crud.qtpl:106
+//line crud.qtpl:151
 			qw422016.N().S(`        `)
-//line crud.qtpl:107
+//line crud.qtpl:152
 			qw422016.E().S(f.Name.Lower)
-//line crud.qtpl:107
+//line crud.qtpl:152
 			if i < len(t.Fields)-1 {
-//line crud.qtpl:107
+//line crud.qtpl:152
 				qw422016.N().S(`,`)
-//line crud.qtpl:107
+//line crud.qtpl:152
 			}
-//line crud.qtpl:107
+//line crud.qtpl:152
 			qw422016.N().S(`
 `)
-//line crud.qtpl:108
+//line crud.qtpl:153
 		}
-//line crud.qtpl:108
+//line crud.qtpl:153
 		qw422016.N().S(`FROM `)
-//line crud.qtpl:109
+//line crud.qtpl:154
 		qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:109
+//line crud.qtpl:154
 		qw422016.N().S(`
 WHERE id = ?
     `)
-//line crud.qtpl:109
+//line crud.qtpl:154
 		qw422016.N().S("`")
-//line crud.qtpl:109
+//line crud.qtpl:154
 		qw422016.N().S(`)
     return &ReadByID`)
-//line crud.qtpl:112
+//line crud.qtpl:157
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:112
+//line crud.qtpl:157
 		qw422016.N().S(`Stmt{stmt: stmt}
 }
 
 func (ps *ReadByID`)
-//line crud.qtpl:115
+//line crud.qtpl:160
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:115
+//line crud.qtpl:160
 		qw422016.N().S(`Stmt) Run(id int64) (*`)
-//line crud.qtpl:115
+//line crud.qtpl:160
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:115
+//line crud.qtpl:160
 		qw422016.N().S(`Model, error) {
     defer ps.stmt.Reset()
 
@@ -418,77 +577,77 @@ func (ps *ReadByID`)
 
     if hasRow, err := ps.stmt.Step(); err != nil {
         return nil, fmt.Errorf("failed to read `)
-//line crud.qtpl:121
+//line crud.qtpl:166
 		qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:121
+//line crud.qtpl:166
 		qw422016.N().S(`: %w", err)
     } else if !hasRow {
         return nil, nil
     }
 
     m := &`)
-//line crud.qtpl:126
+//line crud.qtpl:171
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:126
+//line crud.qtpl:171
 		qw422016.N().S(`Model{}
     `)
-//line crud.qtpl:127
+//line crud.qtpl:172
 		streamfillResStruct(qw422016, t)
-//line crud.qtpl:127
+//line crud.qtpl:172
 		qw422016.N().S(`
 
     return m, nil
 }
 
 func OnceReadByID`)
-//line crud.qtpl:132
+//line crud.qtpl:177
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:132
+//line crud.qtpl:177
 		qw422016.N().S(`(tx *sqlite.Conn, id int64) (*`)
-//line crud.qtpl:132
+//line crud.qtpl:177
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:132
+//line crud.qtpl:177
 		qw422016.N().S(`Model, error) {
     ps := ReadByID`)
-//line crud.qtpl:133
+//line crud.qtpl:178
 		qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:133
+//line crud.qtpl:178
 		qw422016.N().S(`(tx)
     return ps.Run(id)
 }
 `)
-//line crud.qtpl:136
+//line crud.qtpl:181
 	}
-//line crud.qtpl:136
+//line crud.qtpl:181
 	qw422016.N().S(`
 func Count`)
-//line crud.qtpl:138
+//line crud.qtpl:183
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:138
+//line crud.qtpl:183
 	qw422016.N().S(`(tx *sqlite.Conn) (int64, error) {
     stmt := tx.Prep(`)
-//line crud.qtpl:138
+//line crud.qtpl:183
 	qw422016.N().S("`")
-//line crud.qtpl:138
+//line crud.qtpl:183
 	qw422016.N().S(`
 SELECT COUNT(*)
 FROM `)
-//line crud.qtpl:141
+//line crud.qtpl:186
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:141
+//line crud.qtpl:186
 	qw422016.N().S(`
     `)
-//line crud.qtpl:141
+//line crud.qtpl:186
 	qw422016.N().S("`")
-//line crud.qtpl:141
+//line crud.qtpl:186
 	qw422016.N().S(`)
     defer stmt.Reset()
 
     if hasRow, err := stmt.Step(); err != nil {
         return 0, fmt.Errorf("failed to count `)
-//line crud.qtpl:146
+//line crud.qtpl:191
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:146
+//line crud.qtpl:191
 	qw422016.N().S(`: %w", err)
     } else if !hasRow {
         return 0, nil
@@ -498,108 +657,108 @@ FROM `)
 }
 
 func OnceCount`)
-//line crud.qtpl:154
+//line crud.qtpl:199
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:154
+//line crud.qtpl:199
 	qw422016.N().S(`(tx *sqlite.Conn) (int64, error) {
     return Count`)
-//line crud.qtpl:155
+//line crud.qtpl:200
 	qw422016.E().S(t.Name.Pascal)
-//line crud.qtpl:155
+//line crud.qtpl:200
 	qw422016.N().S(`(tx)
 }
 
 type Update`)
-//line crud.qtpl:158
+//line crud.qtpl:203
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:158
+//line crud.qtpl:203
 	qw422016.N().S(`Stmt struct {
     stmt *sqlite.Stmt
 }
 
 func Update`)
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.N().S(`(tx *sqlite.Conn) *Update`)
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.N().S(`Stmt {
     stmt := tx.Prep(`)
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.N().S("`")
-//line crud.qtpl:162
+//line crud.qtpl:207
 	qw422016.N().S(`
 UPDATE `)
-//line crud.qtpl:164
+//line crud.qtpl:209
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:164
+//line crud.qtpl:209
 	qw422016.N().S(`
 SET
 `)
-//line crud.qtpl:166
+//line crud.qtpl:211
 	for i, f := range t.Fields {
-//line crud.qtpl:167
+//line crud.qtpl:212
 		if i > 0 {
-//line crud.qtpl:167
+//line crud.qtpl:212
 			qw422016.N().S(`        `)
-//line crud.qtpl:168
+//line crud.qtpl:213
 			qw422016.E().S(f.Name.Lower)
-//line crud.qtpl:168
+//line crud.qtpl:213
 			qw422016.N().S(` = ?`)
-//line crud.qtpl:168
+//line crud.qtpl:213
 			qw422016.N().D(i + 1)
-//line crud.qtpl:168
+//line crud.qtpl:213
 			if i < len(t.Fields)-1 {
-//line crud.qtpl:168
+//line crud.qtpl:213
 				qw422016.N().S(`,`)
-//line crud.qtpl:168
+//line crud.qtpl:213
 			}
-//line crud.qtpl:168
+//line crud.qtpl:213
 			qw422016.N().S(`
 `)
-//line crud.qtpl:169
+//line crud.qtpl:214
 		}
-//line crud.qtpl:170
+//line crud.qtpl:215
 	}
-//line crud.qtpl:170
+//line crud.qtpl:215
 	qw422016.N().S(`WHERE id = ?1
     `)
-//line crud.qtpl:170
+//line crud.qtpl:215
 	qw422016.N().S("`")
-//line crud.qtpl:170
+//line crud.qtpl:215
 	qw422016.N().S(`)
     return &Update`)
-//line crud.qtpl:173
+//line crud.qtpl:218
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:173
+//line crud.qtpl:218
 	qw422016.N().S(`Stmt{stmt: stmt}
 }
 
 func (ps *Update`)
-//line crud.qtpl:176
+//line crud.qtpl:221
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:176
+//line crud.qtpl:221
 	qw422016.N().S(`Stmt) Run(m *`)
-//line crud.qtpl:176
+//line crud.qtpl:221
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:176
+//line crud.qtpl:221
 	qw422016.N().S(`Model) error {
     defer ps.stmt.Reset()
 
     // Bind parameters
     `)
-//line crud.qtpl:180
+//line crud.qtpl:225
 	streambindFields(qw422016, t)
-//line crud.qtpl:180
+//line crud.qtpl:225
 	qw422016.N().S(`
 
     if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to update `)
-//line crud.qtpl:183
+//line crud.qtpl:228
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:183
+//line crud.qtpl:228
 	qw422016.N().S(`: %w", err)
     }
 
@@ -607,66 +766,66 @@ func (ps *Update`)
 }
 
 func OnceUpdate`)
-//line crud.qtpl:189
+//line crud.qtpl:234
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:189
+//line crud.qtpl:234
 	qw422016.N().S(`(tx *sqlite.Conn, m *`)
-//line crud.qtpl:189
+//line crud.qtpl:234
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:189
+//line crud.qtpl:234
 	qw422016.N().S(`Model) error {
     ps := Update`)
-//line crud.qtpl:190
+//line crud.qtpl:235
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:190
+//line crud.qtpl:235
 	qw422016.N().S(`(tx)
     return ps.Run(m)
 }
 
 type Delete`)
-//line crud.qtpl:194
+//line crud.qtpl:239
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:194
+//line crud.qtpl:239
 	qw422016.N().S(`Stmt struct {
     stmt *sqlite.Stmt
 }
 
 func Delete`)
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.N().S(`(tx *sqlite.Conn) *Delete`)
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.N().S(`Stmt {
     stmt := tx.Prep(`)
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.N().S("`")
-//line crud.qtpl:198
+//line crud.qtpl:243
 	qw422016.N().S(`
 DELETE FROM `)
-//line crud.qtpl:200
+//line crud.qtpl:245
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:200
+//line crud.qtpl:245
 	qw422016.N().S(`
 WHERE id = ?
     `)
-//line crud.qtpl:200
+//line crud.qtpl:245
 	qw422016.N().S("`")
-//line crud.qtpl:200
+//line crud.qtpl:245
 	qw422016.N().S(`)
     return &Delete`)
-//line crud.qtpl:203
+//line crud.qtpl:248
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:203
+//line crud.qtpl:248
 	qw422016.N().S(`Stmt{stmt: stmt}
 }
 
 func (ps *Delete`)
-//line crud.qtpl:206
+//line crud.qtpl:251
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:206
+//line crud.qtpl:251
 	qw422016.N().S(`Stmt) Run(id int64) error {
     defer ps.stmt.Reset()
 
@@ -674,9 +833,9 @@ func (ps *Delete`)
 
     if _, err := ps.stmt.Step(); err != nil {
         return fmt.Errorf("failed to delete `)
-//line crud.qtpl:212
+//line crud.qtpl:257
 	qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:212
+//line crud.qtpl:257
 	qw422016.N().S(`: %w", err)
     }
 
@@ -684,491 +843,491 @@ func (ps *Delete`)
 }
 
 func OnceDelete`)
-//line crud.qtpl:218
+//line crud.qtpl:263
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:218
+//line crud.qtpl:263
 	qw422016.N().S(`(tx *sqlite.Conn, id int64) error {
     ps := Delete`)
-//line crud.qtpl:219
+//line crud.qtpl:264
 	qw422016.E().S(t.SingleName.Pascal)
-//line crud.qtpl:219
+//line crud.qtpl:264
 	qw422016.N().S(`(tx)
     return ps.Run(id)
 }
 
 `)
-//line crud.qtpl:223
+//line crud.qtpl:268
 }
 
-//line crud.qtpl:223
+//line crud.qtpl:268
 func WriteGenerateCRUD(qq422016 qtio422016.Writer, t *GenerateCRUDTable) {
-//line crud.qtpl:223
+//line crud.qtpl:268
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line crud.qtpl:223
+//line crud.qtpl:268
 	StreamGenerateCRUD(qw422016, t)
-//line crud.qtpl:223
+//line crud.qtpl:268
 	qt422016.ReleaseWriter(qw422016)
-//line crud.qtpl:223
+//line crud.qtpl:268
 }
 
-//line crud.qtpl:223
+//line crud.qtpl:268
 func GenerateCRUD(t *GenerateCRUDTable) string {
-//line crud.qtpl:223
+//line crud.qtpl:268
 	qb422016 := qt422016.AcquireByteBuffer()
-//line crud.qtpl:223
+//line crud.qtpl:268
 	WriteGenerateCRUD(qb422016, t)
-//line crud.qtpl:223
+//line crud.qtpl:268
 	qs422016 := string(qb422016.B)
-//line crud.qtpl:223
+//line crud.qtpl:268
 	qt422016.ReleaseByteBuffer(qb422016)
-//line crud.qtpl:223
+//line crud.qtpl:268
 	return qs422016
-//line crud.qtpl:223
+//line crud.qtpl:268
 }
 
-//line crud.qtpl:225
+//line crud.qtpl:270
 func streambindFields(qw422016 *qt422016.Writer, tbl *GenerateCRUDTable) {
-//line crud.qtpl:226
+//line crud.qtpl:271
 	for _, f := range tbl.Fields {
-//line crud.qtpl:227
+//line crud.qtpl:272
 		if f.IsNullable {
-//line crud.qtpl:227
+//line crud.qtpl:272
 			qw422016.N().S(`    if m.`)
-//line crud.qtpl:228
+//line crud.qtpl:273
 			qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:228
+//line crud.qtpl:273
 			qw422016.N().S(` == nil {
         ps.stmt.BindNull(`)
-//line crud.qtpl:229
+//line crud.qtpl:274
 			qw422016.N().D(f.Column)
-//line crud.qtpl:229
+//line crud.qtpl:274
 			qw422016.N().S(`)
     } else {
         `)
-//line crud.qtpl:231
+//line crud.qtpl:276
 			streambindField(qw422016, f, true)
-//line crud.qtpl:231
+//line crud.qtpl:276
 			qw422016.N().S(`    }
 `)
-//line crud.qtpl:233
+//line crud.qtpl:278
 		} else {
-//line crud.qtpl:233
+//line crud.qtpl:278
 			qw422016.N().S(`    `)
-//line crud.qtpl:234
+//line crud.qtpl:279
 			streambindField(qw422016, f, false)
-//line crud.qtpl:234
+//line crud.qtpl:279
 			qw422016.N().S(`
 `)
-//line crud.qtpl:235
+//line crud.qtpl:280
 		}
-//line crud.qtpl:236
+//line crud.qtpl:281
 	}
-//line crud.qtpl:237
+//line crud.qtpl:282
 }
 
-//line crud.qtpl:237
+//line crud.qtpl:282
 func writebindFields(qq422016 qtio422016.Writer, tbl *GenerateCRUDTable) {
-//line crud.qtpl:237
+//line crud.qtpl:282
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line crud.qtpl:237
+//line crud.qtpl:282
 	streambindFields(qw422016, tbl)
-//line crud.qtpl:237
+//line crud.qtpl:282
 	qt422016.ReleaseWriter(qw422016)
-//line crud.qtpl:237
+//line crud.qtpl:282
 }
 
-//line crud.qtpl:237
+//line crud.qtpl:282
 func bindFields(tbl *GenerateCRUDTable) string {
-//line crud.qtpl:237
+//line crud.qtpl:282
 	qb422016 := qt422016.AcquireByteBuffer()
-//line crud.qtpl:237
+//line crud.qtpl:282
 	writebindFields(qb422016, tbl)
-//line crud.qtpl:237
+//line crud.qtpl:282
 	qs422016 := string(qb422016.B)
-//line crud.qtpl:237
+//line crud.qtpl:282
 	qt422016.ReleaseByteBuffer(qb422016)
-//line crud.qtpl:237
+//line crud.qtpl:282
 	return qs422016
-//line crud.qtpl:237
+//line crud.qtpl:282
 }
 
-//line crud.qtpl:239
+//line crud.qtpl:284
 func streambindField(qw422016 *qt422016.Writer, f GenerateField, isNullable bool) {
-//line crud.qtpl:239
+//line crud.qtpl:284
 	qw422016.N().S(`    ps.`)
-//line crud.qtpl:240
+//line crud.qtpl:285
 	switch f.GoType.Original {
-//line crud.qtpl:241
+//line crud.qtpl:286
 	case "time.Time":
-//line crud.qtpl:241
+//line crud.qtpl:286
 		qw422016.N().S(`            stmt.Bind`)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.N().S(`(`)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.N().D(f.Column)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.N().S(`, toolbelt.TimeToJulianDay(`)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		if isNullable {
-//line crud.qtpl:242
+//line crud.qtpl:287
 			qw422016.N().S(`*`)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		}
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.N().S(` m.`)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:242
+//line crud.qtpl:287
 		qw422016.N().S(`))
 `)
-//line crud.qtpl:243
+//line crud.qtpl:288
 	case "time.Duration":
-//line crud.qtpl:244
+//line crud.qtpl:289
 		if f.DurationFromText {
-//line crud.qtpl:244
+//line crud.qtpl:289
 			qw422016.N().S(`            stmt.BindText(`)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			qw422016.N().D(f.Column)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			qw422016.N().S(`, `)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			if isNullable {
-//line crud.qtpl:245
+//line crud.qtpl:290
 				qw422016.N().S(`(*`)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			}
-//line crud.qtpl:245
+//line crud.qtpl:290
 			qw422016.N().S(`m.`)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			if isNullable {
-//line crud.qtpl:245
+//line crud.qtpl:290
 				qw422016.N().S(`)`)
-//line crud.qtpl:245
+//line crud.qtpl:290
 			}
-//line crud.qtpl:245
+//line crud.qtpl:290
 			qw422016.N().S(`.String())
 `)
-//line crud.qtpl:246
+//line crud.qtpl:291
 		} else {
-//line crud.qtpl:246
+//line crud.qtpl:291
 			qw422016.N().S(`            stmt.Bind`)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.N().S(`(`)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.N().D(f.Column)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			if isNullable {
-//line crud.qtpl:247
+//line crud.qtpl:292
 				qw422016.N().S(`*`)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			}
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.N().S(`m.`)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:247
+//line crud.qtpl:292
 			qw422016.N().S(`))
 `)
-//line crud.qtpl:248
+//line crud.qtpl:293
 		}
-//line crud.qtpl:249
+//line crud.qtpl:294
 	default:
-//line crud.qtpl:249
+//line crud.qtpl:294
 		qw422016.N().S(`            stmt.Bind`)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.N().S(`(`)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.N().D(f.Column)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.N().S(`, `)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		if isNullable {
-//line crud.qtpl:250
+//line crud.qtpl:295
 			qw422016.N().S(`*`)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		}
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.N().S(`m.`)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:250
+//line crud.qtpl:295
 		qw422016.N().S(`)
 `)
-//line crud.qtpl:251
+//line crud.qtpl:296
 	}
-//line crud.qtpl:252
+//line crud.qtpl:297
 }
 
-//line crud.qtpl:252
+//line crud.qtpl:297
 func writebindField(qq422016 qtio422016.Writer, f GenerateField, isNullable bool) {
-//line crud.qtpl:252
+//line crud.qtpl:297
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line crud.qtpl:252
+//line crud.qtpl:297
 	streambindField(qw422016, f, isNullable)
-//line crud.qtpl:252
+//line crud.qtpl:297
 	qt422016.ReleaseWriter(qw422016)
-//line crud.qtpl:252
+//line crud.qtpl:297
 }
 
-//line crud.qtpl:252
+//line crud.qtpl:297
 func bindField(f GenerateField, isNullable bool) string {
-//line crud.qtpl:252
+//line crud.qtpl:297
 	qb422016 := qt422016.AcquireByteBuffer()
-//line crud.qtpl:252
+//line crud.qtpl:297
 	writebindField(qb422016, f, isNullable)
-//line crud.qtpl:252
+//line crud.qtpl:297
 	qs422016 := string(qb422016.B)
-//line crud.qtpl:252
+//line crud.qtpl:297
 	qt422016.ReleaseByteBuffer(qb422016)
-//line crud.qtpl:252
+//line crud.qtpl:297
 	return qs422016
-//line crud.qtpl:252
+//line crud.qtpl:297
 }
 
-//line crud.qtpl:254
+//line crud.qtpl:299
 func streamfillResStruct(qw422016 *qt422016.Writer, t *GenerateCRUDTable) {
-//line crud.qtpl:255
+//line crud.qtpl:300
 	for i, f := range t.Fields {
-//line crud.qtpl:256
+//line crud.qtpl:301
 		if f.IsNullable {
-//line crud.qtpl:256
+//line crud.qtpl:301
 			qw422016.N().S(`
     if ps.stmt.ColumnIsNull(`)
-//line crud.qtpl:257
+//line crud.qtpl:302
 			qw422016.N().D(i)
-//line crud.qtpl:257
+//line crud.qtpl:302
 			qw422016.N().S(`) {
         m.`)
-//line crud.qtpl:258
+//line crud.qtpl:303
 			qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:258
+//line crud.qtpl:303
 			qw422016.N().S(` = nil
     } else {
 `)
-//line crud.qtpl:260
+//line crud.qtpl:305
 			if f.GoType.Original == "time.Duration" && f.DurationFromText {
-//line crud.qtpl:260
+//line crud.qtpl:305
 				qw422016.N().S(`
         durStr := ps.stmt.ColumnText(`)
-//line crud.qtpl:261
+//line crud.qtpl:306
 				qw422016.N().D(i)
-//line crud.qtpl:261
+//line crud.qtpl:306
 				qw422016.N().S(`)
         dur, err := time.ParseDuration(durStr)
         if err != nil {
             return nil, fmt.Errorf("parsing `)
-//line crud.qtpl:264
+//line crud.qtpl:309
 				qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:264
+//line crud.qtpl:309
 				qw422016.N().S(`.`)
-//line crud.qtpl:264
+//line crud.qtpl:309
 				qw422016.E().S(f.Name.Lower)
-//line crud.qtpl:264
+//line crud.qtpl:309
 				qw422016.N().S(`: %w", err)
         }
         m.`)
-//line crud.qtpl:266
+//line crud.qtpl:311
 				qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:266
+//line crud.qtpl:311
 				qw422016.N().S(` = &dur
 `)
-//line crud.qtpl:267
+//line crud.qtpl:312
 			} else {
-//line crud.qtpl:267
+//line crud.qtpl:312
 				qw422016.N().S(`
         tmp := `)
-//line crud.qtpl:268
+//line crud.qtpl:313
 				streamfillResStructField(qw422016, f, i)
-//line crud.qtpl:268
+//line crud.qtpl:313
 				qw422016.N().S(`
         m.`)
-//line crud.qtpl:269
+//line crud.qtpl:314
 				qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:269
+//line crud.qtpl:314
 				qw422016.N().S(` = &tmp
 `)
-//line crud.qtpl:270
+//line crud.qtpl:315
 			}
-//line crud.qtpl:270
+//line crud.qtpl:315
 			qw422016.N().S(`
     }
 `)
-//line crud.qtpl:272
+//line crud.qtpl:317
 		} else {
-//line crud.qtpl:272
+//line crud.qtpl:317
 			qw422016.N().S(`
 `)
-//line crud.qtpl:273
+//line crud.qtpl:318
 			if f.GoType.Original == "time.Duration" && f.DurationFromText {
-//line crud.qtpl:273
+//line crud.qtpl:318
 				qw422016.N().S(`
     durStr := ps.stmt.ColumnText(`)
-//line crud.qtpl:274
+//line crud.qtpl:319
 				qw422016.N().D(i)
-//line crud.qtpl:274
+//line crud.qtpl:319
 				qw422016.N().S(`)
     dur, err := time.ParseDuration(durStr)
     if err != nil {
         return nil, fmt.Errorf("parsing `)
-//line crud.qtpl:277
+//line crud.qtpl:322
 				qw422016.E().S(t.Name.Lower)
-//line crud.qtpl:277
+//line crud.qtpl:322
 				qw422016.N().S(`.`)
-//line crud.qtpl:277
+//line crud.qtpl:322
 				qw422016.E().S(f.Name.Lower)
-//line crud.qtpl:277
+//line crud.qtpl:322
 				qw422016.N().S(`: %w", err)
     }
     m.`)
-//line crud.qtpl:279
+//line crud.qtpl:324
 				qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:279
+//line crud.qtpl:324
 				qw422016.N().S(` = dur
 `)
-//line crud.qtpl:280
+//line crud.qtpl:325
 			} else {
-//line crud.qtpl:280
+//line crud.qtpl:325
 				qw422016.N().S(`
     m.`)
-//line crud.qtpl:281
+//line crud.qtpl:326
 				qw422016.E().S(f.Name.Pascal)
-//line crud.qtpl:281
+//line crud.qtpl:326
 				qw422016.N().S(` = `)
-//line crud.qtpl:281
+//line crud.qtpl:326
 				streamfillResStructField(qw422016, f, i)
-//line crud.qtpl:281
+//line crud.qtpl:326
 				qw422016.N().S(`
 `)
-//line crud.qtpl:282
+//line crud.qtpl:327
 			}
-//line crud.qtpl:282
+//line crud.qtpl:327
 			qw422016.N().S(`
 `)
-//line crud.qtpl:283
+//line crud.qtpl:328
 		}
-//line crud.qtpl:283
+//line crud.qtpl:328
 		qw422016.N().S(`
 `)
-//line crud.qtpl:284
+//line crud.qtpl:329
 	}
-//line crud.qtpl:285
+//line crud.qtpl:330
 }
 
-//line crud.qtpl:285
+//line crud.qtpl:330
 func writefillResStruct(qq422016 qtio422016.Writer, t *GenerateCRUDTable) {
-//line crud.qtpl:285
+//line crud.qtpl:330
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line crud.qtpl:285
+//line crud.qtpl:330
 	streamfillResStruct(qw422016, t)
-//line crud.qtpl:285
+//line crud.qtpl:330
 	qt422016.ReleaseWriter(qw422016)
-//line crud.qtpl:285
+//line crud.qtpl:330
 }
 
-//line crud.qtpl:285
+//line crud.qtpl:330
 func fillResStruct(t *GenerateCRUDTable) string {
-//line crud.qtpl:285
+//line crud.qtpl:330
 	qb422016 := qt422016.AcquireByteBuffer()
-//line crud.qtpl:285
+//line crud.qtpl:330
 	writefillResStruct(qb422016, t)
-//line crud.qtpl:285
+//line crud.qtpl:330
 	qs422016 := string(qb422016.B)
-//line crud.qtpl:285
+//line crud.qtpl:330
 	qt422016.ReleaseByteBuffer(qb422016)
-//line crud.qtpl:285
+//line crud.qtpl:330
 	return qs422016
-//line crud.qtpl:285
+//line crud.qtpl:330
 }
 
-//line crud.qtpl:287
+//line crud.qtpl:332
 func streamfillResStructField(qw422016 *qt422016.Writer, f GenerateField, i int) {
-//line crud.qtpl:288
+//line crud.qtpl:333
 	switch f.GoType.Original {
-//line crud.qtpl:289
+//line crud.qtpl:334
 	case "time.Time":
-//line crud.qtpl:289
+//line crud.qtpl:334
 		qw422016.N().S(`            toolbelt.JulianDayToTime(ps.stmt.Column`)
-//line crud.qtpl:290
+//line crud.qtpl:335
 		qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:290
+//line crud.qtpl:335
 		qw422016.N().S(`(`)
-//line crud.qtpl:290
+//line crud.qtpl:335
 		qw422016.N().D(i)
-//line crud.qtpl:290
+//line crud.qtpl:335
 		qw422016.N().S(`))
 `)
-//line crud.qtpl:291
+//line crud.qtpl:336
 	case "time.Duration":
-//line crud.qtpl:291
+//line crud.qtpl:336
 		qw422016.N().S(`            toolbelt.MillisecondsToDuration(ps.stmt.Column`)
-//line crud.qtpl:292
+//line crud.qtpl:337
 		qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:292
+//line crud.qtpl:337
 		qw422016.N().S(`(`)
-//line crud.qtpl:292
+//line crud.qtpl:337
 		qw422016.N().D(i)
-//line crud.qtpl:292
+//line crud.qtpl:337
 		qw422016.N().S(`))
 `)
-//line crud.qtpl:293
+//line crud.qtpl:338
 	case "[]byte":
-//line crud.qtpl:293
+//line crud.qtpl:338
 		qw422016.N().S(`            toolbelt.StmtBytesByCol(ps.stmt, `)
-//line crud.qtpl:294
+//line crud.qtpl:339
 		qw422016.N().D(i)
-//line crud.qtpl:294
+//line crud.qtpl:339
 		qw422016.N().S(`)
 `)
-//line crud.qtpl:295
+//line crud.qtpl:340
 	default:
-//line crud.qtpl:295
+//line crud.qtpl:340
 		qw422016.N().S(`            ps.stmt.Column`)
-//line crud.qtpl:296
+//line crud.qtpl:341
 		qw422016.E().S(f.SQLType.Pascal)
-//line crud.qtpl:296
+//line crud.qtpl:341
 		qw422016.N().S(`(`)
-//line crud.qtpl:296
+//line crud.qtpl:341
 		qw422016.N().D(i)
-//line crud.qtpl:296
+//line crud.qtpl:341
 		qw422016.N().S(`)
 `)
-//line crud.qtpl:297
+//line crud.qtpl:342
 	}
-//line crud.qtpl:298
+//line crud.qtpl:343
 }
 
-//line crud.qtpl:298
+//line crud.qtpl:343
 func writefillResStructField(qq422016 qtio422016.Writer, f GenerateField, i int) {
-//line crud.qtpl:298
+//line crud.qtpl:343
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line crud.qtpl:298
+//line crud.qtpl:343
 	streamfillResStructField(qw422016, f, i)
-//line crud.qtpl:298
+//line crud.qtpl:343
 	qt422016.ReleaseWriter(qw422016)
-//line crud.qtpl:298
+//line crud.qtpl:343
 }
 
-//line crud.qtpl:298
+//line crud.qtpl:343
 func fillResStructField(f GenerateField, i int) string {
-//line crud.qtpl:298
+//line crud.qtpl:343
 	qb422016 := qt422016.AcquireByteBuffer()
-//line crud.qtpl:298
+//line crud.qtpl:343
 	writefillResStructField(qb422016, f, i)
-//line crud.qtpl:298
+//line crud.qtpl:343
 	qs422016 := string(qb422016.B)
-//line crud.qtpl:298
+//line crud.qtpl:343
 	qt422016.ReleaseByteBuffer(qb422016)
-//line crud.qtpl:298
+//line crud.qtpl:343
 	return qs422016
-//line crud.qtpl:298
+//line crud.qtpl:343
 }
