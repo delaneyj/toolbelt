@@ -26,6 +26,7 @@ type Database struct {
 	writePool  *sqlitex.Pool
 	readPool   *sqlitex.Pool
 	pragmas    []string
+	flushWAL   bool
 }
 
 type databaseOptions struct {
@@ -33,6 +34,7 @@ type databaseOptions struct {
 	migrations  []string
 	pragmas     []string
 	shouldClear bool
+	flushWAL    bool
 }
 
 type DatabaseOption func(*databaseOptions)
@@ -65,6 +67,18 @@ func DatabaseWithShouldClear(shouldClear bool) DatabaseOption {
 	}
 }
 
+func DatabaseWithFlushWAL() DatabaseOption {
+	return func(o *databaseOptions) {
+		o.flushWAL = true
+	}
+}
+
+func DatabaseWithoutFlushWAL() DatabaseOption {
+	return func(o *databaseOptions) {
+		o.flushWAL = false
+	}
+}
+
 func normalizePragma(pragma string) string {
 	s := strings.TrimSpace(pragma)
 	if !strings.HasPrefix(strings.ToUpper(s), "PRAGMA ") {
@@ -78,8 +92,25 @@ func normalizePragma(pragma string) string {
 
 type TxFn func(tx *sqlite.Conn) error
 
+func flushWAL(conn *sqlite.Conn) error {
+	if !conn.AutocommitEnabled() {
+		if err := sqlitex.ExecuteTransient(conn, "ROLLBACK;", nil); err != nil {
+			return fmt.Errorf("reset transaction before flush: %w", err)
+		}
+	}
+	if err := sqlitex.ExecuteTransient(conn, "VACUUM;", nil); err != nil {
+		return fmt.Errorf("vacuum database: %w", err)
+	}
+	if err := sqlitex.ExecuteTransient(conn, "PRAGMA wal_checkpoint(TRUNCATE);", nil); err != nil {
+		return fmt.Errorf("execute WAL checkpoint: %w", err)
+	}
+	return nil
+}
+
 func NewDatabase(ctx context.Context, opts ...DatabaseOption) (*Database, error) {
-	options := databaseOptions{}
+	options := databaseOptions{
+		flushWAL: true,
+	}
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -96,6 +127,7 @@ func NewDatabase(ctx context.Context, opts ...DatabaseOption) (*Database, error)
 		filename:   options.filename,
 		migrations: options.migrations,
 		pragmas:    options.pragmas,
+		flushWAL:   options.flushWAL,
 	}
 
 	if err := db.Reset(ctx, options.shouldClear); err != nil {
@@ -187,6 +219,14 @@ func (db *Database) Reset(ctx context.Context, shouldClear bool) (err error) {
 	db.writePool.Put(conn)
 	conn = nil
 
+	if db.flushWAL {
+		if err := db.WriteWithoutTx(ctx, func(conn *sqlite.Conn) error {
+			return flushWAL(conn)
+		}); err != nil {
+			return fmt.Errorf("failed to flush WAL: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -201,6 +241,16 @@ func (db *Database) Close() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+func (db *Database) FlushWAL(ctx context.Context) error {
+	if db.writePool == nil {
+		return fmt.Errorf("write pool is not initialized")
+	}
+
+	return db.WriteWithoutTx(ctx, func(conn *sqlite.Conn) error {
+		return flushWAL(conn)
+	})
 }
 
 func (db *Database) WriteTX(ctx context.Context, fn TxFn) (err error) {
