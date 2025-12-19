@@ -13,21 +13,21 @@ import (
 
 var flake *zflake.Gen
 
-func NextID() int64 {
-	if flake == nil {
-		id, err := machineid.ID()
-		if err != nil {
-			id = time.Now().Format(time.RFC3339Nano)
-		}
-		h := xxh3.HashString(id) % (1 << zflake.BitLenGID)
-		h16 := uint16(h)
-
-		flake = zflake.NewGen(
-			zflake.Epoch(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
-			zflake.GID(h16),
-		)
+func init() {
+	id, err := machineid.ID()
+	if err != nil {
+		id = time.Now().Format(time.RFC3339Nano)
 	}
+	h := xxh3.HashString(id) % (1 << zflake.BitLenGID)
+	h16 := uint16(h)
 
+	flake = zflake.NewGen(
+		zflake.Epoch(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
+		zflake.GID(h16),
+	)
+}
+
+func NextID() int64 {
 	return flake.NextFID()
 }
 
