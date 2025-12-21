@@ -279,7 +279,7 @@ func Once{%s q.Name.Pascal %}(
         res {% if q.ResponseHasMultiple %}[]{% endif %}{%s q.ResponseFields[0].GoType.Original -%},
     {%- else -%}
         {%- if q.ResponseHasModel -%}
-        res {% if q.ResponseHasMultiple %}[]{% else %}*{% endif %}{%s q.ResponseModelName.Pascal %}Model,
+        res {% if q.ResponseHasMultiple %}[]*{% else %}*{% endif %}{%s q.ResponseModelName.Pascal %}Model,
         {%- else -%}
         res {% if q.ResponseHasMultiple %}[]{% else %}*{% endif %}{%s q.Name.Pascal %}Res,
         {%- endif -%}

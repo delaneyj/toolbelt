@@ -965,7 +965,7 @@ func streamfillReturns(qw422016 *qt422016.Writer, q *GenerateQueryContext) {
 //line queries.qtpl:282
 				if q.ResponseHasMultiple {
 //line queries.qtpl:282
-					qw422016.N().S(`[]`)
+					qw422016.N().S(`[]*`)
 //line queries.qtpl:282
 				} else {
 //line queries.qtpl:282
