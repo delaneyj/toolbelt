@@ -113,6 +113,22 @@ func (f *Flat[ID]) Delete(id ID) bool {
 	return true
 }
 
+// Clear removes all vectors from the index. If keepCapacity is true, backing
+// storage is retained for reuse.
+func (f *Flat[ID]) Clear(keepCapacity bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if keepCapacity {
+		f.ids = f.ids[:0]
+		f.vectors = f.vectors[:0]
+		clear(f.index)
+		return
+	}
+	f.ids = nil
+	f.vectors = nil
+	f.index = make(map[ID]int)
+}
+
 // Vector returns a copy of the vector for an id, if present.
 func (f *Flat[ID]) Vector(id ID) ([]float32, bool) {
 	f.mu.RLock()

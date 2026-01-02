@@ -44,6 +44,7 @@ API highlights
 - `Add(id, vector...)` inserts a new vector (ErrIDExists if the id already exists).
 - `Upsert(id, vector...)` inserts or updates.
 - `Delete(id)` removes by id.
+- `Clear(keepCapacity)` removes all vectors, optionally keeping backing storage.
 - `Vector(id)` returns a copy of the vector.
 - `Search(k, vector...)` returns the k closest neighbors.
 - `SearchWithOptions(k, vectorSlice, ...SearchOption)` applies per-query options.

@@ -67,3 +67,21 @@ func TestFlatSearchWeightedNormalization(t *testing.T) {
 	require.Len(t, results, 1)
 	require.Equal(t, "near", results[0].ID)
 }
+
+func TestFlatClearKeepCapacity(t *testing.T) {
+	idx := NewFlat[string](2)
+	require.NoError(t, idx.Add("a", 1, 0))
+	require.NoError(t, idx.Add("b", 0, 1))
+
+	idsCap := cap(idx.ids)
+	vectorsCap := cap(idx.vectors)
+
+	idx.Clear(true)
+	require.Equal(t, 0, idx.Len())
+	require.Equal(t, 2, idx.Dim())
+	require.Equal(t, idsCap, cap(idx.ids))
+	require.Equal(t, vectorsCap, cap(idx.vectors))
+
+	require.NoError(t, idx.Add("c", 1, 0))
+	require.Equal(t, 1, idx.Len())
+}

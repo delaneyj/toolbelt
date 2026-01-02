@@ -6,8 +6,8 @@ import (
 	"sort"
 	"sync"
 
-	tb "github.com/delaneyj/toolbelt"
 	"github.com/chewxy/math32"
+	tb "github.com/delaneyj/toolbelt"
 	"github.com/viterin/vek/vek32"
 )
 
@@ -65,8 +65,25 @@ func NewHNSW[ID comparable](dim int, opts ...Option) *HNSW[ID] {
 		rng:            cfg.rng,
 		entry:          -1,
 		index:          make(map[ID]int),
-		candidatePool:  tb.New(func() []candidate { return make([]candidate, 0, cfg.efConstruction) }),
-		visitedPool:    tb.New(func() map[int]struct{} { return make(map[int]struct{}, cfg.efConstruction) }),
+		candidatePool: tb.New(
+			func() []candidate { return make([]candidate, 0, cfg.efConstruction) },
+			tb.WithReset(func(c []candidate) []candidate {
+				if c == nil {
+					return nil
+				}
+				return c[:0]
+			}),
+		),
+		visitedPool: tb.New(
+			func() map[int]struct{} { return make(map[int]struct{}, cfg.efConstruction) },
+			tb.WithReset(func(v map[int]struct{}) map[int]struct{} {
+				if v == nil {
+					return make(map[int]struct{}, cfg.efConstruction)
+				}
+				clear(v)
+				return v
+			}),
+		),
 	}
 }
 
@@ -137,6 +154,24 @@ func (h *HNSW[ID]) Delete(id ID) bool {
 	h.nodes[idx].deleted = true
 	delete(h.index, id)
 	return true
+}
+
+// Clear removes all vectors from the index. If keepCapacity is true, backing
+// storage is retained for reuse.
+func (h *HNSW[ID]) Clear(keepCapacity bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.entry = -1
+	h.maxLevel = 0
+	if keepCapacity {
+		h.nodes = h.nodes[:0]
+		clear(h.index)
+	} else {
+		h.nodes = nil
+		h.index = make(map[ID]int)
+	}
+	h.candidatePool.Clear(keepCapacity)
+	h.visitedPool.Clear(keepCapacity)
 }
 
 // Vector returns a copy of the vector for an id, if present.
@@ -467,12 +502,7 @@ func (h maxHeap) worstDist() float32 {
 }
 
 func (h *HNSW[ID]) searchLayer(query []float32, queryNorm float32, entry int, ef int, level int) []candidate {
-	visited := h.visitedPool.Get()
-	if visited == nil {
-		visited = make(map[int]struct{})
-	} else {
-		clear(visited)
-	}
+	visited := h.visitedPool.GetWithReset()
 	candidateSlice := h.getCandidates()
 	resultSlice := h.getCandidates()
 	candidates := minHeap(candidateSlice)
@@ -533,8 +563,7 @@ const (
 )
 
 func (h *HNSW[ID]) getCandidates() []candidate {
-	candidates := h.candidatePool.Get()
-	return candidates[:0]
+	return h.candidatePool.GetWithReset()
 }
 
 func (h *HNSW[ID]) putCandidates(candidates []candidate) {

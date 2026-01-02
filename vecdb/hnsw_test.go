@@ -65,3 +65,21 @@ func TestHNSWSearchWeightedNormalization(t *testing.T) {
 	require.Len(t, results, 1)
 	require.Equal(t, "near", results[0].ID)
 }
+
+func TestHNSWClearKeepCapacity(t *testing.T) {
+	idx := NewHNSW[string](2, WithSeed(13), WithEFConstruction(32), WithEFSearch(32))
+	require.NoError(t, idx.Add("a", 1, 0))
+	require.NoError(t, idx.Add("b", 0, 1))
+
+	nodesCap := cap(idx.nodes)
+
+	idx.Clear(true)
+	require.Equal(t, 0, idx.Len())
+	require.Equal(t, 2, idx.Dim())
+	require.Equal(t, nodesCap, cap(idx.nodes))
+	require.Equal(t, -1, idx.entry)
+	require.Equal(t, 0, idx.maxLevel)
+
+	require.NoError(t, idx.Add("c", 1, 0))
+	require.Equal(t, 1, idx.Len())
+}
