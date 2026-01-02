@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	tb "github.com/delaneyj/toolbelt"
+	"github.com/chewxy/math32"
 	"github.com/viterin/vek/vek32"
 )
 
@@ -155,7 +156,8 @@ func (h *HNSW[ID]) Search(k int, query ...float32) []Result[ID] {
 	return h.SearchWithOptions(k, query, nil)
 }
 
-// SearchWeighted returns the k closest vectors to the weighted query sum.
+// SearchWeighted returns the k closest vectors to the weighted query sum,
+// normalizing weights by the sum of absolute weights.
 func (h *HNSW[ID]) SearchWeighted(k int, queries ...WeightedQuery) []Result[ID] {
 	if len(queries) == 0 {
 		return nil
@@ -234,6 +236,7 @@ func (h *HNSW[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opt
 		return nil
 	}
 	combined := make([]float32, queryDim)
+	var weightSum float32
 	for _, q := range queries {
 		if len(q.Vector) != queryDim {
 			return nil
@@ -241,8 +244,15 @@ func (h *HNSW[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opt
 		if q.Weight == 0 {
 			continue
 		}
+		weightSum += math32.Abs(q.Weight)
 		for i, v := range q.Vector {
 			combined[i] += q.Weight * v
+		}
+	}
+	if weightSum > 0 {
+		inv := 1 / weightSum
+		for i := range combined {
+			combined[i] *= inv
 		}
 	}
 	return h.SearchWithOptions(k, combined, opts...)

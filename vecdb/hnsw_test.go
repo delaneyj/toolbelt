@@ -55,3 +55,13 @@ func TestHNSWSearchWeighted(t *testing.T) {
 	require.Len(t, results, 1)
 	require.Equal(t, "n", results[0].ID)
 }
+
+func TestHNSWSearchWeightedNormalization(t *testing.T) {
+	idx := NewHNSW[string](2, WithSeed(11), WithEFConstruction(32), WithEFSearch(32))
+	require.NoError(t, idx.Add("near", 1, 0))
+	require.NoError(t, idx.Add("far", 3, 0))
+
+	results := idx.SearchWeighted(1, WeightedQuery{Weight: 4, Vector: []float32{1, 0}})
+	require.Len(t, results, 1)
+	require.Equal(t, "near", results[0].ID)
+}

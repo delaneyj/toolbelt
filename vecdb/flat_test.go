@@ -57,3 +57,13 @@ func TestFlatSearchWeighted(t *testing.T) {
 	require.Len(t, results, 1)
 	require.Equal(t, "n", results[0].ID)
 }
+
+func TestFlatSearchWeightedNormalization(t *testing.T) {
+	idx := NewFlat[string](2)
+	require.NoError(t, idx.Add("near", 1, 0))
+	require.NoError(t, idx.Add("far", 3, 0))
+
+	results := idx.SearchWeighted(1, WeightedQuery{Weight: 4, Vector: []float32{1, 0}})
+	require.Len(t, results, 1)
+	require.Equal(t, "near", results[0].ID)
+}

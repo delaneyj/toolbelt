@@ -4,6 +4,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/chewxy/math32"
 	"github.com/viterin/vek/vek32"
 )
 
@@ -128,7 +129,8 @@ func (f *Flat[ID]) Search(k int, query ...float32) []Result[ID] {
 	return f.SearchWithOptions(k, query, nil)
 }
 
-// SearchWeighted returns the k closest vectors to the weighted query sum.
+// SearchWeighted returns the k closest vectors to the weighted query sum,
+// normalizing weights by the sum of absolute weights.
 func (f *Flat[ID]) SearchWeighted(k int, queries ...WeightedQuery) []Result[ID] {
 	return f.SearchWeightedWithOptions(k, queries)
 }
@@ -196,6 +198,7 @@ func (f *Flat[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opt
 		return nil
 	}
 	combined := make([]float32, queryDim)
+	var weightSum float32
 	for _, q := range queries {
 		if len(q.Vector) != queryDim {
 			return nil
@@ -203,8 +206,15 @@ func (f *Flat[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opt
 		if q.Weight == 0 {
 			continue
 		}
+		weightSum += math32.Abs(q.Weight)
 		for i, v := range q.Vector {
 			combined[i] += q.Weight * v
+		}
+	}
+	if weightSum > 0 {
+		inv := 1 / weightSum
+		for i := range combined {
+			combined[i] *= inv
 		}
 	}
 	return f.SearchWithOptions(k, combined, opts...)

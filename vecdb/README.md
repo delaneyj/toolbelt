@@ -47,7 +47,7 @@ API highlights
 - `Vector(id)` returns a copy of the vector.
 - `Search(k, vector...)` returns the k closest neighbors.
 - `SearchWithOptions(k, vectorSlice, ...SearchOption)` applies per-query options.
-- `SearchWeighted(k, queries...)` searches with weighted query vectors (negative weights allowed).
+- `SearchWeighted(k, queries...)` searches with weighted query vectors, normalized by the sum of absolute weights (negative weights allowed).
 
 Generics
 `NewHNSW[ID](dim, ...Option)` uses a single type parameter:

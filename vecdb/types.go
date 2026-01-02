@@ -97,7 +97,8 @@ type Result[ID comparable] struct {
 	Score float32
 }
 
-// WeightedQuery is a query vector scaled by Weight. Negative weights are allowed.
+// WeightedQuery is a query vector scaled by Weight. SearchWeighted normalizes
+// weights by the sum of absolute weights. Negative weights are allowed.
 type WeightedQuery struct {
 	Weight float32
 	Vector []float32
