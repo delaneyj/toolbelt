@@ -1,0 +1,538 @@
+package vecdb
+
+import (
+	"container/heap"
+	"math"
+	"math/rand"
+	"sort"
+	"sync"
+
+	tb "github.com/delaneyj/toolbelt"
+	"github.com/viterin/vek/vek32"
+)
+
+// HNSW is an approximate in-memory vector index.
+type HNSW[ID comparable] struct {
+	mu sync.RWMutex
+
+	dim    int
+	metric Metric
+
+	m              int
+	efConstruction int
+	efSearch       int
+	rng            *rand.Rand
+
+	entry         int
+	maxLevel      int
+	nodes         []hnswNode[ID]
+	index         map[ID]int
+	candidatePool tb.Pool[[]candidate]
+	visitedPool   tb.Pool[map[int]struct{}]
+}
+
+type hnswNode[ID comparable] struct {
+	id      ID
+	vector  []float32
+	norm    float32
+	level   int
+	links   [][]int
+	deleted bool
+}
+
+// NewHNSW creates a new HNSW index. If dim is zero, the first insert sets the dimension.
+// Type parameters:
+//   - ID: a comparable identifier used as the primary key for update/delete/lookup.
+func NewHNSW[ID comparable](dim int, opts ...Option) *HNSW[ID] {
+	if dim < 0 {
+		panic("vecdb: dim must be >= 0")
+	}
+	cfg := defaultConfig()
+	for _, opt := range opts {
+		if opt != nil {
+			opt(&cfg)
+		}
+	}
+	if cfg.efConstruction < cfg.m {
+		cfg.efConstruction = cfg.m
+	}
+	return &HNSW[ID]{
+		dim:            dim,
+		metric:         cfg.metric,
+		m:              cfg.m,
+		efConstruction: cfg.efConstruction,
+		efSearch:       cfg.efSearch,
+		rng:            cfg.rng,
+		entry:          -1,
+		index:          make(map[ID]int),
+		candidatePool:  tb.New(func() []candidate { return make([]candidate, 0, cfg.efConstruction) }),
+		visitedPool:    tb.New(func() map[int]struct{} { return make(map[int]struct{}, cfg.efConstruction) }),
+	}
+}
+
+// Len returns the number of live vectors.
+func (h *HNSW[ID]) Len() int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.index)
+}
+
+// Dim returns the configured dimension. Zero means unset.
+func (h *HNSW[ID]) Dim() int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.dim
+}
+
+// Metric returns the configured distance metric.
+func (h *HNSW[ID]) Metric() Metric {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.metric
+}
+
+// Add inserts a new vector. Returns ErrIDExists if id already exists.
+func (h *HNSW[ID]) Add(id ID, vector ...float32) error {
+	if len(vector) == 0 {
+		return ErrEmptyVector
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if _, ok := h.index[id]; ok {
+		return ErrIDExists
+	}
+	if err := h.ensureDimLocked(len(vector)); err != nil {
+		return err
+	}
+	h.addLocked(id, vector)
+	return nil
+}
+
+// Upsert inserts or updates a vector. Updates are implemented as delete + add.
+func (h *HNSW[ID]) Upsert(id ID, vector ...float32) error {
+	if len(vector) == 0 {
+		return ErrEmptyVector
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if err := h.ensureDimLocked(len(vector)); err != nil {
+		return err
+	}
+	if idx, ok := h.index[id]; ok {
+		h.nodes[idx].deleted = true
+		delete(h.index, id)
+	}
+	h.addLocked(id, vector)
+	return nil
+}
+
+// Delete removes a vector by id.
+func (h *HNSW[ID]) Delete(id ID) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	idx, ok := h.index[id]
+	if !ok {
+		return false
+	}
+	h.nodes[idx].deleted = true
+	delete(h.index, id)
+	return true
+}
+
+// Vector returns a copy of the vector for an id, if present.
+func (h *HNSW[ID]) Vector(id ID) ([]float32, bool) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	idx, ok := h.index[id]
+	if !ok {
+		return nil, false
+	}
+	return copyVector(h.nodes[idx].vector), true
+}
+
+// Search returns the k closest vectors to query.
+func (h *HNSW[ID]) Search(k int, query ...float32) []Result[ID] {
+	return h.SearchWithOptions(k, query, nil)
+}
+
+// SearchWeighted returns the k closest vectors to the weighted query sum.
+func (h *HNSW[ID]) SearchWeighted(k int, queries ...WeightedQuery) []Result[ID] {
+	if len(queries) == 0 {
+		return nil
+	}
+	return h.SearchWeightedWithOptions(k, queries)
+}
+
+// SearchWithOptions returns the k closest vectors to query with options applied.
+func (h *HNSW[ID]) SearchWithOptions(k int, query []float32, opts ...SearchOption[ID]) []Result[ID] {
+	if k <= 0 || len(query) == 0 {
+		return nil
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	if h.entry < 0 {
+		return nil
+	}
+	if h.dim != 0 && len(query) != h.dim {
+		return nil
+	}
+	searchOpts := applySearchOptions(opts)
+	ef := searchOpts.ef
+	if ef <= 0 {
+		ef = h.efSearch
+	}
+	if ef < k {
+		ef = k
+	}
+
+	var queryNorm float32
+	if h.metric == MetricCosine {
+		queryNorm = vek32.Norm(query)
+	}
+
+	entry := h.entry
+	for level := h.maxLevel; level > 0; level-- {
+		entry = h.greedySearchLayer(query, queryNorm, entry, level)
+	}
+
+	candidates := h.searchLayer(query, queryNorm, entry, ef, 0)
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	results := make([]Result[ID], 0, len(candidates))
+	for _, cand := range candidates {
+		node := h.nodes[cand.idx]
+		if node.deleted {
+			continue
+		}
+		if searchOpts.filter != nil && !searchOpts.filter(node.id) {
+			continue
+		}
+		results = append(results, Result[ID]{ID: node.id, Score: cand.dist})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score < results[j].Score
+	})
+	if len(results) > k {
+		results = results[:k]
+	}
+	return results
+}
+
+// SearchWeightedWithOptions returns the k closest vectors to the weighted query sum with options applied.
+func (h *HNSW[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opts ...SearchOption[ID]) []Result[ID] {
+	if k <= 0 || len(queries) == 0 {
+		return nil
+	}
+	queryDim := len(queries[0].Vector)
+	if queryDim == 0 {
+		return nil
+	}
+	if h.dim != 0 && queryDim != h.dim {
+		return nil
+	}
+	combined := make([]float32, queryDim)
+	for _, q := range queries {
+		if len(q.Vector) != queryDim {
+			return nil
+		}
+		if q.Weight == 0 {
+			continue
+		}
+		for i, v := range q.Vector {
+			combined[i] += q.Weight * v
+		}
+	}
+	return h.SearchWithOptions(k, combined, opts...)
+}
+
+func (h *HNSW[ID]) addLocked(id ID, vector []float32) {
+	level := 0
+	if h.m > 1 {
+		multiplier := 1.0 / math.Log(float64(h.m))
+		r := h.rng.Float64()
+		if r == 0 {
+			r = math.SmallestNonzeroFloat64
+		}
+		level = int(-math.Log(r) * multiplier)
+	}
+	node := hnswNode[ID]{
+		id:     id,
+		vector: copyVector(vector),
+		level:  level,
+		links:  make([][]int, level+1),
+	}
+	if h.metric == MetricCosine {
+		node.norm = vek32.Norm(vector)
+	}
+	index := len(h.nodes)
+	h.nodes = append(h.nodes, node)
+	h.index[id] = index
+
+	if h.entry < 0 {
+		h.entry = index
+		h.maxLevel = level
+		return
+	}
+
+	var queryNorm float32
+	if h.metric == MetricCosine {
+		queryNorm = vek32.Norm(vector)
+	}
+
+	entry := h.entry
+	for l := h.maxLevel; l > level; l-- {
+		entry = h.greedySearchLayer(vector, queryNorm, entry, l)
+	}
+
+	startLevel := level
+	if h.maxLevel < startLevel {
+		startLevel = h.maxLevel
+	}
+	for l := startLevel; l >= 0; l-- {
+		candidates := h.searchLayer(vector, queryNorm, entry, h.efConstruction, l)
+		maxNeighbors := h.maxNeighbors(l)
+		var neighbors []int
+		if len(candidates) > 0 && maxNeighbors > 0 {
+			if len(candidates) > maxNeighbors {
+				candidates = candidates[:maxNeighbors]
+			}
+			neighbors = make([]int, 0, len(candidates))
+			seen := make(map[int]struct{}, len(candidates))
+			for _, cand := range candidates {
+				if _, ok := seen[cand.idx]; ok {
+					continue
+				}
+				seen[cand.idx] = struct{}{}
+				neighbors = append(neighbors, cand.idx)
+			}
+		}
+		h.nodes[index].links[l] = neighbors
+		for _, nb := range neighbors {
+			links := h.nodes[nb].links[l]
+			exists := false
+			for _, existing := range links {
+				if existing == index {
+					exists = true
+					break
+				}
+			}
+			if exists {
+				continue
+			}
+			links = append(links, index)
+			if len(links) > maxNeighbors && maxNeighbors > 0 {
+				pruneCandidates := make([]candidate, 0, len(links))
+				base := &h.nodes[nb]
+				baseNorm := base.norm
+				if h.metric == MetricCosine && baseNorm == 0 {
+					baseNorm = vek32.Norm(base.vector)
+				}
+				for _, neighbor := range links {
+					if neighbor == nb {
+						continue
+					}
+					dist := h.distance(base.vector, baseNorm, &h.nodes[neighbor])
+					pruneCandidates = append(pruneCandidates, candidate{idx: neighbor, dist: dist})
+				}
+				sort.Slice(pruneCandidates, func(i, j int) bool {
+					return pruneCandidates[i].dist < pruneCandidates[j].dist
+				})
+				if len(pruneCandidates) > maxNeighbors {
+					pruneCandidates = pruneCandidates[:maxNeighbors]
+				}
+				pruned := make([]int, 0, len(pruneCandidates))
+				for _, cand := range pruneCandidates {
+					pruned = append(pruned, cand.idx)
+				}
+				links = pruned
+			}
+			h.nodes[nb].links[l] = links
+		}
+		if len(candidates) > 0 {
+			entry = candidates[0].idx
+		}
+	}
+
+	if level > h.maxLevel {
+		h.entry = index
+		h.maxLevel = level
+	}
+}
+
+func (h *HNSW[ID]) ensureDimLocked(dim int) error {
+	if h.dim == 0 {
+		h.dim = dim
+		return nil
+	}
+	if dim != h.dim {
+		return ErrDimMismatch
+	}
+	return nil
+}
+
+func (h *HNSW[ID]) maxNeighbors(level int) int {
+	if level == 0 {
+		return h.m * 2
+	}
+	return h.m
+}
+
+func (h *HNSW[ID]) distance(query []float32, queryNorm float32, node *hnswNode[ID]) float32 {
+	switch h.metric {
+	case MetricCosine:
+		if queryNorm == 0 || node.norm == 0 {
+			return 1
+		}
+		dot := vek32.Dot(query, node.vector)
+		return 1 - (dot / (queryNorm * node.norm))
+	default:
+		d := vek32.Distance(query, node.vector)
+		return d * d
+	}
+}
+
+func (h *HNSW[ID]) greedySearchLayer(query []float32, queryNorm float32, entry int, level int) int {
+	curr := entry
+	currDist := h.distance(query, queryNorm, &h.nodes[curr])
+	for {
+		changed := false
+		for _, nb := range h.nodes[curr].links[level] {
+			if h.nodes[nb].deleted {
+				continue
+			}
+			dist := h.distance(query, queryNorm, &h.nodes[nb])
+			if dist < currDist {
+				curr = nb
+				currDist = dist
+				changed = true
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+	return curr
+}
+
+type candidate struct {
+	idx  int
+	dist float32
+}
+
+type minHeap []candidate
+
+func (h minHeap) Len() int            { return len(h) }
+func (h minHeap) Less(i, j int) bool  { return h[i].dist < h[j].dist }
+func (h minHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x interface{}) { *h = append(*h, x.(candidate)) }
+func (h *minHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	item := old[n-1]
+	*h = old[:n-1]
+	return item
+}
+
+type maxHeap []candidate
+
+func (h maxHeap) Len() int            { return len(h) }
+func (h maxHeap) Less(i, j int) bool  { return h[i].dist > h[j].dist }
+func (h maxHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *maxHeap) Push(x interface{}) { *h = append(*h, x.(candidate)) }
+func (h *maxHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	item := old[n-1]
+	*h = old[:n-1]
+	return item
+}
+
+func (h maxHeap) worstDist() float32 {
+	if len(h) == 0 {
+		return float32(math.Inf(1))
+	}
+	return h[0].dist
+}
+
+func (h *HNSW[ID]) searchLayer(query []float32, queryNorm float32, entry int, ef int, level int) []candidate {
+	visited := h.visitedPool.Get()
+	if visited == nil {
+		visited = make(map[int]struct{})
+	} else {
+		clear(visited)
+	}
+	candidateSlice := h.getCandidates()
+	resultSlice := h.getCandidates()
+	candidates := minHeap(candidateSlice)
+	results := maxHeap(resultSlice)
+	candidatesPtr := &candidates
+	resultsPtr := &results
+
+	entryDist := h.distance(query, queryNorm, &h.nodes[entry])
+	heap.Push(candidatesPtr, candidate{idx: entry, dist: entryDist})
+	if !h.nodes[entry].deleted {
+		heap.Push(resultsPtr, candidate{idx: entry, dist: entryDist})
+	}
+	visited[entry] = struct{}{}
+
+	for candidatesPtr.Len() > 0 {
+		curr := heap.Pop(candidatesPtr).(candidate)
+		if resultsPtr.Len() >= ef && curr.dist > results.worstDist() {
+			break
+		}
+		for _, nb := range h.nodes[curr.idx].links[level] {
+			if _, ok := visited[nb]; ok {
+				continue
+			}
+			visited[nb] = struct{}{}
+			dist := h.distance(query, queryNorm, &h.nodes[nb])
+			if resultsPtr.Len() < ef || dist < results.worstDist() {
+				heap.Push(candidatesPtr, candidate{idx: nb, dist: dist})
+			}
+			if h.nodes[nb].deleted {
+				continue
+			}
+			if resultsPtr.Len() < ef || dist < results.worstDist() {
+				heap.Push(resultsPtr, candidate{idx: nb, dist: dist})
+				if resultsPtr.Len() > ef {
+					heap.Pop(resultsPtr)
+				}
+			}
+		}
+	}
+
+	out := make([]candidate, len(results))
+	copy(out, results)
+	sort.Slice(out, func(i, j int) bool { return out[i].dist < out[j].dist })
+	h.putCandidates(candidates)
+	h.putCandidates(results)
+	if len(visited) > maxVisitedPoolEntries {
+		h.visitedPool.Put(make(map[int]struct{}))
+	} else {
+		clear(visited)
+		h.visitedPool.Put(visited)
+	}
+	return out
+}
+
+const (
+	maxPoolCandidates     = 16384
+	maxVisitedPoolEntries = 16384
+)
+
+func (h *HNSW[ID]) getCandidates() []candidate {
+	candidates := h.candidatePool.Get()
+	return candidates[:0]
+}
+
+func (h *HNSW[ID]) putCandidates(candidates []candidate) {
+	if cap(candidates) > maxPoolCandidates {
+		candidates = nil
+	} else {
+		candidates = candidates[:0]
+	}
+	h.candidatePool.Put(candidates)
+}

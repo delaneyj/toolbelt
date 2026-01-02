@@ -1,0 +1,29 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  FUZZTIME: 30s
+
+tasks:
+  test:
+    cmds:
+      - go test .
+
+  fuzz:
+    desc: "Run both fuzzers. Override time with FUZZTIME=2m"
+    cmds:
+      - task: fuzz-flat
+      - task: fuzz-hnsw
+
+  fuzz-flat:
+    cmds:
+      - go test -run=^$ -fuzz=FuzzFlatSearchSorted -fuzztime={{.FUZZTIME}} .
+
+  fuzz-hnsw:
+    cmds:
+      - go test -run=^$ -fuzz=FuzzHNSWSearchSorted -fuzztime={{.FUZZTIME}} .
+
+  bench:
+    cmds:
+      - go test -bench=. -benchmem -benchtime=1s .
