@@ -2,7 +2,6 @@ package vecdb
 
 import (
 	"container/heap"
-	"math"
 	"math/rand"
 	"sort"
 	"sync"
@@ -261,12 +260,12 @@ func (h *HNSW[ID]) SearchWeightedWithOptions(k int, queries []WeightedQuery, opt
 func (h *HNSW[ID]) addLocked(id ID, vector []float32) {
 	level := 0
 	if h.m > 1 {
-		multiplier := 1.0 / math.Log(float64(h.m))
-		r := h.rng.Float64()
+		multiplier := float32(1.0) / math32.Log(float32(h.m))
+		r := h.rng.Float32()
 		if r == 0 {
-			r = math.SmallestNonzeroFloat64
+			r = math32.SmallestNonzeroFloat32
 		}
-		level = int(-math.Log(r) * multiplier)
+		level = int(-math32.Log(r) * multiplier)
 	}
 	node := hnswNode[ID]{
 		id:     id,
@@ -462,7 +461,7 @@ func (h *maxHeap) Pop() interface{} {
 
 func (h maxHeap) worstDist() float32 {
 	if len(h) == 0 {
-		return float32(math.Inf(1))
+		return math32.Inf(1)
 	}
 	return h[0].dist
 }
