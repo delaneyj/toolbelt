@@ -46,6 +46,7 @@ API highlights
 - `Delete(id)` removes by id.
 - `Clear(keepCapacity)` removes all vectors, optionally keeping backing storage.
 - `Vector(id)` returns a copy of the vector.
+- `Save(w, ...PersistOption)` and `Load(r, ...PersistOption)` persist and restore indices (HNSW includes graph structure).
 - `Search(k, vector...)` returns the k closest neighbors.
 - `SearchWithOptions(k, vectorSlice, ...SearchOption)` applies per-query options.
 - `SearchWeighted(k, queries...)` searches with weighted query vectors, normalized by the sum of absolute weights (negative weights allowed).
@@ -69,9 +70,10 @@ Options
 - `WithEF`: per-query override for HNSW ef.
 
 Notes
-- This package is in-memory only (persistence can be layered later).
+- This package is in-memory only with explicit Save/Load persistence.
 - Distances are returned as `Score`, lower is better.
 - HNSW deletes are tombstones; memory is not compacted.
+- Persistence uses a default ID codec for strings, bools, and numeric types; provide `WithIDCodec` for custom IDs.
 
 Benchmarks
 Search: `go test ./vecdb -bench=Search -benchmem -benchtime=1s -count=3` on `AMD Ryzen 9 6900HX` (linux/amd64).

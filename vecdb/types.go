@@ -15,9 +15,12 @@ const (
 )
 
 var (
-	ErrIDExists    = errors.New("vecdb: id already exists")
-	ErrDimMismatch = errors.New("vecdb: dimension mismatch")
-	ErrEmptyVector = errors.New("vecdb: empty vector")
+	ErrIDExists           = errors.New("vecdb: id already exists")
+	ErrDimMismatch        = errors.New("vecdb: dimension mismatch")
+	ErrEmptyVector        = errors.New("vecdb: empty vector")
+	ErrInvalidFormat      = errors.New("vecdb: invalid persistence format")
+	ErrUnsupportedIDType  = errors.New("vecdb: unsupported id type for persistence")
+	ErrUnsupportedVersion = errors.New("vecdb: unsupported persistence version")
 )
 
 type config struct {

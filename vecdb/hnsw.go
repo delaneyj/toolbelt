@@ -65,25 +65,8 @@ func NewHNSW[ID comparable](dim int, opts ...Option) *HNSW[ID] {
 		rng:            cfg.rng,
 		entry:          -1,
 		index:          make(map[ID]int),
-		candidatePool: tb.New(
-			func() []candidate { return make([]candidate, 0, cfg.efConstruction) },
-			tb.WithReset(func(c []candidate) []candidate {
-				if c == nil {
-					return nil
-				}
-				return c[:0]
-			}),
-		),
-		visitedPool: tb.New(
-			func() map[int]struct{} { return make(map[int]struct{}, cfg.efConstruction) },
-			tb.WithReset(func(v map[int]struct{}) map[int]struct{} {
-				if v == nil {
-					return make(map[int]struct{}, cfg.efConstruction)
-				}
-				clear(v)
-				return v
-			}),
-		),
+		candidatePool:  newCandidatePool(cfg.efConstruction),
+		visitedPool:    newVisitedPool(cfg.efConstruction),
 	}
 }
 
@@ -166,12 +149,14 @@ func (h *HNSW[ID]) Clear(keepCapacity bool) {
 	if keepCapacity {
 		h.nodes = h.nodes[:0]
 		clear(h.index)
+		h.candidatePool.Clear(true)
+		h.visitedPool.Clear(true)
 	} else {
 		h.nodes = nil
 		h.index = make(map[ID]int)
+		h.candidatePool = newCandidatePool(h.efConstruction)
+		h.visitedPool = newVisitedPool(h.efConstruction)
 	}
-	h.candidatePool.Clear(keepCapacity)
-	h.visitedPool.Clear(keepCapacity)
 }
 
 // Vector returns a copy of the vector for an id, if present.
@@ -564,6 +549,31 @@ const (
 
 func (h *HNSW[ID]) getCandidates() []candidate {
 	return h.candidatePool.GetWithReset()
+}
+
+func newCandidatePool(capacity int) tb.Pool[[]candidate] {
+	return tb.New(
+		func() []candidate { return make([]candidate, 0, capacity) },
+		tb.WithReset(func(c []candidate) []candidate {
+			if c == nil {
+				return nil
+			}
+			return c[:0]
+		}),
+	)
+}
+
+func newVisitedPool(capacity int) tb.Pool[map[int]struct{}] {
+	return tb.New(
+		func() map[int]struct{} { return make(map[int]struct{}, capacity) },
+		tb.WithReset(func(v map[int]struct{}) map[int]struct{} {
+			if v == nil {
+				return make(map[int]struct{}, capacity)
+			}
+			clear(v)
+			return v
+		}),
+	)
 }
 
 func (h *HNSW[ID]) putCandidates(candidates []candidate) {
