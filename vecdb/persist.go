@@ -153,6 +153,9 @@ func (f *Flat[ID]) Save(w io.Writer, opts ...PersistOption[ID]) error {
 			return err
 		}
 	}
+	if err := writeOptionalColumnNames(bw, f.dim, f.columnNames); err != nil {
+		return err
+	}
 	return bw.Flush()
 }
 
@@ -206,10 +209,15 @@ func (f *Flat[ID]) Load(r io.Reader, opts ...PersistOption[ID]) error {
 		vectors = append(vectors, vector)
 		index[id] = i
 	}
+	columnNames, err := readOptionalColumnNames(br, dim)
+	if err != nil {
+		return err
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.dim = dim
 	f.metric = metric
+	f.columnNames = columnNames
 	f.ids = ids
 	f.vectors = vectors
 	f.index = index
@@ -291,6 +299,9 @@ func (h *HNSW[ID]) Save(w io.Writer, opts ...PersistOption[ID]) error {
 				}
 			}
 		}
+	}
+	if err := writeOptionalColumnNames(bw, h.dim, h.columnNames); err != nil {
+		return err
 	}
 	return bw.Flush()
 }
@@ -414,6 +425,10 @@ func (h *HNSW[ID]) Load(r io.Reader, opts ...PersistOption[ID]) error {
 			index[id] = i
 		}
 	}
+	columnNames, err := readOptionalColumnNames(br, dim)
+	if err != nil {
+		return err
+	}
 	entry := int(entry32)
 	if entry < -1 || entry >= nodeCount {
 		return ErrInvalidFormat
@@ -433,6 +448,7 @@ func (h *HNSW[ID]) Load(r io.Reader, opts ...PersistOption[ID]) error {
 	h.m = int(m32)
 	h.efConstruction = int(efConstruction32)
 	h.efSearch = int(efSearch32)
+	h.columnNames = columnNames
 	h.entry = entry
 	h.maxLevel = maxLevel
 	h.nodes = nodes
@@ -443,6 +459,66 @@ func (h *HNSW[ID]) Load(r io.Reader, opts ...PersistOption[ID]) error {
 	h.candidatePool = newCandidatePool(h.efConstruction)
 	h.visitedPool = newVisitedPool(h.efConstruction)
 	return nil
+}
+
+func writeOptionalColumnNames(w io.Writer, dim int, names []string) error {
+	if len(names) == 0 {
+		return nil
+	}
+	if dim == 0 || len(names) > dim {
+		return ErrInvalidFormat
+	}
+	nonEmpty := false
+	for _, name := range names {
+		if name != "" {
+			nonEmpty = true
+			break
+		}
+	}
+	if !nonEmpty {
+		return nil
+	}
+	if err := tb.WriteUint32(w, uint32(len(names))); err != nil {
+		return err
+	}
+	for _, name := range names {
+		if err := tb.WriteString(w, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func readOptionalColumnNames(r *bufio.Reader, expectedDim int) ([]string, error) {
+	count32, err := tb.ReadUint32(r)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil, nil
+		}
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			return nil, ErrInvalidFormat
+		}
+		return nil, err
+	}
+	count, err := checkedInt(count32)
+	if err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		return nil, nil
+	}
+	if expectedDim == 0 || count > expectedDim {
+		return nil, ErrInvalidFormat
+	}
+	names := make([]string, expectedDim)
+	for i := 0; i < count; i++ {
+		name, err := tb.ReadString(r)
+		if err != nil {
+			return nil, err
+		}
+		names[i] = name
+	}
+	return names, nil
 }
 
 func writeHeader(w io.Writer, kind uint8) error {

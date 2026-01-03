@@ -22,6 +22,7 @@ type HNSW[ID comparable] struct {
 	efConstruction int
 	efSearch       int
 	rng            *rand.Rand
+	columnNames    []string
 
 	entry         int
 	maxLevel      int
@@ -63,6 +64,7 @@ func NewHNSW[ID comparable](dim int, opts ...Option) *HNSW[ID] {
 		efConstruction: cfg.efConstruction,
 		efSearch:       cfg.efSearch,
 		rng:            cfg.rng,
+		columnNames:    copyStrings(cfg.columnNames),
 		entry:          -1,
 		index:          make(map[ID]int),
 		candidatePool:  newCandidatePool(cfg.efConstruction),
@@ -89,6 +91,37 @@ func (h *HNSW[ID]) Metric() Metric {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.metric
+}
+
+// ColumnName returns the associated column name for the given dimension (0-based).
+func (h *HNSW[ID]) ColumnName(dim int) (string, bool) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	if dim < 0 || dim >= h.dim {
+		return "", false
+	}
+	if dim >= len(h.columnNames) {
+		return "", false
+	}
+	name := h.columnNames[dim]
+	if name == "" {
+		return "", false
+	}
+	return name, true
+}
+
+// SetColumnName sets the associated column name for the given dimension (0-based).
+func (h *HNSW[ID]) SetColumnName(dim int, name string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if dim < 0 || dim >= h.dim {
+		return ErrInvalidColumnIndex
+	}
+	if err := h.ensureColumnNamesLocked(); err != nil {
+		return err
+	}
+	h.columnNames[dim] = name
+	return nil
 }
 
 // Add inserts a new vector. Returns ErrIDExists if id already exists.
@@ -394,10 +427,43 @@ func (h *HNSW[ID]) addLocked(id ID, vector []float32) {
 func (h *HNSW[ID]) ensureDimLocked(dim int) error {
 	if h.dim == 0 {
 		h.dim = dim
-		return nil
 	}
 	if dim != h.dim {
 		return ErrDimMismatch
+	}
+	return h.normalizeColumnNamesLocked()
+}
+
+func (h *HNSW[ID]) normalizeColumnNamesLocked() error {
+	if h.dim == 0 || len(h.columnNames) == 0 {
+		return nil
+	}
+	if len(h.columnNames) > h.dim {
+		return ErrColumnNamesMismatch
+	}
+	if len(h.columnNames) < h.dim {
+		names := make([]string, h.dim)
+		copy(names, h.columnNames)
+		h.columnNames = names
+	}
+	return nil
+}
+
+func (h *HNSW[ID]) ensureColumnNamesLocked() error {
+	if h.dim == 0 {
+		return ErrInvalidColumnIndex
+	}
+	if len(h.columnNames) == 0 {
+		h.columnNames = make([]string, h.dim)
+		return nil
+	}
+	if len(h.columnNames) > h.dim {
+		return ErrColumnNamesMismatch
+	}
+	if len(h.columnNames) < h.dim {
+		names := make([]string, h.dim)
+		copy(names, h.columnNames)
+		h.columnNames = names
 	}
 	return nil
 }

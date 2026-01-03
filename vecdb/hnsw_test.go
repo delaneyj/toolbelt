@@ -40,6 +40,21 @@ func TestHNSWSet(t *testing.T) {
 	require.Equal(t, 2, idx.Len())
 }
 
+func TestHNSWColumnName(t *testing.T) {
+	idx := NewHNSW[string](2, WithSeed(7), WithColumnNames("embedding", "title"))
+	name, ok := idx.ColumnName(0)
+	require.True(t, ok)
+	require.Equal(t, "embedding", name)
+	name, ok = idx.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "title", name)
+
+	require.NoError(t, idx.SetColumnName(1, "title_embedding"))
+	name, ok = idx.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "title_embedding", name)
+}
+
 func TestHNSWDimMismatch(t *testing.T) {
 	idx := NewHNSW[int](2)
 	require.NoError(t, idx.Add(1, 0, 1))

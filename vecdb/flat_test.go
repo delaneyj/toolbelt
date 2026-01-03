@@ -42,6 +42,21 @@ func TestFlatSetAndFilter(t *testing.T) {
 	require.Equal(t, "a", results[0].ID)
 }
 
+func TestFlatColumnName(t *testing.T) {
+	idx := NewFlat[string](2, WithColumnNames("embedding", "title"))
+	name, ok := idx.ColumnName(0)
+	require.True(t, ok)
+	require.Equal(t, "embedding", name)
+	name, ok = idx.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "title", name)
+
+	require.NoError(t, idx.SetColumnName(1, "text_embedding"))
+	name, ok = idx.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "text_embedding", name)
+}
+
 func TestFlatDimMismatch(t *testing.T) {
 	idx := NewFlat[int](2)
 	require.NoError(t, idx.Add(1, 0, 1))

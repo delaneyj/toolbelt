@@ -14,6 +14,8 @@ type Flat[ID comparable] struct {
 	dim    int
 	metric Metric
 
+	columnNames []string
+
 	ids     []ID
 	vectors [][]float32
 	index   map[ID]int
@@ -31,9 +33,10 @@ func NewFlat[ID comparable](dim int, opts ...Option) *Flat[ID] {
 		}
 	}
 	return &Flat[ID]{
-		dim:    dim,
-		metric: cfg.metric,
-		index:  make(map[ID]int),
+		dim:         dim,
+		metric:      cfg.metric,
+		columnNames: copyStrings(cfg.columnNames),
+		index:       make(map[ID]int),
 	}
 }
 
@@ -56,6 +59,37 @@ func (f *Flat[ID]) Metric() Metric {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.metric
+}
+
+// ColumnName returns the associated column name for the given dimension (0-based).
+func (f *Flat[ID]) ColumnName(dim int) (string, bool) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	if dim < 0 || dim >= f.dim {
+		return "", false
+	}
+	if dim >= len(f.columnNames) {
+		return "", false
+	}
+	name := f.columnNames[dim]
+	if name == "" {
+		return "", false
+	}
+	return name, true
+}
+
+// SetColumnName sets the associated column name for the given dimension (0-based).
+func (f *Flat[ID]) SetColumnName(dim int, name string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if dim < 0 || dim >= f.dim {
+		return ErrInvalidColumnIndex
+	}
+	if err := f.ensureColumnNamesLocked(); err != nil {
+		return err
+	}
+	f.columnNames[dim] = name
+	return nil
 }
 
 // Add inserts a new vector. Returns ErrIDExists if id already exists.
@@ -245,10 +279,43 @@ func (f *Flat[ID]) addLocked(id ID, vector []float32) {
 func (f *Flat[ID]) ensureDimLocked(dim int) error {
 	if f.dim == 0 {
 		f.dim = dim
-		return nil
 	}
 	if dim != f.dim {
 		return ErrDimMismatch
+	}
+	return f.normalizeColumnNamesLocked()
+}
+
+func (f *Flat[ID]) normalizeColumnNamesLocked() error {
+	if f.dim == 0 || len(f.columnNames) == 0 {
+		return nil
+	}
+	if len(f.columnNames) > f.dim {
+		return ErrColumnNamesMismatch
+	}
+	if len(f.columnNames) < f.dim {
+		names := make([]string, f.dim)
+		copy(names, f.columnNames)
+		f.columnNames = names
+	}
+	return nil
+}
+
+func (f *Flat[ID]) ensureColumnNamesLocked() error {
+	if f.dim == 0 {
+		return ErrInvalidColumnIndex
+	}
+	if len(f.columnNames) == 0 {
+		f.columnNames = make([]string, f.dim)
+		return nil
+	}
+	if len(f.columnNames) > f.dim {
+		return ErrColumnNamesMismatch
+	}
+	if len(f.columnNames) < f.dim {
+		names := make([]string, f.dim)
+		copy(names, f.columnNames)
+		f.columnNames = names
 	}
 	return nil
 }

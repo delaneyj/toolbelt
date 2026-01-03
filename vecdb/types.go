@@ -15,12 +15,14 @@ const (
 )
 
 var (
-	ErrIDExists           = errors.New("vecdb: id already exists")
-	ErrDimMismatch        = errors.New("vecdb: dimension mismatch")
-	ErrEmptyVector        = errors.New("vecdb: empty vector")
-	ErrInvalidFormat      = errors.New("vecdb: invalid persistence format")
-	ErrUnsupportedIDType  = errors.New("vecdb: unsupported id type for persistence")
-	ErrUnsupportedVersion = errors.New("vecdb: unsupported persistence version")
+	ErrIDExists            = errors.New("vecdb: id already exists")
+	ErrDimMismatch         = errors.New("vecdb: dimension mismatch")
+	ErrEmptyVector         = errors.New("vecdb: empty vector")
+	ErrInvalidFormat       = errors.New("vecdb: invalid persistence format")
+	ErrInvalidColumnIndex  = errors.New("vecdb: invalid column index")
+	ErrColumnNamesMismatch = errors.New("vecdb: column names length mismatch")
+	ErrUnsupportedIDType   = errors.New("vecdb: unsupported id type for persistence")
+	ErrUnsupportedVersion  = errors.New("vecdb: unsupported persistence version")
 )
 
 type config struct {
@@ -29,6 +31,7 @@ type config struct {
 	efConstruction int
 	efSearch       int
 	rng            *rand.Rand
+	columnNames    []string
 }
 
 func defaultConfig() config {
@@ -94,6 +97,13 @@ func WithRNG(rng *rand.Rand) Option {
 	}
 }
 
+// WithColumnNames sets the associated vector column names by dimension (0-based).
+func WithColumnNames(names ...string) Option {
+	return func(cfg *config) {
+		cfg.columnNames = copyStrings(names)
+	}
+}
+
 // Result is a nearest-neighbor search result.
 type Result[ID comparable] struct {
 	ID    ID
@@ -144,5 +154,14 @@ func applySearchOptions[ID comparable](opts []SearchOption[ID]) searchOptions[ID
 func copyVector(vector []float32) []float32 {
 	out := make([]float32, len(vector))
 	copy(out, vector)
+	return out
+}
+
+func copyStrings(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]string, len(values))
+	copy(out, values)
 	return out
 }

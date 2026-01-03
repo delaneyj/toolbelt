@@ -8,7 +8,7 @@ import (
 )
 
 func TestFlatSaveLoad(t *testing.T) {
-	idx := NewFlat[string](2)
+	idx := NewFlat[string](2, WithColumnNames("embedding", "title"))
 	require.NoError(t, idx.Add("a", 0, 0))
 	require.NoError(t, idx.Add("b", 1, 0))
 	require.NoError(t, idx.Add("c", 0, 1))
@@ -20,6 +20,12 @@ func TestFlatSaveLoad(t *testing.T) {
 	require.NoError(t, loaded.Load(&buf))
 	require.Equal(t, idx.Dim(), loaded.Dim())
 	require.Equal(t, idx.Metric(), loaded.Metric())
+	name, ok := loaded.ColumnName(0)
+	require.True(t, ok)
+	require.Equal(t, "embedding", name)
+	name, ok = loaded.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "title", name)
 
 	vec, ok := loaded.Vector("b")
 	require.True(t, ok)
@@ -31,7 +37,7 @@ func TestFlatSaveLoad(t *testing.T) {
 }
 
 func TestHNSWSaveLoad(t *testing.T) {
-	idx := NewHNSW[string](2, WithSeed(7), WithEFConstruction(32), WithEFSearch(32))
+	idx := NewHNSW[string](2, WithSeed(7), WithEFConstruction(32), WithEFSearch(32), WithColumnNames("embedding", "title"))
 	require.NoError(t, idx.Add("a", 0, 0))
 	require.NoError(t, idx.Add("b", 1, 0))
 	require.NoError(t, idx.Add("c", 0, 1))
@@ -45,8 +51,14 @@ func TestHNSWSaveLoad(t *testing.T) {
 	require.Equal(t, idx.Dim(), loaded.Dim())
 	require.Equal(t, idx.Metric(), loaded.Metric())
 	require.Equal(t, idx.Len(), loaded.Len())
+	name, ok := loaded.ColumnName(0)
+	require.True(t, ok)
+	require.Equal(t, "embedding", name)
+	name, ok = loaded.ColumnName(1)
+	require.True(t, ok)
+	require.Equal(t, "title", name)
 
-	_, ok := loaded.Vector("b")
+	_, ok = loaded.Vector("b")
 	require.False(t, ok)
 
 	results := loaded.Search(1, 0.9, 0)
