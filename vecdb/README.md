@@ -43,10 +43,11 @@ func main() {
 API highlights
 - `Add(id, vector...)` inserts a new vector (ErrIDExists if the id already exists).
 - `Upsert(id, vector...)` inserts or updates.
+- `BatchUpsert(ids, vectors)` inserts or updates multiple vectors.
 - `Delete(id)` removes by id.
 - `Clear(keepCapacity)` removes all vectors, optionally keeping backing storage.
 - `Vector(id)` returns a copy of the vector.
-- `ColumnName(dim)`, `ColumnNames()`, and `SetColumnName(dim, name)` get/set per-dimension column names (0-based).
+- `ColumnName(dim)`, `ColumnNames()`, `SetColumnName(dim, name)`, and `SetColumnNames(names...)` get/set per-dimension column names (0-based).
 - `Save(w, ...PersistOption)` and `Load(r, ...PersistOption)` persist and restore indices (HNSW includes graph structure).
 - `Search(k, vector...)` returns the k closest neighbors.
 - `SearchWithOptions(k, vectorSlice, ...SearchOption)` applies per-query options.

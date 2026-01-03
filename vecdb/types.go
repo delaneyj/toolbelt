@@ -16,6 +16,7 @@ const (
 
 var (
 	ErrIDExists            = errors.New("vecdb: id already exists")
+	ErrBatchSizeMismatch   = errors.New("vecdb: batch length mismatch")
 	ErrDimMismatch         = errors.New("vecdb: dimension mismatch")
 	ErrEmptyVector         = errors.New("vecdb: empty vector")
 	ErrInvalidFormat       = errors.New("vecdb: invalid persistence format")

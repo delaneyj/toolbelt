@@ -59,6 +59,37 @@ func TestFlatColumnName(t *testing.T) {
 	require.Equal(t, "text_embedding", name)
 
 	require.Equal(t, []string{"embedding", "text_embedding"}, idx.ColumnNames())
+
+	require.NoError(t, idx.SetColumnNames("a", "b"))
+	require.Equal(t, []string{"a", "b"}, idx.ColumnNames())
+}
+
+func TestFlatBatchUpsert(t *testing.T) {
+	idx := NewFlat[string](0)
+	ids := []string{"a", "b"}
+	vectors := [][]float32{
+		{1, 0},
+		{0, 1},
+	}
+	require.NoError(t, idx.BatchUpsert(ids, vectors))
+	require.Equal(t, 2, idx.Len())
+
+	vec, ok := idx.Vector("a")
+	require.True(t, ok)
+	require.Equal(t, []float32{1, 0}, vec)
+
+	ids = []string{"a", "c"}
+	vectors = [][]float32{
+		{2, 0},
+		{3, 0},
+	}
+	require.NoError(t, idx.BatchUpsert(ids, vectors))
+	require.Equal(t, 3, idx.Len())
+	vec, ok = idx.Vector("a")
+	require.True(t, ok)
+	require.Equal(t, []float32{2, 0}, vec)
+
+	require.ErrorIs(t, idx.BatchUpsert([]string{"x"}, [][]float32{{1, 0}, {0, 1}}), ErrBatchSizeMismatch)
 }
 
 func TestFlatDimMismatch(t *testing.T) {

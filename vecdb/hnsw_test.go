@@ -57,6 +57,37 @@ func TestHNSWColumnName(t *testing.T) {
 	require.Equal(t, "title_embedding", name)
 
 	require.Equal(t, []string{"embedding", "title_embedding"}, idx.ColumnNames())
+
+	require.NoError(t, idx.SetColumnNames("a", "b"))
+	require.Equal(t, []string{"a", "b"}, idx.ColumnNames())
+}
+
+func TestHNSWBatchUpsert(t *testing.T) {
+	idx := NewHNSW[string](0, WithSeed(7), WithEFConstruction(32), WithEFSearch(32))
+	ids := []string{"a", "b"}
+	vectors := [][]float32{
+		{1, 0},
+		{0, 1},
+	}
+	require.NoError(t, idx.BatchUpsert(ids, vectors))
+	require.Equal(t, 2, idx.Len())
+
+	vec, ok := idx.Vector("a")
+	require.True(t, ok)
+	require.Equal(t, []float32{1, 0}, vec)
+
+	ids = []string{"a", "c"}
+	vectors = [][]float32{
+		{2, 0},
+		{3, 0},
+	}
+	require.NoError(t, idx.BatchUpsert(ids, vectors))
+	require.Equal(t, 3, idx.Len())
+	vec, ok = idx.Vector("a")
+	require.True(t, ok)
+	require.Equal(t, []float32{2, 0}, vec)
+
+	require.ErrorIs(t, idx.BatchUpsert([]string{"x"}, [][]float32{{1, 0}, {0, 1}}), ErrBatchSizeMismatch)
 }
 
 func TestHNSWDimMismatch(t *testing.T) {

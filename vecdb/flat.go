@@ -84,7 +84,7 @@ func (f *Flat[ID]) ColumnNames() []string {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	if f.dim == 0 {
-		return nil
+		return copyStrings(f.columnNames)
 	}
 	if len(f.columnNames) == 0 {
 		return make([]string, f.dim)
@@ -100,6 +100,17 @@ func (f *Flat[ID]) ColumnNames() []string {
 		return names
 	}
 	return copyStrings(f.columnNames)
+}
+
+// SetColumnNames replaces all associated column names, indexed by dimension (0-based).
+func (f *Flat[ID]) SetColumnNames(names ...string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.columnNames = copyStrings(names)
+	if f.dim == 0 {
+		return nil
+	}
+	return f.normalizeColumnNamesLocked()
 }
 
 // SetColumnName sets the associated column name for the given dimension (0-based).
@@ -148,6 +159,40 @@ func (f *Flat[ID]) Upsert(id ID, vector ...float32) error {
 		return nil
 	}
 	f.addLocked(id, vector)
+	return nil
+}
+
+// BatchUpsert inserts or updates multiple vectors.
+func (f *Flat[ID]) BatchUpsert(ids []ID, vectors [][]float32) error {
+	if len(ids) != len(vectors) {
+		return ErrBatchSizeMismatch
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	for _, vector := range vectors {
+		if len(vector) == 0 {
+			return ErrEmptyVector
+		}
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if err := f.ensureDimLocked(len(vectors[0])); err != nil {
+		return err
+	}
+	for _, vector := range vectors {
+		if len(vector) != f.dim {
+			return ErrDimMismatch
+		}
+	}
+	for i, id := range ids {
+		vector := vectors[i]
+		if idx, ok := f.index[id]; ok {
+			f.vectors[idx] = copyVector(vector)
+			continue
+		}
+		f.addLocked(id, vector)
+	}
 	return nil
 }
 

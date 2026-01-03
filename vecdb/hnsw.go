@@ -116,7 +116,7 @@ func (h *HNSW[ID]) ColumnNames() []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if h.dim == 0 {
-		return nil
+		return copyStrings(h.columnNames)
 	}
 	if len(h.columnNames) == 0 {
 		return make([]string, h.dim)
@@ -132,6 +132,17 @@ func (h *HNSW[ID]) ColumnNames() []string {
 		return names
 	}
 	return copyStrings(h.columnNames)
+}
+
+// SetColumnNames replaces all associated column names, indexed by dimension (0-based).
+func (h *HNSW[ID]) SetColumnNames(names ...string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.columnNames = copyStrings(names)
+	if h.dim == 0 {
+		return nil
+	}
+	return h.normalizeColumnNamesLocked()
 }
 
 // SetColumnName sets the associated column name for the given dimension (0-based).
@@ -180,6 +191,40 @@ func (h *HNSW[ID]) Upsert(id ID, vector ...float32) error {
 		delete(h.index, id)
 	}
 	h.addLocked(id, vector)
+	return nil
+}
+
+// BatchUpsert inserts or updates multiple vectors. Updates are implemented as delete + add.
+func (h *HNSW[ID]) BatchUpsert(ids []ID, vectors [][]float32) error {
+	if len(ids) != len(vectors) {
+		return ErrBatchSizeMismatch
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	for _, vector := range vectors {
+		if len(vector) == 0 {
+			return ErrEmptyVector
+		}
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if err := h.ensureDimLocked(len(vectors[0])); err != nil {
+		return err
+	}
+	for _, vector := range vectors {
+		if len(vector) != h.dim {
+			return ErrDimMismatch
+		}
+	}
+	for i, id := range ids {
+		vector := vectors[i]
+		if idx, ok := h.index[id]; ok {
+			h.nodes[idx].deleted = true
+			delete(h.index, id)
+		}
+		h.addLocked(id, vector)
+	}
 	return nil
 }
 
