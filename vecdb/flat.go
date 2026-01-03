@@ -78,6 +78,30 @@ func (f *Flat[ID]) ColumnName(dim int) (string, bool) {
 	return name, true
 }
 
+// ColumnNames returns a copy of the associated column names, indexed by dimension (0-based).
+// Unset names are returned as empty strings.
+func (f *Flat[ID]) ColumnNames() []string {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	if f.dim == 0 {
+		return nil
+	}
+	if len(f.columnNames) == 0 {
+		return make([]string, f.dim)
+	}
+	if len(f.columnNames) < f.dim {
+		names := make([]string, f.dim)
+		copy(names, f.columnNames)
+		return names
+	}
+	if len(f.columnNames) > f.dim {
+		names := make([]string, f.dim)
+		copy(names, f.columnNames[:f.dim])
+		return names
+	}
+	return copyStrings(f.columnNames)
+}
+
 // SetColumnName sets the associated column name for the given dimension (0-based).
 func (f *Flat[ID]) SetColumnName(dim int, name string) error {
 	f.mu.Lock()

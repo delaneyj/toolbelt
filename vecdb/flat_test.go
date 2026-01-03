@@ -51,10 +51,14 @@ func TestFlatColumnName(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "title", name)
 
+	require.Equal(t, []string{"embedding", "title"}, idx.ColumnNames())
+
 	require.NoError(t, idx.SetColumnName(1, "text_embedding"))
 	name, ok = idx.ColumnName(1)
 	require.True(t, ok)
 	require.Equal(t, "text_embedding", name)
+
+	require.Equal(t, []string{"embedding", "text_embedding"}, idx.ColumnNames())
 }
 
 func TestFlatDimMismatch(t *testing.T) {

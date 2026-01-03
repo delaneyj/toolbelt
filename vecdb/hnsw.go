@@ -110,6 +110,30 @@ func (h *HNSW[ID]) ColumnName(dim int) (string, bool) {
 	return name, true
 }
 
+// ColumnNames returns a copy of the associated column names, indexed by dimension (0-based).
+// Unset names are returned as empty strings.
+func (h *HNSW[ID]) ColumnNames() []string {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	if h.dim == 0 {
+		return nil
+	}
+	if len(h.columnNames) == 0 {
+		return make([]string, h.dim)
+	}
+	if len(h.columnNames) < h.dim {
+		names := make([]string, h.dim)
+		copy(names, h.columnNames)
+		return names
+	}
+	if len(h.columnNames) > h.dim {
+		names := make([]string, h.dim)
+		copy(names, h.columnNames[:h.dim])
+		return names
+	}
+	return copyStrings(h.columnNames)
+}
+
 // SetColumnName sets the associated column name for the given dimension (0-based).
 func (h *HNSW[ID]) SetColumnName(dim int, name string) error {
 	h.mu.Lock()

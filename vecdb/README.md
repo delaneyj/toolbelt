@@ -46,7 +46,7 @@ API highlights
 - `Delete(id)` removes by id.
 - `Clear(keepCapacity)` removes all vectors, optionally keeping backing storage.
 - `Vector(id)` returns a copy of the vector.
-- `ColumnName(dim)` and `SetColumnName(dim, name)` get/set per-dimension column names (0-based).
+- `ColumnName(dim)`, `ColumnNames()`, and `SetColumnName(dim, name)` get/set per-dimension column names (0-based).
 - `Save(w, ...PersistOption)` and `Load(r, ...PersistOption)` persist and restore indices (HNSW includes graph structure).
 - `Search(k, vector...)` returns the k closest neighbors.
 - `SearchWithOptions(k, vectorSlice, ...SearchOption)` applies per-query options.

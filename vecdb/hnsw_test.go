@@ -49,10 +49,14 @@ func TestHNSWColumnName(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "title", name)
 
+	require.Equal(t, []string{"embedding", "title"}, idx.ColumnNames())
+
 	require.NoError(t, idx.SetColumnName(1, "title_embedding"))
 	name, ok = idx.ColumnName(1)
 	require.True(t, ok)
 	require.Equal(t, "title_embedding", name)
+
+	require.Equal(t, []string{"embedding", "title_embedding"}, idx.ColumnNames())
 }
 
 func TestHNSWDimMismatch(t *testing.T) {
