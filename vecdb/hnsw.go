@@ -28,8 +28,8 @@ type HNSW[ID comparable] struct {
 	maxLevel      int
 	nodes         []hnswNode[ID]
 	index         map[ID]int
-	candidatePool tb.Pool[[]candidate]
-	visitedPool   tb.Pool[map[int]struct{}]
+	candidatePool *tb.Pool[[]candidate]
+	visitedPool   *tb.Pool[map[int]struct{}]
 }
 
 type hnswNode[ID comparable] struct {
@@ -686,7 +686,7 @@ func (h *HNSW[ID]) getCandidates() []candidate {
 	return h.candidatePool.GetWithReset()
 }
 
-func newCandidatePool(capacity int) tb.Pool[[]candidate] {
+func newCandidatePool(capacity int) *tb.Pool[[]candidate] {
 	return tb.New(
 		func() []candidate { return make([]candidate, 0, capacity) },
 		tb.WithReset(func(c []candidate) []candidate {
@@ -698,7 +698,7 @@ func newCandidatePool(capacity int) tb.Pool[[]candidate] {
 	)
 }
 
-func newVisitedPool(capacity int) tb.Pool[map[int]struct{}] {
+func newVisitedPool(capacity int) *tb.Pool[map[int]struct{}] {
 	return tb.New(
 		func() map[int]struct{} { return make(map[int]struct{}, capacity) },
 		tb.WithReset(func(v map[int]struct{}) map[int]struct{} {

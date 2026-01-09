@@ -6,7 +6,7 @@ import (
 
 // A Pool is a generic wrapper around a sync.Pool.
 type Pool[T any] struct {
-	pool  sync.Pool
+	pool  *sync.Pool
 	newFn func() T
 	reset func(T) T
 }
@@ -14,17 +14,28 @@ type Pool[T any] struct {
 // New creates a new Pool with the provided new function.
 //
 // The equivalent sync.Pool construct is "sync.Pool{New: fn}"
-func New[T any](fn func() T, opts ...PoolOption[T]) Pool[T] {
-	p := Pool[T]{
-		pool:  sync.Pool{New: func() interface{} { return fn() }},
+func New[T any](fn func() T, opts ...PoolOption[T]) *Pool[T] {
+	p := &Pool[T]{
+		pool:  &sync.Pool{New: func() interface{} { return fn() }},
 		newFn: fn,
 	}
 	for _, opt := range opts {
 		if opt != nil {
-			opt(&p)
+			opt(p)
 		}
 	}
 	return p
+}
+
+func (p *Pool[T]) ensurePool() {
+	if p.pool != nil {
+		return
+	}
+	if p.newFn == nil {
+		p.pool = &sync.Pool{}
+		return
+	}
+	p.pool = &sync.Pool{New: func() interface{} { return p.newFn() }}
 }
 
 // PoolOption configures pool behavior.
@@ -39,6 +50,7 @@ func WithReset[T any](reset func(T) T) PoolOption[T] {
 
 // Get is a generic wrapper around sync.Pool's Get method.
 func (p *Pool[T]) Get() T {
+	p.ensurePool()
 	return p.pool.Get().(T)
 }
 
@@ -57,13 +69,14 @@ func (p *Pool[T]) Clear(keepCapacity bool) {
 		return
 	}
 	if p.newFn == nil {
-		p.pool = sync.Pool{}
+		p.pool = &sync.Pool{}
 		return
 	}
-	p.pool = sync.Pool{New: func() interface{} { return p.newFn() }}
+	p.pool = &sync.Pool{New: func() interface{} { return p.newFn() }}
 }
 
 // Put is a generic wrapper around sync.Pool's Put method.
 func (p *Pool[T]) Put(x T) {
+	p.ensurePool()
 	p.pool.Put(x)
 }
