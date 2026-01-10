@@ -35,6 +35,7 @@ require (
 require (
 	github.com/antithesishq/antithesis-sdk-go v0.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/go-chi/chi/v5 v5.2.3 // indirect
 	github.com/go-resty/resty/v2 v2.17.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/go-tpm v0.9.7 // indirect
