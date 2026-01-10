@@ -36,8 +36,12 @@ func NextID() int64 {
 }
 
 func NextEncodedID() string {
+	return EncodeID(NextID())
+}
+
+func EncodeID(id int64) string {
 	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(NextID()))
+	binary.LittleEndian.PutUint64(buf, uint64(id))
 	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf)
 }
 

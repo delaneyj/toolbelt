@@ -17,7 +17,7 @@ func TestEncodedIDToInt64(t *testing.T) {
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, uint64(value))
 
-	encoded := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf)
+	encoded := EncodeID(value)
 	got, err := EncodedIDToInt64(encoded)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -82,7 +82,7 @@ func TestChiParamEncodedID(t *testing.T) {
 	value := int64(2468)
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, uint64(value))
-	encoded := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf)
+	encoded := EncodeID(value)
 
 	r := requestWithParam("id", encoded)
 	got, err := ChiParamEncodedID(r, "id")
