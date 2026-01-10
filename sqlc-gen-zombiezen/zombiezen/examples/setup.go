@@ -12,13 +12,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/delaneyj/toolbelt"
+	toolbeltdb "github.com/delaneyj/toolbelt/db"
 )
 
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
-func SetupDB(ctx context.Context, dataFolder string, shouldClear bool) (*toolbelt.Database, error) {
+func SetupDB(ctx context.Context, dataFolder string, shouldClear bool) (*toolbeltdb.Database, error) {
 	migrationsDir := "migrations"
 	migrationsFiles, err := migrationsFS.ReadDir(migrationsDir)
 	if err != nil {
@@ -54,10 +54,10 @@ func SetupDB(ctx context.Context, dataFolder string, shouldClear bool) (*toolbel
 		}
 	}
 	dbFilename := filepath.Join(dbFolder, "examples.sqlite")
-	db, err := toolbelt.NewDatabase(
+	db, err := toolbeltdb.NewDatabase(
 		ctx,
-		toolbelt.DatabaseWithFilename(dbFilename),
-		toolbelt.DatabaseWithMigrations(migrations),
+		toolbeltdb.DatabaseWithFilename(dbFilename),
+		toolbeltdb.DatabaseWithMigrations(migrations),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %w", err)

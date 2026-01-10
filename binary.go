@@ -4,8 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-
-	"github.com/chewxy/math32"
+	"math"
 )
 
 // WriteUint8 writes v in little-endian order.
@@ -81,7 +80,7 @@ func ReadInt64(r io.Reader) (int64, error) {
 
 // WriteFloat32 writes v in little-endian IEEE 754 binary form.
 func WriteFloat32(w io.Writer, v float32) error {
-	return WriteUint32(w, math32.Float32bits(v))
+	return WriteUint32(w, math.Float32bits(v))
 }
 
 // ReadFloat32 reads a little-endian IEEE 754 float32.
@@ -90,7 +89,7 @@ func ReadFloat32(r io.Reader) (float32, error) {
 	if err != nil {
 		return 0, err
 	}
-	return math32.Float32frombits(u), nil
+	return math.Float32frombits(u), nil
 }
 
 // WriteString writes a length-prefixed string with a uint32 length.

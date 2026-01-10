@@ -45,7 +45,7 @@ import (
 //line crud.qtpl:10
 	if t.NeedsToolbelt {
 //line crud.qtpl:10
-		qw422016.N().S(`"github.com/delaneyj/toolbelt"`)
+		qw422016.N().S(`"github.com/delaneyj/toolbelt/db"`)
 //line crud.qtpl:10
 	}
 //line crud.qtpl:10
@@ -968,7 +968,7 @@ func streambindField(qw422016 *qt422016.Writer, f GenerateField, isNullable bool
 //line crud.qtpl:287
 		qw422016.N().D(f.Column)
 //line crud.qtpl:287
-		qw422016.N().S(`, toolbelt.TimeToJulianDay(`)
+		qw422016.N().S(`, db.TimeToJulianDay(`)
 //line crud.qtpl:287
 		if isNullable {
 //line crud.qtpl:287
@@ -1022,7 +1022,7 @@ func streambindField(qw422016 *qt422016.Writer, f GenerateField, isNullable bool
 //line crud.qtpl:292
 			qw422016.N().D(f.Column)
 //line crud.qtpl:292
-			qw422016.N().S(`, toolbelt.DurationToMilliseconds(`)
+			qw422016.N().S(`, db.DurationToMilliseconds(`)
 //line crud.qtpl:292
 			if isNullable {
 //line crud.qtpl:292
@@ -1256,7 +1256,7 @@ func streamfillResStructField(qw422016 *qt422016.Writer, f GenerateField, i int)
 //line crud.qtpl:334
 	case "time.Time":
 //line crud.qtpl:334
-		qw422016.N().S(`            toolbelt.JulianDayToTime(ps.stmt.Column`)
+		qw422016.N().S(`            db.JulianDayToTime(ps.stmt.Column`)
 //line crud.qtpl:335
 		qw422016.E().S(f.SQLType.Pascal)
 //line crud.qtpl:335
@@ -1269,7 +1269,7 @@ func streamfillResStructField(qw422016 *qt422016.Writer, f GenerateField, i int)
 //line crud.qtpl:336
 	case "time.Duration":
 //line crud.qtpl:336
-		qw422016.N().S(`            toolbelt.MillisecondsToDuration(ps.stmt.Column`)
+		qw422016.N().S(`            db.MillisecondsToDuration(ps.stmt.Column`)
 //line crud.qtpl:337
 		qw422016.E().S(f.SQLType.Pascal)
 //line crud.qtpl:337
@@ -1282,7 +1282,7 @@ func streamfillResStructField(qw422016 *qt422016.Writer, f GenerateField, i int)
 //line crud.qtpl:338
 	case "[]byte":
 //line crud.qtpl:338
-		qw422016.N().S(`            toolbelt.StmtBytesByCol(ps.stmt, `)
+		qw422016.N().S(`            db.StmtBytesByCol(ps.stmt, `)
 //line crud.qtpl:339
 		qw422016.N().D(i)
 //line crud.qtpl:339

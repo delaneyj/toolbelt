@@ -1,16 +1,13 @@
-package toolbelt
+package id
 
 import (
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/denisbrodbeck/machineid"
-	"github.com/go-chi/chi/v5"
 	"github.com/rzajac/zflake"
 	"github.com/zeebo/xxh3"
 )
@@ -55,14 +52,6 @@ func EncodedIDToInt64(s string) (int64, error) {
 		return 0, fmt.Errorf("encoded id must decode to 8 bytes, got %d", len(buf))
 	}
 	return int64(binary.LittleEndian.Uint64(buf)), nil
-}
-
-func ChiParamInt64(r *http.Request, name string) (int64, error) {
-	return strconv.ParseInt(chi.URLParam(r, name), 10, 64)
-}
-
-func ChiParamEncodedID(r *http.Request, name string) (int64, error) {
-	return EncodedIDToInt64(chi.URLParam(r, name))
 }
 
 func AliasHash(alias string) int64 {

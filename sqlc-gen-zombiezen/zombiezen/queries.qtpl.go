@@ -61,7 +61,7 @@ import (
 	if q.NeedsToolbelt {
 //line queries.qtpl:17
 		qw422016.N().S(`
-    "github.com/delaneyj/toolbelt"
+    "github.com/delaneyj/toolbelt/db"
 `)
 //line queries.qtpl:19
 	}
@@ -804,7 +804,7 @@ func streamfillResponseField(qw422016 *qt422016.Writer, f GenerateField) {
 //line queries.qtpl:254
 	case "time.Time":
 //line queries.qtpl:254
-		qw422016.N().S(`        toolbelt.JulianDayToTime(stmt.ColumnFloat(`)
+		qw422016.N().S(`        db.JulianDayToTime(stmt.ColumnFloat(`)
 //line queries.qtpl:255
 		qw422016.N().D(f.Offset)
 //line queries.qtpl:255
@@ -813,7 +813,7 @@ func streamfillResponseField(qw422016 *qt422016.Writer, f GenerateField) {
 //line queries.qtpl:256
 	case "time.Duration":
 //line queries.qtpl:256
-		qw422016.N().S(`        toolbelt.MillisecondsToDuration(stmt.ColumnInt64(`)
+		qw422016.N().S(`        db.MillisecondsToDuration(stmt.ColumnInt64(`)
 //line queries.qtpl:257
 		qw422016.N().D(f.Offset)
 //line queries.qtpl:257
@@ -822,7 +822,7 @@ func streamfillResponseField(qw422016 *qt422016.Writer, f GenerateField) {
 //line queries.qtpl:258
 	case "[]byte":
 //line queries.qtpl:258
-		qw422016.N().S(`        toolbelt.StmtBytesByCol(stmt, `)
+		qw422016.N().S(`        db.StmtBytesByCol(stmt, `)
 //line queries.qtpl:259
 		qw422016.N().D(f.Offset)
 //line queries.qtpl:259
@@ -1223,7 +1223,7 @@ func streambindValueWithExpr(qw422016 *qt422016.Writer, p GenerateField, value s
 //line queries.qtpl:348
 		qw422016.E().S(p.SQLType.Pascal)
 //line queries.qtpl:348
-		qw422016.N().S(`(bindIndex, toolbelt.TimeToJulianDay(`)
+		qw422016.N().S(`(bindIndex, db.TimeToJulianDay(`)
 //line queries.qtpl:348
 		qw422016.E().S(value)
 //line queries.qtpl:348
@@ -1247,7 +1247,7 @@ func streambindValueWithExpr(qw422016 *qt422016.Writer, p GenerateField, value s
 //line queries.qtpl:353
 			qw422016.E().S(p.SQLType.Pascal)
 //line queries.qtpl:353
-			qw422016.N().S(`(bindIndex, toolbelt.DurationToMilliseconds(`)
+			qw422016.N().S(`(bindIndex, db.DurationToMilliseconds(`)
 //line queries.qtpl:353
 			qw422016.E().S(value)
 //line queries.qtpl:353

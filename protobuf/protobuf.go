@@ -1,4 +1,4 @@
-package toolbelt
+package protobuf
 
 import (
 	"google.golang.org/protobuf/encoding/protojson"

@@ -1,4 +1,4 @@
-package toolbelt
+package db
 
 import (
 	"context"

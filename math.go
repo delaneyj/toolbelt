@@ -3,8 +3,6 @@ package toolbelt
 import (
 	"math"
 	"math/rand"
-
-	"github.com/chewxy/math32"
 )
 
 type Float interface {
@@ -41,7 +39,7 @@ func RoundFit01[T Float](x T, newMin T, newMax T) T {
 		f := float32(x)
 		nmin := float32(newMin)
 		nmax := float32(newMax)
-		return T(math32.Round(Fit01(f, nmin, nmax)))
+		return T(float32(math.Round(float64(Fit01(f, nmin, nmax)))))
 	case float64:
 		f := float64(x)
 		nmin := float64(newMin)

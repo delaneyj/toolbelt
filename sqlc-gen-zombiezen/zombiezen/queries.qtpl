@@ -15,7 +15,7 @@ import (
     "time"
     {%- endif %}
     {%- if q.NeedsToolbelt %}
-    "github.com/delaneyj/toolbelt"
+    "github.com/delaneyj/toolbelt/db"
     {%- endif %}
 )
 
@@ -252,11 +252,11 @@ func Once{%s q.Name.Pascal %}(
 {%- func fillResponseField(f GenerateField) -%}
 {%- switch f.GoType.Original -%}
     {%- case "time.Time" -%}
-        toolbelt.JulianDayToTime(stmt.ColumnFloat({%d f.Offset %}))
+        db.JulianDayToTime(stmt.ColumnFloat({%d f.Offset %}))
     {%- case "time.Duration" -%}
-        toolbelt.MillisecondsToDuration(stmt.ColumnInt64({%d f.Offset %}))
+        db.MillisecondsToDuration(stmt.ColumnInt64({%d f.Offset %}))
     {%- case "[]byte" -%}
-        toolbelt.StmtBytesByCol(stmt, {%d f.Offset %})
+        db.StmtBytesByCol(stmt, {%d f.Offset %})
     {%- default -%}
         stmt.Column{%s f.SQLType.Pascal %}({%d f.Offset %})
 {%- endswitch -%}
@@ -345,12 +345,12 @@ if !isSingle {
 {%- func bindValueWithExpr(p GenerateField, value string) -%}
 {%- switch p.BindGoType.Original -%}
     {%- case "time.Time" -%}
-        stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, toolbelt.TimeToJulianDay({%s value %}))
+        stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, db.TimeToJulianDay({%s value %}))
     {%- case "time.Duration" -%}
         {%- if p.DurationFromText -%}
         stmt.BindText(bindIndex, {%s value %}.String())
         {%- else -%}
-        stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, toolbelt.DurationToMilliseconds({%s value %}))
+        stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, db.DurationToMilliseconds({%s value %}))
         {%- endif -%}
     {%- default -%}
         stmt.Bind{%s p.SQLType.Pascal %}(bindIndex, {%s value %})

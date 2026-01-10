@@ -7,7 +7,7 @@ import (
     "fmt"
     {% if t.NeedsTimePackage %}"time"{% endif %}
     "zombiezen.com/go/sqlite"
-    {% if t.NeedsToolbelt %}"github.com/delaneyj/toolbelt"{% endif %}
+    {% if t.NeedsToolbelt %}"github.com/delaneyj/toolbelt/db"{% endif %}
 )
 
 type {%s t.SingleName.Pascal %}Model struct {
@@ -284,12 +284,12 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {%- func bindField(f GenerateField, isNullable bool) -%}
     ps.{%- switch f.GoType.Original -%}
         {%-  case "time.Time" -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, db.TimeToJulianDay({% if isNullable %}*{% endif %} m.{%s f.Name.Pascal %}))
         {%- case "time.Duration" -%}
             {%- if f.DurationFromText -%}
             stmt.BindText({%d f.Column %}, {% if isNullable %}(*{% endif %}m.{%s f.Name.Pascal %}{% if isNullable %}){% endif %}.String())
             {%- else -%}
-            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, toolbelt.DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
+            stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, db.DurationToMilliseconds({% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %}))
             {%- endif -%}
         {%- default -%}
             stmt.Bind{%s f.SQLType.Pascal %}({%d f.Column %}, {% if isNullable %}*{% endif %}m.{%s f.Name.Pascal %})
@@ -332,11 +332,11 @@ func OnceDelete{%s t.SingleName.Pascal %}(tx *sqlite.Conn, id int64) error {
 {%- func fillResStructField(f GenerateField, i int) -%}
     {%- switch f.GoType.Original -%}
         {%- case "time.Time" -%}
-            toolbelt.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            db.JulianDayToTime(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "time.Duration" -%}
-            toolbelt.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
+            db.MillisecondsToDuration(ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %}))
         {%- case "[]byte" -%}
-            toolbelt.StmtBytesByCol(ps.stmt, {%d i %})
+            db.StmtBytesByCol(ps.stmt, {%d i %})
         {%- default -%}
             ps.stmt.Column{%s f.SQLType.Pascal %}({%d i %})
     {%- endswitch -%}
