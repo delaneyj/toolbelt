@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+type CtxErrFunc func(ctx context.Context) error
+
 // Throttle will only allow the function to be called once every d duration.
 func Throttle(d time.Duration, fn CtxErrFunc) CtxErrFunc {
 	shouldWait := false
@@ -126,7 +128,7 @@ func DebounceWithMaxWait(waitTime time.Duration, maxWaitTime time.Duration, fn f
 		// First call in this burst
 		if firstCallAt.IsZero() {
 			firstCallAt = time.Now()
-			
+
 			// Start max wait timer
 			maxTimer = time.AfterFunc(maxWaitTime, execute)
 		}

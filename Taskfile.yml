@@ -3,11 +3,16 @@
 version: "3"
 
 vars:
-  VERSION: 0.9.0
+  VERSION: 0.9.1
   
 interval: 200ms
 
 tasks:
+  check:
+    desc: Type-check all packages without running tests
+    cmds:
+      - go test -run=^$ ./...
+
   libpub:
     cmds:
       - git push origin
